@@ -18,10 +18,9 @@ func _ready() -> void:
 	generate()
 
 func generate() -> void:
-	var st := SurfaceTool.new()
+	var st : SurfaceTool = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 
-	#st.set_normal(Vector3.UP)
 	st.set_color(Color(1, 0, 0, 1))
 
 	# Face 1

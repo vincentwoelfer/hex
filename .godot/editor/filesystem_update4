@@ -1,6 +1,3 @@
-res://dev-utility/HexConstantsModifier.gd
 res://src/HexConstants.gd
-res://src/EventBus.gd
 res://src/HexGeometry.gd
-res://scenes/HexGeometry.tscn
-res://src/GenerateMap.gd
+res://src/HexDirection.gd

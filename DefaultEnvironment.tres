@@ -1,0 +1,13 @@
+[gd_resource type="Environment" format=3 uid="uid://cnhvdutmpoe5p"]
+
+[resource]
+resource_name = "DefaultEnvironment"
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.35
+sdfgi_use_occlusion = true
+fog_light_color = Color(0.45098, 0.568627, 0.654902, 1)
+fog_light_energy = 1.5
+fog_density = 0.02
+fog_height = 2.5
+fog_height_density = 0.3
