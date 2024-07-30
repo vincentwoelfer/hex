@@ -2,17 +2,7 @@
 class_name HexGeometry
 extends Node3D
 
-# @export_range(0.5, 5, 0.5) var width: float = 1.0:
-# 	set(value):
-# 		regenerate = true
-# 		width = value
-# @export_range(0.5, 5, 0.5) var height: float = 1.0:
-# 	set(value):
-# 		regenerate = true
-# 		height = value
-
 # Class variables
-#var regenerate: bool = false
 var terrainMesh: MeshInstance3D
 
 func _init() -> void:
@@ -23,9 +13,11 @@ func _init() -> void:
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	HexConstants.regenerate = true
-	
-func create_mesh() -> ArrayMesh:
+	EventBus.Signal_HexConstantsChanged.connect(generate)
+
+	generate()
+
+func generate() -> void:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 
@@ -41,16 +33,13 @@ func create_mesh() -> ArrayMesh:
 	#st.index()
 
 	st.generate_normals()
-	var mesh := st.commit()
+	terrainMesh.mesh = st.commit()
 
 	# Only for statistics output
 	var mdt := MeshDataTool.new()
-	mdt.create_from_surface(mesh, 0)
+	mdt.create_from_surface(terrainMesh.mesh as ArrayMesh, 0)
 	print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
 
-	return mesh
 
 func _process(delta: float) -> void:
-	if Engine.is_editor_hint() and HexConstants.regenerate:
-		HexConstants.regenerate = false
-		terrainMesh.mesh = create_mesh()
+	pass
