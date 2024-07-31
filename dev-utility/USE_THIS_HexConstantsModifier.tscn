@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dfndyapevvb2g"]
 
-[ext_resource type="Script" path="res://dev-utility/HexConstantsModifier.gd" id="1_sf21v"]
+[ext_resource type="Script" path="res://dev-utility/HexConstModifier.gd" id="1_sf21v"]
 
-[node name="HexConstantsModifier" type="Node"]
+[node name="HexConstModifier" type="Node"]
 script = ExtResource("1_sf21v")

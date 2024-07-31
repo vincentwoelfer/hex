@@ -1,4 +1,4 @@
-class_name HexDirection
+class_name HexDir
 
 enum {	
 	NW = 0,

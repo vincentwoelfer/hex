@@ -10,7 +10,7 @@ extends Node
 # Also known as "size"
 var outer_radius: float = 3.0
 
-# Radius of the workable core area.
+# Radius of the workable Regular area.
 # Must be smaller than outer_radius * 0.86 (size of largest circle in outer hex)
 var inner_radius: float = 2.0
 
@@ -35,16 +35,20 @@ func horizontal_size() -> float:
 func vertical_size() -> float:
     return sqrt(3.0) * outer_radius
 
-# Distance from center to the closest point of the sides.
-func outer_circle_radius() -> float:
+# Distance from center to the closest point of the sides of the outer_radius
+func outer_radius_interior_circle() -> float:
     # = outer_radius * 0.86
     return outer_radius * sqrt(3.0) / 2.0
 
-func transition_height(adjacent: int) -> float:
-    var f:= adjacent as float
+# Distance from center to the closest point of the sides of the inner_radius
+func inner_radius_interior_circle() -> float:
+    # = innter_radius * 0.86
+    return inner_radius * sqrt(3.0) / 2.0
+
+func transition_height(adjacent: float) -> float:
     if adjacent < 0.0:
-        return height * (1.0 - transition_height_factor) * f
+        return height * (1.0 - transition_height_factor) * adjacent
     elif adjacent > 0.0:
-        return height * transition_height_factor * f
+        return height * transition_height_factor * adjacent
     else:
         return 0.0
