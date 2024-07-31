@@ -1,4 +1,3 @@
-@tool
 extends Camera3D
 
 var debugSphere: MeshInstance3D
@@ -15,6 +14,8 @@ func draw_debug_sphere(location: Vector3, r: float) -> void:
 	# Bright red material (unshaded).
 	var material := StandardMaterial3D.new()
 	material.albedo_color = Color(1, 0, 0)
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+
 	sphere.surface_set_material(0, material)
 
 	# Add to meshinstance in the right place.
@@ -26,21 +27,21 @@ func draw_debug_sphere(location: Vector3, r: float) -> void:
 	debugSphere.global_transform.origin = location
 
 # Export parameters
-var horizontalDistance : float = 6.0
-var height : float = 6.0
-var zoom : float = 1.0
-var zoomTarget : float = 1.0
+var horizontalDistance: float = 6.0
+var height: float = 3.0
+var zoom: float = 1.0
+var zoomTarget: float = 1.0
 
-var lookAtPoint : Vector3
-var followPoint : Vector3
+var lookAtPoint: Vector3
+var followPoint: Vector3
 # = target, also used for movement
-var orientation : int = 1
+var orientation: int = 1
 # current rotation in angle
-var currRotation : float = 0
+var currRotation: float = 0
 
-var speed : float = 11
-var rotationLerpSpeed : float = 7.0
-var lerpSpeed : float = 8.0 # almost instant
+var speed: float = 11
+var rotationLerpSpeed: float = 7.0
+var lerpSpeed: float = 8.0 # almost instant
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -58,7 +59,7 @@ func _input(event: InputEvent) -> void:
 		zoomTarget -= 0.25
 	if Input.is_action_pressed("zoom_cam_backward"):
 		zoomTarget += 0.25
-	zoomTarget = clampf(zoomTarget, 0.4, 1.8)
+	zoomTarget = clampf(zoomTarget, 0.05, 2.0)
 
 func getInputVec() -> Vector3:
 	var inputDir := Vector3.ZERO
@@ -79,10 +80,10 @@ func _process(delta: float) -> void:
 
 	# Default Orientation = 1 -> Forward = -Z , this is archived with 90° into sin/cos
 	# Thats why we subtract 90°
-	var forwardAngle := deg_to_rad((60.0 * orientation + 30.0) - 90) # Actually forwars
+	var forwardAngle := deg_to_rad((60.0 * orientation + 30.0) - 90.0) # Actually forwars
 
 	currRotation = lerp_angle(currRotation, forwardAngle, rotationLerpSpeed * delta)
-	var forwardDir := Vector3(0,0,-1).rotated(Vector3.UP, currRotation) # not actually forward, lerps
+	var forwardDir := Vector3(0, 0, -1).rotated(Vector3.UP, currRotation) # not actually forward, lerps
 
 	var inputDirRaw := getInputVec()
 	var inputDir := inputDirRaw.rotated(Vector3.UP, forwardAngle)
@@ -92,7 +93,7 @@ func _process(delta: float) -> void:
 	lookAtPoint.x = lerpf(lookAtPoint.x, followPoint.x, lerpSpeed * delta)
 	lookAtPoint.z = lerpf(lookAtPoint.z, followPoint.z, lerpSpeed * delta)
 
-	draw_debug_sphere(lookAtPoint, 0.2)	
+	draw_debug_sphere(lookAtPoint, maxf(zoomTarget * 0.25, 0.025))
 
 	# Camera position
 	var camPos := lookAtPoint

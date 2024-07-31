@@ -40,6 +40,11 @@ func outer_circle_radius() -> float:
     # = outer_radius * 0.86
     return outer_radius * sqrt(3.0) / 2.0
 
-func transition_height() -> float:
-    return height * transition_height_factor
-
+func transition_height(adjacent: int) -> float:
+    var f:= adjacent as float
+    if adjacent < 0.0:
+        return height * (1.0 - transition_height_factor) * f
+    elif adjacent > 0.0:
+        return height * transition_height_factor * f
+    else:
+        return 0.0

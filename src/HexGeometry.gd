@@ -6,7 +6,7 @@ extends Node3D
 var terrainMesh: MeshInstance3D
 
 # Input
-@export var adjacent: Array[int] = [1, 1, 0, -1, -1, -1]
+@export var adjacent: Array[int] = [1, 1, 0, 0, -1, -1]
 
 func _init() -> void:
 	terrainMesh = MeshInstance3D.new()
@@ -37,21 +37,23 @@ func generate() -> void:
 
 	# Adjust height of outer vertices according do adjacent tiles
 	for corner_dir in HexDirection.values():
-		var a:= adjacent[HexDirection.prev(corner_dir)] * HexConstants.transition_height()
-		var b:= adjacent[corner_dir] * HexConstants.transition_height()
+		var a:= HexConstants.transition_height(adjacent[HexDirection.prev(corner_dir)])
+		var b:= HexConstants.transition_height(adjacent[corner_dir])
 		vertsOuter[corner_dir].y = (a + b) / 2.0
 
 	# Inner Hex Surface
-	addTri(st, vertsInner[0], vertsInner[1], vertsInner[5], Utility.randColor())
-	addTri(st, vertsInner[1], vertsInner[2], vertsInner[5], Utility.randColor())
-	addTri(st, vertsInner[2], vertsInner[4], vertsInner[5], Utility.randColor())
-	addTri(st, vertsInner[2], vertsInner[3], vertsInner[4], Utility.randColor())
+	var c := Utility.randColor()
+	addTri(st, vertsInner[0], vertsInner[1], vertsInner[5], c.darkened(0.0))
+	addTri(st, vertsInner[1], vertsInner[2], vertsInner[5], c.darkened(0.1))
+	addTri(st, vertsInner[2], vertsInner[4], vertsInner[5], c.darkened(0.2))
+	addTri(st, vertsInner[2], vertsInner[3], vertsInner[4], c.darkened(0.3))
 
 	# Connection Inner <-> Outer
 	for curr in HexDirection.values():
 		var next := HexDirection.next(curr)
-		addTri(st, vertsOuter[next], vertsInner[next], vertsInner[curr], Utility.randColor())
-		addTri(st, vertsOuter[next], vertsInner[curr], vertsOuter[curr], Utility.randColor())
+		c = Utility.randColor().darkened(0.2)
+		addTri(st, vertsOuter[next], vertsInner[next], vertsInner[curr], c)
+		addTri(st, vertsOuter[next], vertsInner[curr], vertsOuter[curr], c.darkened(0.3))
 
 	#########################################
 	# Removes duplicates -> may mess up colors by merging vertices
@@ -59,7 +61,7 @@ func generate() -> void:
 
 	st.generate_normals()
 	terrainMesh.mesh = st.commit()
-	#terrainMesh.create_debug_tangents()
+	terrainMesh.create_debug_tangents()
 
 	# Only for statistics output
 	var mdt := MeshDataTool.new()
