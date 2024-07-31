@@ -10,12 +10,12 @@ extends Node
 # Also known as "size"
 var outer_radius: float = 3.0
 
-# Radius of the workable core area. Must be smaller than inner_radius 
-# => smaller than outer_radius * 0.86
-var core_radius: float = 2.0
+# Radius of the workable core area.
+# Must be smaller than outer_radius * 0.86 (size of largest circle in outer hex)
+var inner_radius: float = 2.0
 
 # Height of one hex cell
-var height: float = 4.0
+var height: float = 2.0
 
 # Transition points are at height * this factor above zero.
 # 0.5 = in the middle
@@ -36,9 +36,10 @@ func vertical_size() -> float:
     return sqrt(3.0) * outer_radius
 
 # Distance from center to the closest point of the sides.
-func inner_radius() -> float:
+func outer_circle_radius() -> float:
     # = outer_radius * 0.86
     return outer_radius * sqrt(3.0) / 2.0
 
 func transition_height() -> float:
     return height * transition_height_factor
+

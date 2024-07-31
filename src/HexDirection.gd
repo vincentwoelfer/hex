@@ -1,12 +1,12 @@
 class_name HexDirection
 
 enum {	
-	NE = 0,
-	SE = 1,
-	S = 2,
-	SW = 3,
-	NW = 4,
-	N = 5
+	NW = 0,
+	N = 1,
+	NE = 2,
+	SE = 3,
+	S = 4,
+	SW = 5
 }
 
 # Next = Right = Clockwise
@@ -20,5 +20,5 @@ static func prev(dir : int) -> int:
 static func opposite(dir : int) -> int:
 	return (dir + 3) % 6
 
-static func values() -> Array:
-	return [NE, SE, S, SW, NW, N]
+static func values() -> Array[int]:
+	return [NW, N, NE, SE, S, SW]
