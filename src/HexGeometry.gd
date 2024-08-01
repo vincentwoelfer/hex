@@ -62,9 +62,9 @@ func generate() -> void:
 	#var c := Utility.randColor()
 	var c := Color.FOREST_GREEN
 	addTri(st, vertsInner[0], vertsInner[1], vertsInner[5], c.darkened(0.0))
-	addTri(st, vertsInner[1], vertsInner[2], vertsInner[5], c.darkened(0.1))
-	addTri(st, vertsInner[2], vertsInner[4], vertsInner[5], c.darkened(0.2))
-	addTri(st, vertsInner[2], vertsInner[3], vertsInner[4], c.darkened(0.3))
+	addTri(st, vertsInner[1], vertsInner[2], vertsInner[5], c.darkened(0.0))
+	addTri(st, vertsInner[2], vertsInner[4], vertsInner[5], c.darkened(0.0))
+	addTri(st, vertsInner[2], vertsInner[3], vertsInner[4], c.darkened(0.0))
 
 	# Connection Inner <-> Outer for each HexDirection
 	for curr in HexDir.values():
@@ -91,7 +91,7 @@ func generate() -> void:
 
 	st.generate_normals()
 	terrainMesh.mesh = st.commit()
-	terrainMesh.create_debug_tangents()
+	#terrainMesh.create_debug_tangents()
 
 	# Only for statistics output
 	var mdt := MeshDataTool.new()

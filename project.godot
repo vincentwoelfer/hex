@@ -13,7 +13,10 @@ config_version=5
 config/name="hex"
 run/main_scene="res://scenes/TestScene.tscn"
 config/features=PackedStringArray("4.2", "Forward Plus")
-config/icon="res://icon.svg"
+run/max_fps=160
+boot_splash/show_image=false
+boot_splash/image="res://splash.png"
+config/icon="res://icon.png"
 
 [autoload]
 
