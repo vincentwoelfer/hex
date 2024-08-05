@@ -8,9 +8,20 @@ static func getHexCorner(r: float, dir: int) -> Vector3:
 	var angle := deg_to_rad(60.0 * dir)
 	return Vector3(r * cos(angle), 0.0, r * sin(angle))
 
+static func getSmoothedHexRadius(r: float, angle: float, smooth_strength: float) -> float:
+	# Example: 0 -> r
+	#         30 -> r_max_smoothed (= r * sqrt(3.0) / 2.0)
+	#         60 -> r
+	var r_max_smoothed: float = lerp(r, r * sqrt(3.0) / 2.0, smooth_strength)
+	
+	angle = fmod(angle, 60)
+	var factor: float = abs((angle - 30.0) / 30.0)
+	return lerp(r_max_smoothed, r, factor)
+	
+
 # Compute 6 Vector3 points in each direction with radius r
 static func getRegularHexCornerArray(r: float) -> Array[Vector3]:
-	var array : Array[Vector3] = []
+	var array: Array[Vector3] = []
 	for dir in HexDir.values():
 		array.append(getHexCorner(r, dir))
 	return array
@@ -43,7 +54,7 @@ static func getTransitionHexCorners(r_inner: float, r_outer: float, dir: int) ->
 
 # Returns a nested array with 6 x 3 Vector points for the outer transition points
 static func getTransitionHexCornersArray(r_inner: float, r_outer: float) -> Array[TransitionHexCorners]:
-	var array : Array[TransitionHexCorners] = []
+	var array: Array[TransitionHexCorners] = []
 	for dir in HexDir.values():
 		array.append(getTransitionHexCorners(r_inner, r_outer, dir))
 	return array

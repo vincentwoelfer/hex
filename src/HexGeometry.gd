@@ -86,7 +86,7 @@ func generate() -> void:
 
 		
 	#########################################
-	# Removes duplicates -> may mess up colors by merging vertices
+	# Removes duplicates. Use later to not mask real number of vertices
 	#st.index()
 
 	st.generate_normals()

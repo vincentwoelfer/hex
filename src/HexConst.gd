@@ -22,6 +22,11 @@ var height: float = 2.0
 # 0.1 = almost above ground | reaching down a lot
 var transition_height_factor: float = 0.75
 
+# Between 0 (hard hexagon) and 1 (circle)
+var core_circle_smooth_strengh := 0.5
+
+var num_vertices_per_side_core := 4
+
 
 # ========================================================
 # ==================== Derived values ====================
@@ -42,7 +47,7 @@ func outer_radius_interior_circle() -> float:
 
 # Distance from center to the closest point of the sides of the inner_radius
 func inner_radius_interior_circle() -> float:
-    # = innter_radius * 0.86
+    # = inner_radius * 0.86
     return inner_radius * sqrt(3.0) / 2.0
 
 func transition_height(adjacent: float) -> float:
