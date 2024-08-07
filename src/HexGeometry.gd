@@ -19,7 +19,6 @@ func _init() -> void:
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	EventBus.Signal_HexConstChanged.connect(generate)
-
 	generate()
 
 func generate() -> void:
@@ -81,12 +80,11 @@ func generate() -> void:
 		c = Color.DARK_GRAY
 		# Two triangles between inner point, outer center point and outer left/right
 		addTri(st, vertsInner[corner_dir], vertsOuter[corner_dir].left, vertsOuter[corner_dir].center, c)
-
 		addTri(st, vertsInner[corner_dir], vertsOuter[corner_dir].center, vertsOuter[corner_dir].right, c.darkened(0.3))
 
 		
 	#########################################
-	# Removes duplicates. Use later to not mask real number of vertices
+	# Removes duplicates. Only use later to not mask real number of vertices
 	#st.index()
 
 	st.generate_normals()
@@ -105,6 +103,6 @@ func addTri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, color: Color) -
 	st.add_vertex(b)
 	st.add_vertex(c)
 
-
-func _process(delta: float) -> void:
-	pass
+func addQuad(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3, color: Color, darken: float = 0.0) -> void:
+	addTri(st, a, b, c, color)
+	addTri(st, a, c, d, color.darkened(darken))
