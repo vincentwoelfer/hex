@@ -34,6 +34,12 @@ func generate() -> void:
 	var verts_inner := Utility.generateFullHexagonNoCorners(HexConst.inner_radius, HexConst.extra_verts_per_side, HexConst.core_circle_smooth_strength)
 	var verts_outer := Utility.generateFullHexagonWithCorners(HexConst.inner_radius, HexConst.outer_radius, HexConst.extra_verts_per_side)
 
+	for i in range(verts_inner.size()):
+		var h_var := 0.05
+		verts_inner[i].y += clamp(randfn(0.0, HexConst.height * h_var), HexConst.height * -h_var, HexConst.height * h_var)
+		verts_inner[i] += Utility.randCircularOffset(HexConst.inner_radius * 0.04)
+		
+
 	# Adjust height of outer vertices according do adjacent tiles.
 	# We do this per corner!
 	for i in range(verts_outer.size()):
@@ -118,12 +124,8 @@ func generate() -> void:
 			all_inner = false
 			c = verts_outer[indices[i + 2] - verts_inner.size()]
 
-		# var a: Vector3 = verts_inner[indices[i]] if i <= verts_inner.size() else verts_outer[indices[i - verts_inner.size()]]
-		# var b: Vector3 = verts_inner[indices[i+1]] if i+1 <= verts_inner.size() else verts_outer[indices[i+1 - verts_inner.size()]]
-		# var c: Vector3 = verts_inner[indices[i+2]] if i+2 <= verts_inner.size() else verts_outer[indices[i+2 - verts_inner.size()]]
-
 		if all_inner:
-			addTri(st, a, b, c, Utility.randColorVariation(Color.FOREST_GREEN))
+			addTri(st, a, b, c, Color.FOREST_GREEN)
 		else:
 			addTri(st, a, b, c, Utility.randColorVariation(Color.ORCHID))
 
