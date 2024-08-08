@@ -33,17 +33,6 @@ static func getHexVertex(r: float, angle: float, smooth_strength: float = 0.0) -
 	return vec3FromRadiusAngle(getHexRadius(r, angle, smooth_strength), angle)
 	
 
-static func generateHexagonVertices(r: float, extra_verts_per_side: int, smooth_strength: float) -> Array[Vector3]:
-	var total_verts: int = 6 * (1 + extra_verts_per_side)
-	var angle_step: float = 2.0 * PI / total_verts
-	var array: Array[Vector3] = []
-
-	for i in range(total_verts):
-		var angle := i * angle_step
-		array.append(getHexVertex(r, angle))
-	return array
-
-
 # ToDo: 
 # - generate 6x 3 corner vertices
 # - fill array with 3 corner vertices, generate extra_verts_per_side verts and append next corner
@@ -79,6 +68,24 @@ static func getThreeHexCornerVertices(r_inner: float, r_outer: float, angle: flo
 	return [left, outer_corner, right]
 
 
+static func generateFullHexagon(r: float, extra_verts_per_side: int, smooth_strength: float) -> Array[Vector3]:
+	var total_verts: int = 6 * (1 + extra_verts_per_side)
+	var angle_step: float = 2.0 * PI / total_verts
+	var array: Array[Vector3] = []
+
+	for i in range(total_verts):
+		var angle := i * angle_step
+		array.append(getHexVertex(r, angle))
+	return array
+
+
+static func toVec2(v: Vector3) -> Vector2:
+	return Vector2(v.x, v.z)
+	
+
+static func toVec3(v: Vector2) -> Vector3:
+	return Vector3(v.x, 0.0, v.y)
+
 ###############################
 class Triangle:
 	var a: Vector3
@@ -91,7 +98,7 @@ class Triangle:
 		self.c = c
 
 		assert(a != b and a != c and b != c, "Triangle points must be different")
-		assert(Geometry2D.is_polygon_clockwise(PackedVector2Array([Vector2(a.x, a.z), Vector2(b.x, b.z), Vector2(c.x, c.z)])), "Triangle points must be clockwise!")
+		assert(Geometry2D.is_polygon_clockwise(PackedVector2Array([Utility.toVec2(a), Utility.toVec2(b), Utility.toVec2(c)])), "Triangle points must be clockwise!")
 
 	func getArea() -> float:
 		return 0.5 * (b - a).cross(c - a).length()
