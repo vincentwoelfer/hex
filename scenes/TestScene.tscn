@@ -4,13 +4,9 @@
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://DefaultEnvironment.tres" id="1_q837e"]
 [ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://CameraAttributes.tres" id="2_r1ofj"]
 [ext_resource type="Script" path="res://src/CameraController.gd" id="3_cipar"]
-[ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://dev-utility/USE_THIS_HexConstantsModifier.tscn" id="5_60mju"]
+[ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://dev-utility/USE_THIS_HexConstantsModifier.tscn" id="5_qfd1n"]
 
 [node name="TestScene" type="Node3D"]
-
-[node name="HexGeometry" parent="." instance=ExtResource("1_k0a56")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -4, 0)
-adjacent = Array[int]([2, 2, 0, 0, -1, 1])
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = ExtResource("1_q837e")
@@ -26,16 +22,14 @@ script = ExtResource("3_cipar")
 transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 7, 0)
 shadow_enabled = true
 
-[node name="HexConstModifier" parent="." instance=ExtResource("5_60mju")]
-outer_radius = 2.5
-inner_radius = 2.3
-height = 2.0
+[node name="HexGeometry" parent="." instance=ExtResource("1_k0a56")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -4, 0)
+adjacent = Array[int]([2, 2, 0, 0, -1, 1])
+
+[node name="HexConstModifier" parent="." instance=ExtResource("5_qfd1n")]
+outer_radius = 3.0
+inner_radius = 2.0
+height = 1.0
 transition_height_factor = 0.5
-
-[node name="HexGeometry2" parent="." instance=ExtResource("1_k0a56")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.75, 0, 2.165)
-adjacent = Array[int]([1, 1, 0, -2, -1, -1])
-
-[node name="HexGeometry3" parent="." instance=ExtResource("1_k0a56")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.75, -2, -2.165)
-adjacent = Array[int]([0, 1, -1, 0, 0, 0])
+core_circle_smooth_strength = 0.5
+extra_verts_per_side = 4

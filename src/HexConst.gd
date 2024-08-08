@@ -15,17 +15,18 @@ var outer_radius: float = 3.0
 var inner_radius: float = 2.0
 
 # Height of one hex cell
-var height: float = 2.0
+var height: float = 1.0
 
 # Transition points are at height * this factor above zero.
 # 0.5 = in the middle
 # 0.1 = almost above ground | reaching down a lot
-var transition_height_factor: float = 0.75
+var transition_height_factor: float = 0.5
 
 # Between 0 (hard hexagon) and 1 (circle)
-var core_circle_smooth_strengh := 0.5
+var core_circle_smooth_strength := 0.5
 
-var num_vertices_per_side_core := 4
+# Extra vertices per hexagon size
+var extra_verts_per_side := 1
 
 
 # ========================================================
