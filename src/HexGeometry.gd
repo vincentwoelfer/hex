@@ -51,7 +51,7 @@ func generate() -> void:
 	# 	var height_left := HexConst.transition_height(left_adjacent)
 	# 	var height_right := HexConst.transition_height(right_adjacent)
 
-	# 	# Lake left as reference and compute from that perspective
+	# 	# Take left as reference and compute from that perspective
 	# 	var left_to_right_adjacent := right_adjacent - left_adjacent
 	# 	var height_from_left_to_right := HexConst.transition_height(left_to_right_adjacent)
 
