@@ -10,11 +10,12 @@ static func randColor() -> Color:
 	return Color(randf_range(0.1, 0.9), randf_range(0.1, 0.9), randf_range(0.1, 0.9), 1.0)
 
 
-static func randColorVariation(color: Color, variation: float = 0.2) -> Color:	
+static func randColorVariation(color: Color, variation: float = 0.2) -> Color:
 	return color + Color(randf_range(-variation, variation), randf_range(-variation, variation), randf_range(-variation, variation), 0.0)
 
 
 static func getDistincHexColor(i: int) -> Color:
+	assert(i >= 0 and i <= 5)
 	if i == 0: return Color.ORANGE
 	if i == 1: return Color.DARK_MAGENTA
 	if i == 2: return Color.DARK_GREEN
@@ -27,7 +28,7 @@ static func vec3FromRadiusAngle(r: float, angle: float) -> Vector3:
 	return Vector3(r * cos(angle), 0.0, r * sin(angle))
 
 
-static func angleToVec3(v: Vector3) -> float:
+static func getAngleToVec3(v: Vector3) -> float:
 	return Vector2(v.x, v.z).angle()
 
 

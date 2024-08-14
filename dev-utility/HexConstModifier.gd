@@ -38,3 +38,9 @@ extends Node
 		extra_verts_per_side = value
 		HexConst.extra_verts_per_side = value
 		EventBus.emit_signal("Signal_HexConstChanged")
+
+@export_range(0, 10, 1) var extra_verts_per_center: int = HexConst.extra_verts_per_center:
+	set(value):
+		extra_verts_per_center = value
+		HexConst.extra_verts_per_center = value
+		EventBus.emit_signal("Signal_HexConstChanged")

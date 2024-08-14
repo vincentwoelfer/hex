@@ -25,8 +25,11 @@ var transition_height_factor: float = 0.5
 # Between 0 (hard hexagon) and 1 (circle)
 var core_circle_smooth_strength := 0.5
 
-# Extra vertices per hexagon size
+# Extra vertices per hexagon side
 var extra_verts_per_side := 1
+
+# Extra vertices per hexagon center
+var extra_verts_per_center := 0
 
 
 # ========================================================
