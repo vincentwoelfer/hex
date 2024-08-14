@@ -125,28 +125,3 @@ static func toVec2(v: Vector3) -> Vector2:
 static func toVec3(v: Vector2) -> Vector3:
 	return Vector3(v.x, 0.0, v.y)
 
-###############################
-class Triangle:
-	var a: Vector3
-	var b: Vector3
-	var c: Vector3
-
-	func _init(a_: Vector3, b_: Vector3, c_: Vector3) -> void:
-		self.a = a
-		self.b = b
-		self.c = c
-
-		assert(a != b and a != c and b != c, "Triangle points must be different")
-		assert(Geometry2D.is_polygon_clockwise(PackedVector2Array([Utility.toVec2(a), Utility.toVec2(b), Utility.toVec2(c)])), "Triangle points must be clockwise!")
-
-	func getArea() -> float:
-		return 0.5 * (b - a).cross(c - a).length()
-
-	func getRandPoint() -> Vector3:
-		var u: float = randf()
-		var v: float = randf()
-		if u + v > 1.0:
-			u = 1.0 - u
-			v = 1.0 - v
-		var w: float = 1.0 - u - v
-		return a * u + b * v + c * w
