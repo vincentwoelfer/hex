@@ -53,7 +53,7 @@ func generateTriangles() -> void:
 
 	# Adjust height of inner ring
 	for i in range(verts_inner.size()):
-		var h_var := 0.00 # 0.05
+		var h_var := 0.04
 		verts_inner[i].y += clamp(randfn(0.0, HexConst.height * h_var), HexConst.height * -h_var, HexConst.height * h_var)
 		verts_inner[i] += Utility.randCircularOffset(HexConst.inner_radius * 0.04)
 		
@@ -65,8 +65,7 @@ func generateTriangles() -> void:
 	#########################################
 	# Triangles for inner Hex Surface
 	#########################################
-	var col := Utility.randColor()
-	#var col := Color.FOREST_GREEN
+	var col := Color.FOREST_GREEN
 
 	# Generate PackedVec2Array
 	var verts_inner_packed: PackedVector2Array = []
@@ -78,38 +77,34 @@ func generateTriangles() -> void:
 		var i1 := indices[i]
 		var i2 := indices[i + 1]
 		var i3 := indices[i + 2]
-		triangles.append(Triangle.new(verts_inner[i1], verts_inner[i2], verts_inner[i3], Utility.randColorVariation(col)))
+		triangles.append(Triangle.new(verts_inner[i1], verts_inner[i2], verts_inner[i3], Utility.randColorVariation(col, 0.05)))
 
 	#########################################
 	# Triangles for outer Hex Surface
 	#########################################
-	var i := 0
-	var j := 0
-	var n1 := verts_inner.size()
-	var n2 := verts_outer.size()
 
-	col = Utility.randColor()
-	while i < n1 or j < n2:
-		if j == n2 or (i < n1 and (i + 1) % n1 <= (j + 1) % n2):
-			triangles.append(Triangle.new(verts_inner[i % n1], verts_outer[j % n2], verts_inner[(i + 1) % n1], Utility.randColorVariation(col)))
-			i += 1
-		else:
-			triangles.append(Triangle.new(verts_inner[i % n1], verts_outer[j % n2], verts_outer[(j + 1) % n2], Utility.randColorVariation(col)))
-			j += 1
+	# Per Side
+	var size_inner := verts_inner.size()
+	var size_outer := verts_outer.size()
 
-	# # Connection Inner <-> Outer for each HexDirection
-	# for curr in HexDir.values():
-	# 	var next := HexDir.next(curr)
-	# 	#c = Utility.randColor().darkened(0.2)
-	# 	c = Color.WEB_GRAY
-	# 	# Two triangles directly between hexes
-	# 	addTri(st, verts_outer[next].left, verts_inner[next], verts_inner[curr], c)
-	# 	addTri(st, verts_outer[next].left, verts_inner[curr], verts_outer[curr].right, c.darkened(0.3))
+	for x in range(6):
+		col = Utility.getDistincHexColor(x)
 
-	# # Connection for corner area for each hex corner direction
-	# for corner_dir in HexDir.values():
-	# 	#c = Utility.randColor().darkened(0.2)
-	# 	c = Color.DARK_GRAY
-	# 	# Two triangles between inner point, outer center point and outer left/right
-	# 	addTri(st, verts_inner[corner_dir], verts_outer[corner_dir].left, verts_outer[corner_dir].center, c)
-	# 	addTri(st, verts_inner[corner_dir], verts_outer[corner_dir].center, verts_outer[corner_dir].right, c.darkened(0.3))
+		# start inner
+		var i := x * (1 + HexConst.extra_verts_per_side)
+		# start outer
+		var j := x * (3 + HexConst.extra_verts_per_side)
+
+		# end inner
+		var n1 := i + 1 + HexConst.extra_verts_per_side
+		# end outer
+		var n2 := j + 3 + HexConst.extra_verts_per_side
+		
+		while i < n1 or j < n2:
+			if j == n2 or (i < n1 and Utility.angleToVec3(verts_inner[i % size_inner]) <= Utility.angleToVec3(verts_outer[j % size_outer])):
+				triangles.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_inner[(i + 1) % size_inner], Utility.randColorVariation(col)))
+				i += 1
+			else:
+				triangles.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_outer[(j + 1) % size_outer], Utility.randColorVariation(col)))
+				j += 1
+

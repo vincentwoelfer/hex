@@ -10,13 +10,25 @@ static func randColor() -> Color:
 	return Color(randf_range(0.1, 0.9), randf_range(0.1, 0.9), randf_range(0.1, 0.9), 1.0)
 
 
-static func randColorVariation(color: Color) -> Color:
-	var variation := 0.2
+static func randColorVariation(color: Color, variation: float = 0.2) -> Color:	
 	return color + Color(randf_range(-variation, variation), randf_range(-variation, variation), randf_range(-variation, variation), 0.0)
 
 
+static func getDistincHexColor(i: int) -> Color:
+	if i == 0: return Color.ORANGE
+	if i == 1: return Color.DARK_MAGENTA
+	if i == 2: return Color.DARK_GREEN
+	if i == 3: return Color.AQUA
+	if i == 4: return Color.RED
+	if i == 5: return Color.MEDIUM_BLUE
+	return Color.BLACK
+
 static func vec3FromRadiusAngle(r: float, angle: float) -> Vector3:
 	return Vector3(r * cos(angle), 0.0, r * sin(angle))
+
+
+static func angleToVec3(v: Vector3) -> float:
+	return Vector2(v.x, v.z).angle()
 
 
 static func randCircularOffset(r_max: float) -> Vector3:
@@ -124,4 +136,3 @@ static func toVec2(v: Vector3) -> Vector2:
 
 static func toVec3(v: Vector2) -> Vector3:
 	return Vector3(v.x, 0.0, v.y)
-
