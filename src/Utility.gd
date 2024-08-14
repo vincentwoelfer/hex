@@ -16,12 +16,13 @@ static func randColorVariation(color: Color, variation: float = 0.2) -> Color:
 
 static func getDistincHexColor(i: int) -> Color:
 	assert(i >= 0 and i <= 5)
-	if i == 0: return Color.ORANGE
-	if i == 1: return Color.DARK_MAGENTA
-	if i == 2: return Color.DARK_GREEN
-	if i == 3: return Color.AQUA
-	if i == 4: return Color.RED
-	if i == 5: return Color.MEDIUM_BLUE
+	if i == 0: return Color.RED
+	if i == 1: return Color.MEDIUM_BLUE
+	if i == 2: return Color.ORANGE
+	if i == 3: return Color.DARK_MAGENTA
+	if i == 4: return Color.DARK_GREEN
+	if i == 5: return Color.AQUA
+
 	return Color.BLACK
 
 static func vec3FromRadiusAngle(r: float, angle: float) -> Vector3:

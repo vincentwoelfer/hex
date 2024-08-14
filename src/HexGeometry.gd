@@ -82,14 +82,22 @@ func generateTriangles() -> void:
 		verts_center_packed.append(Utility.toVec2(v))
 	var indices: PackedInt32Array = Geometry2D.triangulate_delaunay(verts_center_packed)
 
+	var n_inner := verts_inner.size()
+
 	for i in range(0, indices.size(), 3):
 		var i1 := indices[i]
 		var i2 := indices[i + 1]
 		var i3 := indices[i + 2]
 
-		var p1 := verts_inner[i1] if i1 < verts_inner.size() else verts_center[i1 - verts_inner.size()]
-		var p2 := verts_inner[i2] if i2 < verts_inner.size() else verts_center[i2 - verts_inner.size()]
-		var p3 := verts_inner[i3] if i3 < verts_inner.size() else verts_center[i3 - verts_inner.size()]
+		# This is a super ugly hack which only slightly works more than not having it:
+		# Prevent triangles from being created when the inner-circle becomes concave at some point due to random variations.
+		# This hacky and only works if we have center points and can assume that every triangle should contain a center point!
+		if HexConst.extra_verts_per_center > 4 and i1 < n_inner and i2 < n_inner and i3 < n_inner:
+			continue
+
+		var p1 := verts_inner[i1] if i1 < n_inner else verts_center[i1 - n_inner]
+		var p2 := verts_inner[i2] if i2 < n_inner else verts_center[i2 - n_inner]
+		var p3 := verts_inner[i3] if i3 < n_inner else verts_center[i3 - n_inner]
 
 		triangles.append(Triangle.new(p1, p2, p3, Utility.randColorVariation(col, 0.05)))
 
@@ -114,7 +122,14 @@ func generateTriangles() -> void:
 		var n2 := j + 3 + HexConst.extra_verts_per_side
 		
 		while i < n1 or j < n2:
-			if j == n2 or (i < n1 and Utility.getAngleToVec3(verts_inner[i % size_inner]) <= Utility.getAngleToVec3(verts_outer[j % size_outer])):
+			# The commented out code is uses the actual angles but suffer from the non-continuoum between 0 <-> 2*Pi
+			# The used code just estimates the "angles" (not even in radians, starting from 0 for each side) to have them in relation to each other
+			# var angle_inner := Utility.getAngleToVec3(verts_inner[i % size_inner])
+			# var angle_outer := Utility.getAngleToVec3(verts_outer[j % size_outer])
+			var angle_inner := (i % size_inner) / (1.0 + HexConst.extra_verts_per_side)
+			var angle_outer := (j % size_outer) / (3.0 + HexConst.extra_verts_per_side)
+
+			if j == n2 or (i < n1 and angle_inner <= angle_outer):
 				triangles.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_inner[(i + 1) % size_inner], Utility.randColorVariation(col)))
 				i += 1
 			else:
@@ -125,17 +140,12 @@ func generateTriangles() -> void:
 func generateCenterPoints(num: int) -> Array[Vector3]:
 	var points: Array[Vector3] = []
 
-	# Add the center point if there's room
-	# if num >= 1:
-	# 	points.append(Vector3(0, 0, 0))
-	# 	num -= 1
-	
-	# For the remaining points, distribute along the first ring
-	if num > 0:
-		# Adjust to ensure points stay within the hexagon
-		var ring_radius := HexConst.inner_radius * 0.6
-		for i in range(num):
-			var angle := 2 * PI * i / num
-			points.append(Utility.vec3FromRadiusAngle(ring_radius, angle))
+	# Adjust to ensure points stay within the hexagon
+	var ring_radius := HexConst.inner_radius * 0.6
+
+	# Distribute along the first ring
+	for i in range(num):
+		var angle := TAU * i / num
+		points.append(Utility.vec3FromRadiusAngle(ring_radius, angle))
 
 	return points
