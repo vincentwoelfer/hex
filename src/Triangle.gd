@@ -31,6 +31,9 @@ func getRandPoint() -> Vector3:
 
 func addToSurfaceTool(st: SurfaceTool) -> void:
     st.set_color(color)
+    st.set_smooth_group(-1)
     st.add_vertex(a)
+    st.set_smooth_group(-1)
     st.add_vertex(b)
+    st.set_smooth_group(-1)
     st.add_vertex(c)

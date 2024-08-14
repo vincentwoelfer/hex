@@ -54,20 +54,20 @@ func generateTriangles() -> void:
 
 	# Adjust height of inner ring
 	for i in range(verts_inner.size()):
-		var h_var := HexConst.height * 0.05
-		verts_inner[i].y += clamp(randfn(0.0, HexConst.height * h_var), HexConst.height * -h_var, HexConst.height * h_var)
+		var h_var := 0.05
+		verts_inner[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
 		verts_inner[i] += Utility.randCircularOffset(HexConst.inner_radius * 0.04)
 
 	# Adjust center vertices
 	for i in range(verts_center.size()):
-		var h_var := HexConst.height * 0.06
-		verts_center[i].y += clamp(randfn(0.0, HexConst.height * h_var), HexConst.height * -h_var, HexConst.height * h_var)
-		verts_center[i] += Utility.randCircularOffset(HexConst.inner_radius * 0.05)
+		var h_var := 0.07
+		verts_center[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
+		verts_center[i] += Utility.randCircularOffset(HexConst.inner_radius * 0.1)
 		
 	# Adjust height of outer vertices according do adjacent tiles
 	# We do this per corner!
 	for i in range(verts_outer.size()):
-		verts_outer[i].y -= HexConst.height	
+		verts_outer[i].y -= HexConst.height
 
 	#########################################
 	# Triangles for inner Hex Surface
@@ -120,6 +120,7 @@ func generateTriangles() -> void:
 			else:
 				triangles.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_outer[(j + 1) % size_outer], Utility.randColorVariation(col)))
 				j += 1
+				
 
 func generateCenterPoints(num: int) -> Array[Vector3]:
 	var points: Array[Vector3] = []
