@@ -45,6 +45,7 @@ func generate() -> void:
 	mdt.create_from_surface(terrainMesh.mesh as ArrayMesh, 0)
 	print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
 
+
 func generateTriangles() -> void:
 	triangles.clear()
 
@@ -52,18 +53,28 @@ func generateTriangles() -> void:
 	var verts_outer := Utility.generateFullHexagonWithCorners(HexConst.inner_radius, HexConst.outer_radius, HexConst.extra_verts_per_side)
 	var verts_center := generateCenterPoints(HexConst.extra_verts_per_center)
 
+	# Adjust height based on 2d-noise
+	# TODO
+	var noise: FastNoiseLite = FastNoiseLite.new()
+	noise.noise_type = FastNoiseLite.TYPE_PERLIN # You can change this to other types
+	noise.frequency = 0.02 # Frequency of the noise
+	var rand_height_scale := 0.07
+
 	# Adjust height of inner ring
 	for i in range(verts_inner.size()):
-		var h_var := 0.05
-		verts_inner[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
+		#var h_var := 0.05
+		#verts_inner[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
 		verts_inner[i] += Utility.randCircularOffset(HexConst.inner_radius * 0.04)
+		verts_inner[i].y += noise.get_noise_2d(verts_inner[i].x, verts_inner[i].z) * rand_height_scale
 
 	# Adjust center vertices
 	for i in range(verts_center.size()):
-		var h_var := 0.07
-		verts_center[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
+		#var h_var := 0.07
+		#verts_center[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
 		verts_center[i] += Utility.randCircularOffset(HexConst.inner_radius * 0.1)
-		
+		verts_center[i].y += noise.get_noise_2d(verts_center[i].x, verts_center[i].z) * rand_height_scale
+
+	
 	# Adjust height of outer vertices according do adjacent tiles
 	# We do this per corner!
 	for i in range(verts_outer.size()):
@@ -89,15 +100,15 @@ func generateTriangles() -> void:
 		var i2 := indices[i + 1]
 		var i3 := indices[i + 2]
 
-		# This is a super ugly hack which only slightly works more than not having it:
-		# Prevent triangles from being created when the inner-circle becomes concave at some point due to random variations.
-		# This hacky and only works if we have center points and can assume that every triangle should contain a center point!
-		if HexConst.extra_verts_per_center > 4 and i1 < n_inner and i2 < n_inner and i3 < n_inner:
-			continue
+		var all_circle_vertices := i1 < n_inner and i2 < n_inner and i3 < n_inner
 
 		var p1 := verts_inner[i1] if i1 < n_inner else verts_center[i1 - n_inner]
 		var p2 := verts_inner[i2] if i2 < n_inner else verts_center[i2 - n_inner]
 		var p3 := verts_inner[i3] if i3 < n_inner else verts_center[i3 - n_inner]
+
+		# Skip if triangle does not have central point and does not point outwards
+		if all_circle_vertices and not triangle_points_outwards(p1, p2, p3):
+			continue
 
 		triangles.append(Triangle.new(p1, p2, p3, Utility.randColorVariation(col, 0.05)))
 
@@ -122,14 +133,9 @@ func generateTriangles() -> void:
 		var n2 := j + 3 + HexConst.extra_verts_per_side
 		
 		while i < n1 or j < n2:
-			# The commented out code is uses the actual angles but suffer from the non-continuoum between 0 <-> 2*Pi
-			# The used code just estimates the "angles" (not even in radians, starting from 0 for each side) to have them in relation to each other
-			# var angle_inner := Utility.getAngleToVec3(verts_inner[i % size_inner])
-			# var angle_outer := Utility.getAngleToVec3(verts_outer[j % size_outer])
-			var angle_inner := (i % size_inner) / (1.0 + HexConst.extra_verts_per_side)
-			var angle_outer := (j % size_outer) / (3.0 + HexConst.extra_verts_per_side)
+			var outer_is_clockwise_further := Utility.isClockwiseOrder(verts_inner[i % size_inner], verts_outer[j % size_outer])
 
-			if j == n2 or (i < n1 and angle_inner <= angle_outer):
+			if j == n2 or (i < n1 and outer_is_clockwise_further):
 				triangles.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_inner[(i + 1) % size_inner], Utility.randColorVariation(col)))
 				i += 1
 			else:
@@ -149,3 +155,13 @@ func generateCenterPoints(num: int) -> Array[Vector3]:
 		points.append(Utility.vec3FromRadiusAngle(ring_radius, angle))
 
 	return points
+
+
+func triangle_points_outwards(v1: Vector3, v2: Vector3, v3: Vector3) -> bool:
+	var array := Utility.sortVecAccordingToAngles([v1, v2, v3])
+	var dist_left := Utility.toVec2(array[0]).distance_to(Vector2.ZERO)
+	var dist_center := Utility.toVec2(array[1]).distance_to(Vector2.ZERO)
+	var dist_right := Utility.toVec2(array[2]).distance_to(Vector2.ZERO)
+
+	# Center-Vertex must be further from circle-center (ZERO) than only one of the others
+	return dist_center > dist_left or dist_center > dist_right
