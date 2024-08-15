@@ -9,6 +9,8 @@ var triangles: Array[Triangle]
 # Input
 @export var adjacent: Array[int] = [1, 1, 0, 0, -1, -1]
 
+@export var noise: FastNoiseLite = FastNoiseLite.new()
+
 func _init() -> void:
 	terrainMesh = MeshInstance3D.new()
 	terrainMesh.name = "TerrainMesh"
@@ -53,26 +55,26 @@ func generateTriangles() -> void:
 	var verts_outer := Utility.generateFullHexagonWithCorners(HexConst.inner_radius, HexConst.outer_radius, HexConst.extra_verts_per_side)
 	var verts_center := generateCenterPoints(HexConst.extra_verts_per_center)
 
-	# Adjust height based on 2d-noise
-	# TODO
-	var noise: FastNoiseLite = FastNoiseLite.new()
-	noise.noise_type = FastNoiseLite.TYPE_PERLIN # You can change this to other types
-	noise.frequency = 0.02 # Frequency of the noise
-	var rand_height_scale := 0.07
+	# Adjust height based on 2d-noise	
+	# noise.noise_type = FastNoiseLite.TYPE_PERLIN # You can change this to other types
+	# noise.frequency = 0.02 # Frequency of the noise
+	# var rand_height_scale := 1.8
 
 	# Adjust height of inner ring
 	for i in range(verts_inner.size()):
-		#var h_var := 0.05
-		#verts_inner[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
+		var h_var := 0.05
 		verts_inner[i] += Utility.randCircularOffset(HexConst.inner_radius * 0.04)
-		verts_inner[i].y += noise.get_noise_2d(verts_inner[i].x, verts_inner[i].z) * rand_height_scale
+		verts_inner[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
+
+		# verts_inner[i].y += noise.get_noise_2d(verts_inner[i].x, verts_inner[i].z) * rand_height_scale
 
 	# Adjust center vertices
 	for i in range(verts_center.size()):
-		#var h_var := 0.07
-		#verts_center[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
+		var h_var := 0.07
 		verts_center[i] += Utility.randCircularOffset(HexConst.inner_radius * 0.1)
-		verts_center[i].y += noise.get_noise_2d(verts_center[i].x, verts_center[i].z) * rand_height_scale
+		verts_center[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
+
+		# verts_center[i].y += noise.get_noise_2d(verts_center[i].x, verts_center[i].z) * rand_height_scale
 
 	
 	# Adjust height of outer vertices according do adjacent tiles

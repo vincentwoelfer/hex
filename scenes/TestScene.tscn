@@ -1,10 +1,16 @@
-[gd_scene load_steps=6 format=3 uid="uid://bi8xpy2pdq81q"]
+[gd_scene load_steps=7 format=3 uid="uid://bi8xpy2pdq81q"]
 
 [ext_resource type="PackedScene" uid="uid://l034f6qv603a" path="res://scenes/HexGeometry.tscn" id="1_k0a56"]
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://DefaultEnvironment.tres" id="1_q837e"]
 [ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://CameraAttributes.tres" id="2_r1ofj"]
 [ext_resource type="Script" path="res://src/CameraController.gd" id="3_cipar"]
 [ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://dev-utility/USE_THIS_HexConstantsModifier.tscn" id="5_qfd1n"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_gddl8"]
+noise_type = 3
+frequency = 0.0827
+offset = Vector3(-205.1, 0, 0)
+fractal_type = 0
 
 [node name="TestScene" type="Node3D"]
 
@@ -25,12 +31,13 @@ shadow_enabled = true
 [node name="HexGeometry" parent="." instance=ExtResource("1_k0a56")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 adjacent = Array[int]([2, 2, 0, 0, -1, 1])
+noise = SubResource("FastNoiseLite_gddl8")
 
 [node name="HexConstModifier" parent="." instance=ExtResource("5_qfd1n")]
 outer_radius = 3.0
 inner_radius = 2.0
-height = 1.0
-transition_height_factor = 0.5
+height = 2.0
+transition_height_factor = 1.0
 core_circle_smooth_strength = 0.5
 extra_verts_per_side = 2
-extra_verts_per_center = 5
+extra_verts_per_center = 8
