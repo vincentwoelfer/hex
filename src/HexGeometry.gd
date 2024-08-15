@@ -28,6 +28,7 @@ func generate() -> void:
 	# Build Mesh
 	var st: SurfaceTool = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_normal(Vector3.UP)
 
 	for tri in triangles:
 		tri.addToSurfaceTool(st)
