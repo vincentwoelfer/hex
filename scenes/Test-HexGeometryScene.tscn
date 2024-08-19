@@ -29,8 +29,8 @@ adjacent = Array[int]([2, 2, 0, 0, -1, 1])
 [node name="HexConstModifier" parent="." instance=ExtResource("5_ko0aq")]
 outer_radius = 3.0
 inner_radius = 2.0
-height = 2.0
+height = 1.5
 transition_height_factor = 1.0
 core_circle_smooth_strength = 0.5
-extra_verts_per_side = 2
-extra_verts_per_center = 8
+extra_verts_per_side = 3
+extra_verts_per_center = 4

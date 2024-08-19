@@ -73,17 +73,19 @@ static func toVec3(v: Vector2) -> Vector3:
 
 # More advanced angle stuff
 static func sortVecAccordingToAngles(vecs: Array[Vector3]) -> Array[Vector3]:
-	# Check that all vectors lie in a 180deg segment
+	# TODO this does not work correclty for cases >180 deg
+	# => Correctly check that all vectors lie in a 180deg segment. Currently this assert cant trigger since the angle between any two points is at most exactly 180deg.
 	var max_angle_diff := 0.0
 
+	# Compare every pair of vectors
 	for i in range(vecs.size()):
 		for j in range(i + 1, vecs.size()):
 			max_angle_diff = max(max_angle_diff, getAngleDiff(vecs[i], vecs[j]))
 
-	var all_in_segment := max_angle_diff < PI / 2.0
+	var all_in_segment := max_angle_diff < PI
 	assert(all_in_segment, "Angles must be within an 180deg sector, max angle diff is %f" % rad_to_deg(max_angle_diff))
 
-	# Need to invert the result
+	# Need to invert the result to have the vectors in ascending angle-order 
 	vecs.sort_custom(func(a: Vector3, b: Vector3) -> bool: return !isClockwiseOrder(a, b))
 	return vecs
 

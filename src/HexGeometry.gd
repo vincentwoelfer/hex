@@ -82,6 +82,7 @@ func generateTriangles() -> void:
 		verts_center_packed.append(Utility.toVec2(v))
 	for v in verts_center:
 		verts_center_packed.append(Utility.toVec2(v))
+
 	var indices: PackedInt32Array = Geometry2D.triangulate_delaunay(verts_center_packed)
 
 	var n_inner := verts_inner.size()
@@ -91,14 +92,15 @@ func generateTriangles() -> void:
 		var i2 := indices[i + 1]
 		var i3 := indices[i + 2]
 
-		var all_circle_vertices := i1 < n_inner and i2 < n_inner and i3 < n_inner
-
 		var p1 := verts_inner[i1] if i1 < n_inner else verts_center[i1 - n_inner]
 		var p2 := verts_inner[i2] if i2 < n_inner else verts_center[i2 - n_inner]
 		var p3 := verts_inner[i3] if i3 < n_inner else verts_center[i3 - n_inner]
 
-		# Skip if triangle does not have central point and does not point outwards
-		if all_circle_vertices and not triangle_points_outwards(p1, p2, p3):
+		# Check if triangle is valid and skip if not. Invalid if:
+		# - Triangle consists of only circle-edge (certs_inner) points
+		# - Triangle points "inwards". e.g. the covered area lies outside of the circle
+		var all_vertices_on_circle := i1 < n_inner and i2 < n_inner and i3 < n_inner
+		if all_vertices_on_circle and triangle_points_inwards(verts_inner, i1, i2, i3):
 			continue
 
 		triangles.append(Triangle.new(p1, p2, p3, Utility.randColorVariation(col, 0.05)))
@@ -148,11 +150,20 @@ func generateCenterPoints(num: int) -> Array[Vector3]:
 	return points
 
 
-func triangle_points_outwards(v1: Vector3, v2: Vector3, v3: Vector3) -> bool:
-	var array := Utility.sortVecAccordingToAngles([v1, v2, v3])
-	var dist_left := Utility.toVec2(array[0]).distance_to(Vector2.ZERO)
-	var dist_center := Utility.toVec2(array[1]).distance_to(Vector2.ZERO)
-	var dist_right := Utility.toVec2(array[2]).distance_to(Vector2.ZERO)
+func triangle_points_inwards(verts_inner: Array[Vector3], i1: int, i2: int, i3: int) -> bool:
+	var size := verts_inner.size()
+	var indices: Array[int] = [i1, i2, i3]
+	indices.sort()
 
-	# Center-Vertex must be further from circle-center (ZERO) than only one of the others
-	return dist_center > dist_left or dist_center > dist_right
+	# Triangle can only point inwards if i1-i3 are consecutive
+	if not ((indices[0] + 1) % size == indices[1] and (indices[1] + 1) % size == indices[2]):
+		return false
+
+	# => vertices are consecutive
+	# Check that center-Vertex must be further from circle-center (ZERO) than only one of the others
+	var dist_left := Utility.toVec2(verts_inner[indices[0]]).distance_to(Vector2.ZERO)
+	var dist_center := Utility.toVec2(verts_inner[indices[1]]).distance_to(Vector2.ZERO)
+	var dist_right := Utility.toVec2(verts_inner[indices[2]]).distance_to(Vector2.ZERO)
+	
+	# Inwards if center is smaller than both other vertices
+	return dist_center <= dist_left and dist_center <= dist_right
