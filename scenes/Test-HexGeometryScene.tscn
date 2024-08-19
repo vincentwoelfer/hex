@@ -23,14 +23,12 @@ transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 7, 0)
 shadow_enabled = true
 
 [node name="HexGeometry" parent="." instance=ExtResource("4_p15sk")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-adjacent = Array[int]([2, 2, 0, 0, -1, 1])
 
 [node name="HexConstModifier" parent="." instance=ExtResource("5_ko0aq")]
 outer_radius = 3.0
 inner_radius = 2.0
-height = 1.5
-transition_height_factor = 1.0
+height = 1.0
+transition_height_factor = 0.5
 core_circle_smooth_strength = 0.5
 extra_verts_per_side = 3
 extra_verts_per_center = 4

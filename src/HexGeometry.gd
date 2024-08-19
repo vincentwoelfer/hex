@@ -6,8 +6,18 @@ extends Node3D
 var terrainMesh: MeshInstance3D
 var triangles: Array[Triangle]
 
+class AdjacentHex:
+	var height: int
+	var type: String # unused for now
+
+	func _init(height_: int, type_: String) -> void:
+		self.height = height_
+		self.type = type_
+
+	
 # Input
-@export var adjacent: Array[int] = [1, 1, 0, 0, -1, -1]
+var adjacent_hex: Array[AdjacentHex] = [AdjacentHex.new(0, ""), AdjacentHex.new(0, ""), AdjacentHex.new(1, ""), AdjacentHex.new(2, ""), AdjacentHex.new(0, ""), AdjacentHex.new(-1, "")]
+var height: int = 0
 
 func _init() -> void:
 	terrainMesh = MeshInstance3D.new()
@@ -23,37 +33,13 @@ func _ready() -> void:
 	generate()
 
 func generate() -> void:
-	generateTriangles()
-
-	# Build Mesh
-	var st: SurfaceTool = SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	st.set_normal(Vector3.UP)
-
-	for tri in triangles:
-		tri.addToSurfaceTool(st)
-
-	#########################################
-	# Removes duplicates. Only use later to not mask real number of vertices
-	#st.index()
-
-	st.generate_normals()
-	terrainMesh.mesh = st.commit()
-	terrainMesh.create_debug_tangents()
-
-	# Only for statistics output
-	var mdt := MeshDataTool.new()
-	mdt.create_from_surface(terrainMesh.mesh as ArrayMesh, 0)
-	print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
-
-
-func generateTriangles() -> void:
-	triangles.clear()
-
 	var verts_inner := Utility.generateFullHexagonNoCorners(HexConst.inner_radius, HexConst.extra_verts_per_side, HexConst.core_circle_smooth_strength)
 	var verts_outer := Utility.generateFullHexagonWithCorners(HexConst.inner_radius, HexConst.outer_radius, HexConst.extra_verts_per_side)
 	var verts_center := generateCenterPoints(HexConst.extra_verts_per_center)
 
+	#########################################
+	# Adjust vertex heights
+	#########################################
 	# Adjust height of inner ring
 	for i in range(verts_inner.size()):
 		var h_var := 0.05
@@ -66,10 +52,80 @@ func generateTriangles() -> void:
 		verts_center[i] += Utility.randCircularOffset(HexConst.inner_radius * 0.1)
 		verts_center[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
 	
-	# Adjust height of outer vertices according do adjacent tiles
-	# We do this per corner!
-	for i in range(verts_outer.size()):
-		verts_outer[i].y -= HexConst.height
+	modifyOuterVertexHeights(verts_outer, adjacent_hex, height)
+
+	#########################################
+	# Triangulate
+	#########################################
+	self.triangles.clear()
+	self.triangles = triangulate(verts_inner, verts_outer, verts_center)
+
+	# Add triangles to mesh
+	var st: SurfaceTool = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_normal(Vector3.UP)
+
+	for tri in triangles:
+		tri.addToSurfaceTool(st)
+
+	# Removes duplicates and actually create mesh
+	st.index()
+	st.generate_normals()
+	terrainMesh.mesh = st.commit()
+	
+	# Only for debugging
+	terrainMesh.create_debug_tangents()
+
+	# Only for statistics output
+	var mdt := MeshDataTool.new()
+	mdt.create_from_surface(terrainMesh.mesh as ArrayMesh, 0)
+	print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
+
+
+static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Array[AdjacentHex], own_height: int) -> void:
+	# Adjust corner vertices according to both adjacent tiles
+	for i in range(6):
+		var corner_height: int = 0
+
+		# heights array
+		var h: Array[int] = [own_height, adjacent[(i - 1 + 6) % 6].height, adjacent[i].height]
+		h.sort()
+
+		# All three same
+		if h[0] == h[1] and h[1] == h[2]:
+			corner_height = h[0]
+		# Two are same -> use the two
+		elif h[0] == h[1] or h[0] == h[2] or h[1] == h[2]:
+			if h[0] == h[1]:
+				corner_height = h[0]
+			else:
+				corner_height = h[2]
+		# All different -> use middle one
+		else:
+			corner_height = h[1]
+
+		# Determine corner vertex index and set height
+		var index := i * (3 + HexConst.extra_verts_per_side)
+		#verts_outer[index].y = corner_height * HexConst.height
+		verts_outer[index].y = HexConst.transition_height(corner_height)
+
+
+	# For each direction: Adjust height of outer vertices according do adjacent tiles.
+	# This does not modify the corner vertices
+	for i in range(6):
+		# Determine height (relative to own height)
+		var y: float = HexConst.transition_height(adjacent[i].height - own_height)
+
+		# +1 to ommit corners
+		var start := i * (3 + HexConst.extra_verts_per_side) + 1
+		var end := (i + 1) * (3 + HexConst.extra_verts_per_side)
+
+		for x in range(start, end):
+			verts_outer[x].y = y
+
+
+static func triangulate(verts_inner: Array[Vector3], verts_outer: Array[Vector3], verts_center: Array[Vector3]) -> Array[Triangle]:
+	var tris: Array[Triangle] = []
 
 	#########################################
 	# Triangles for inner Hex Surface
@@ -100,10 +156,10 @@ func generateTriangles() -> void:
 		# - Triangle consists of only circle-edge (certs_inner) points
 		# - Triangle points "inwards". e.g. the covered area lies outside of the circle
 		var all_vertices_on_circle := i1 < n_inner and i2 < n_inner and i3 < n_inner
-		if all_vertices_on_circle and triangle_points_inwards(verts_inner, i1, i2, i3):
+		if all_vertices_on_circle and HexGeometry.doesTrianglePointsInwards(verts_inner, i1, i2, i3):
 			continue
 
-		triangles.append(Triangle.new(p1, p2, p3, Utility.randColorVariation(col, 0.05)))
+		tris.append(Triangle.new(p1, p2, p3, Utility.randColorVariation(col, 0.05)))
 
 	#########################################
 	# Triangles for outer Hex Surface
@@ -121,22 +177,24 @@ func generateTriangles() -> void:
 		var j := x * (3 + HexConst.extra_verts_per_side)
 
 		# end inner
-		var n1 := i + 1 + HexConst.extra_verts_per_side
+		var n1 := i + (1 + HexConst.extra_verts_per_side)
 		# end outer
-		var n2 := j + 3 + HexConst.extra_verts_per_side
+		var n2 := j + (3 + HexConst.extra_verts_per_side)
 		
 		while i < n1 or j < n2:
 			var outer_is_clockwise_further := Utility.isClockwiseOrder(verts_inner[i % size_inner], verts_outer[j % size_outer])
 
 			if j == n2 or (i < n1 and outer_is_clockwise_further):
-				triangles.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_inner[(i + 1) % size_inner], Utility.randColorVariation(col)))
+				tris.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_inner[(i + 1) % size_inner], Utility.randColorVariation(col)))
 				i += 1
 			else:
-				triangles.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_outer[(j + 1) % size_outer], Utility.randColorVariation(col)))
+				tris.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_outer[(j + 1) % size_outer], Utility.randColorVariation(col)))
 				j += 1
+
+	return tris
 				
 
-func generateCenterPoints(num: int) -> Array[Vector3]:
+static func generateCenterPoints(num: int) -> Array[Vector3]:
 	var points: Array[Vector3] = []
 
 	# Adjust to ensure points stay within the hexagon
@@ -150,7 +208,7 @@ func generateCenterPoints(num: int) -> Array[Vector3]:
 	return points
 
 
-func triangle_points_inwards(verts_inner: Array[Vector3], i1: int, i2: int, i3: int) -> bool:
+static func doesTrianglePointsInwards(verts_inner: Array[Vector3], i1: int, i2: int, i3: int) -> bool:
 	var size := verts_inner.size()
 	var indices: Array[int] = [i1, i2, i3]
 	indices.sort()
