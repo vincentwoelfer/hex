@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="hex"
-run/main_scene="res://scenes/Test-HexGeometryScene.tscn"
+run/main_scene="res://scenes/dev/MapGeneration.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 run/max_fps=500
 boot_splash/show_image=false
