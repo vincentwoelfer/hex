@@ -31,5 +31,5 @@ core_circle_smooth_strength = 0.5
 extra_verts_per_side = 2
 extra_verts_per_center = 4
 
-[node name="MapGenerator" type="Node3D" parent="."]
+[node name="MapGeneration" type="Node3D" parent="."]
 script = ExtResource("1_2h4g3")

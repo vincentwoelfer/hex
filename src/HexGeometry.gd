@@ -74,7 +74,7 @@ func generate() -> void:
 	terrainMesh.mesh = st.commit()
 	
 	# Only for debugging
-	terrainMesh.create_debug_tangents()
+	#terrainMesh.create_debug_tangents()
 
 	# Only for statistics output
 	var mdt := MeshDataTool.new()
