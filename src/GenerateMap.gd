@@ -9,34 +9,45 @@ func _ready() -> void:
 
 	var N: int = 2
 
+	# Create Map
 	for q in range(-N, N + 1):
 		var r1: int = max(-N, -q - N);
 		var r2: int = min(N, -q + N);
 		for r in range(r1, r2 + 1):
-			var hex := HexMap.Hex.new(q, r, -q - r)
-			create_hex(hex)
+			var hex := HexPos.new(q, r, -q - r)
+			map.add_hex(hex, r)
 
-func create_hex(hex: HexMap.Hex) -> void:
+
+	# Create Geometry
+	for q in range(-N, N + 1):
+		var r1: int = max(-N, -q - N);
+		var r2: int = min(N, -q + N);
+		for r in range(r1, r2 + 1):
+			var hex := HexPos.new(q, r, -q - r)
+			create_hex(hex, map)
+
+func create_hex(hex: HexPos, map: HexMap) -> void:
 	#print("Creating Hex at q=", hex.q, ", r=", hex.r, ", s=", hex.s)
-	var pos: Vector2 = HexMap.hex_to_pixel(hex)
+	var pos: Vector2 = HexPos.hexpos_to_pixel(hex)
 
-	var height: int = hex.r
+	# Lookup in map and get own height
+	var t := map.get_hex(hex)
+	var height: int = t.height
 
-	# Instantiate
+	# Get adjacent from map
+	var adjacent_hex: Array[HexGeometry.AdjacentHex] = []
+
+	for i in range(6):
+		var h := map.get_hex(HexPos.hexpos_neighbor(hex, i)).height
+
+		# If neighbour does not exists set height to same as own tile
+		if h == -1:
+			h = height
+
+		adjacent_hex.append(HexGeometry.AdjacentHex.new(h, ""))
+
+	# Instantiate & Set parameters
 	var tile: HexGeometry = hex_geometry.instantiate()
-
-	#var adjacent_hex: Array[HexGeometry.AdjacentHex] = [HexGeometry.AdjacentHex.new(0, ""), HexGeometry.AdjacentHex.new(0, ""), HexGeometry.AdjacentHex.new(1, ""), HexGeometry.AdjacentHex.new(2, ""), HexGeometry.AdjacentHex.new(0, ""), HexGeometry.AdjacentHex.new(-1, "")]	
-	var adjacent_hex: Array[HexGeometry.AdjacentHex] = [
-		HexGeometry.AdjacentHex.new(HexMap.hex_neighbor(hex, 0).r, ""),
-		HexGeometry.AdjacentHex.new(HexMap.hex_neighbor(hex, 1).r, ""),
-		HexGeometry.AdjacentHex.new(HexMap.hex_neighbor(hex, 2).r, ""),
-		HexGeometry.AdjacentHex.new(HexMap.hex_neighbor(hex, 3).r, ""),
-		HexGeometry.AdjacentHex.new(HexMap.hex_neighbor(hex, 4).r, ""),
-		HexGeometry.AdjacentHex.new(HexMap.hex_neighbor(hex, 5).r, "")]
-
-	print(adjacent_hex[0].to_string())
-
-	# Set parameters
 	tile.height = height
 	tile.adjacent_hex = adjacent_hex
 	tile.position = Vector3(pos.x, height * HexConst.height, pos.y)

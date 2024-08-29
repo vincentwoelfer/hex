@@ -33,8 +33,8 @@ func _ready() -> void:
 	generate()
 
 func generate() -> void:
-	var verts_inner := Utility.generateFullHexagonNoCorners(HexConst.inner_radius, HexConst.extra_verts_per_side, HexConst.core_circle_smooth_strength)
-	var verts_outer := Utility.generateFullHexagonWithCorners(HexConst.inner_radius, HexConst.outer_radius, HexConst.extra_verts_per_side)
+	var verts_inner := generateFullHexagonNoCorners(HexConst.inner_radius, HexConst.extra_verts_per_side, HexConst.core_circle_smooth_strength)
+	var verts_outer := generateFullHexagonWithCorners(HexConst.inner_radius, HexConst.outer_radius, HexConst.extra_verts_per_side)
 	var verts_center := generateCenterPoints(HexConst.extra_verts_per_center)
 
 	#########################################
@@ -43,13 +43,13 @@ func generate() -> void:
 	# Adjust height of inner ring
 	for i in range(verts_inner.size()):
 		var h_var := 0.05
-		verts_inner[i] += Utility.randCircularOffset(HexConst.inner_radius * 0.04)
+		verts_inner[i] += Util.randCircularOffset(HexConst.inner_radius * 0.04)
 		verts_inner[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
 
 	# Adjust center vertices
 	for i in range(verts_center.size()):
 		var h_var := 0.07
-		verts_center[i] += Utility.randCircularOffset(HexConst.inner_radius * 0.1)
+		verts_center[i] += Util.randCircularOffset(HexConst.inner_radius * 0.1)
 		verts_center[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
 	
 	modifyOuterVertexHeights(verts_outer, adjacent_hex, height)
@@ -135,9 +135,9 @@ static func triangulate(verts_inner: Array[Vector3], verts_outer: Array[Vector3]
 	# Generate PackedVec2Array
 	var verts_center_packed: PackedVector2Array = []
 	for v in verts_inner:
-		verts_center_packed.append(Utility.toVec2(v))
+		verts_center_packed.append(Util.toVec2(v))
 	for v in verts_center:
-		verts_center_packed.append(Utility.toVec2(v))
+		verts_center_packed.append(Util.toVec2(v))
 
 	var indices: PackedInt32Array = Geometry2D.triangulate_delaunay(verts_center_packed)
 
@@ -159,7 +159,7 @@ static func triangulate(verts_inner: Array[Vector3], verts_outer: Array[Vector3]
 		if all_vertices_on_circle and HexGeometry.doesTrianglePointsInwards(verts_inner, i1, i2, i3):
 			continue
 
-		tris.append(Triangle.new(p1, p2, p3, Utility.randColorVariation(col, 0.05)))
+		tris.append(Triangle.new(p1, p2, p3, Util.randColorVariation(col, 0.05)))
 
 	#########################################
 	# Triangles for outer Hex Surface
@@ -169,7 +169,7 @@ static func triangulate(verts_inner: Array[Vector3], verts_outer: Array[Vector3]
 
 	# Per Side
 	for x in range(6):
-		col = Utility.getDistincHexColor(x)
+		col = Util.getDistincHexColor(x)
 
 		# start inner
 		var i := x * (1 + HexConst.extra_verts_per_side)
@@ -182,13 +182,13 @@ static func triangulate(verts_inner: Array[Vector3], verts_outer: Array[Vector3]
 		var n2 := j + (3 + HexConst.extra_verts_per_side)
 		
 		while i < n1 or j < n2:
-			var outer_is_clockwise_further := Utility.isClockwiseOrder(verts_inner[i % size_inner], verts_outer[j % size_outer])
+			var outer_is_clockwise_further := Util.isClockwiseOrder(verts_inner[i % size_inner], verts_outer[j % size_outer])
 
 			if j == n2 or (i < n1 and outer_is_clockwise_further):
-				tris.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_inner[(i + 1) % size_inner], Utility.randColorVariation(col)))
+				tris.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_inner[(i + 1) % size_inner], Util.randColorVariation(col)))
 				i += 1
 			else:
-				tris.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_outer[(j + 1) % size_outer], Utility.randColorVariation(col)))
+				tris.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_outer[(j + 1) % size_outer], Util.randColorVariation(col)))
 				j += 1
 
 	return tris
@@ -203,7 +203,7 @@ static func generateCenterPoints(num: int) -> Array[Vector3]:
 	# Distribute along the first ring
 	for i in range(num):
 		var angle := TAU * i / num
-		points.append(Utility.vec3FromRadiusAngle(ring_radius, angle))
+		points.append(Util.vec3FromRadiusAngle(ring_radius, angle))
 
 	return points
 
@@ -219,9 +219,84 @@ static func doesTrianglePointsInwards(verts_inner: Array[Vector3], i1: int, i2: 
 
 	# => vertices are consecutive
 	# Check that center-Vertex must be further from circle-center (ZERO) than only one of the others
-	var dist_left := Utility.toVec2(verts_inner[indices[0]]).distance_to(Vector2.ZERO)
-	var dist_center := Utility.toVec2(verts_inner[indices[1]]).distance_to(Vector2.ZERO)
-	var dist_right := Utility.toVec2(verts_inner[indices[2]]).distance_to(Vector2.ZERO)
+	var dist_left := Util.toVec2(verts_inner[indices[0]]).distance_to(Vector2.ZERO)
+	var dist_center := Util.toVec2(verts_inner[indices[1]]).distance_to(Vector2.ZERO)
+	var dist_right := Util.toVec2(verts_inner[indices[2]]).distance_to(Vector2.ZERO)
 	
 	# Inwards if center is smaller than both other vertices
 	return dist_center <= dist_left and dist_center <= dist_right
+
+
+static func generateFullHexagonNoCorners(r: float, extra_verts_per_side: int, smooth_strength: float) -> Array[Vector3]:
+	var total_verts: int = 6 * (1 + extra_verts_per_side)
+	var angle_step: float = 2.0 * PI / total_verts
+	var vertices: Array[Vector3] = []
+
+	for i in range(total_verts):
+		var angle := i * angle_step
+		vertices.append(Util.getHexVertex(r, angle, smooth_strength))
+
+	assert(vertices.size() == total_verts)
+	return vertices
+
+
+# Compute the 3 Vector3 points for one hex corner
+static func getThreeHexCornerVertices(r_inner: float, r_outer: float, angle: float) -> Array[Vector3]:
+	#assert(is_zero_approx(fmod(angle, PI / 3.0)), "Angle must be a multiple of PI/3!")
+	#assert(r_outer > r_inner)
+
+	# No smooth strength since corner
+	var inner_corner := Util.getHexVertex(r_inner, angle)
+	var outer_corner := Util.getHexVertex(r_outer, angle)
+
+	# Distance between the two interior circles of the inner and outer radius of the hex
+	var dist := (r_outer * sqrt(3.0) / 2.0) - (r_inner * sqrt(3.0) / 2.0)
+
+	# 30deg = PI/6.0 = one half of a hexagon segment
+	var left_angle := angle - PI / 6.0
+	var right_angle := angle + PI / 6.0
+	var left := inner_corner + Util.vec3FromRadiusAngle(dist, left_angle)
+	var right := inner_corner + Util.vec3FromRadiusAngle(dist, right_angle)
+
+	return [left, outer_corner, right]
+
+
+static func generateFullHexagonWithCorners(r_inner: float, r_outer: float, extra_verts_per_side: int) -> Array[Vector3]:
+	var corners: Array = []
+	for angle in Util.getSixHexAngles():
+		corners.append(getThreeHexCornerVertices(r_inner, r_outer, angle))
+
+	# Determine angle difference (from hex center) between the corners and their neighbours
+	var corner: Vector3 = corners[0][1]
+	var corner_neighbour: Vector3 = corners[0][2]
+	var corner_angle_offset: float = abs(Util.toVec2(corner).angle_to(Util.toVec2(corner_neighbour)))
+
+	# Compute how many additional vertices per side and at which angles.
+	# Basically we reduce the 60deg hex-segment on both sides by corner_angle_offset
+	# to get the center part of the side which is the same as the inner hexagon.
+	var side_angle_range := (PI / 3.0 - 2.0 * corner_angle_offset)
+	var side_angle_step := side_angle_range / (extra_verts_per_side + 1)
+
+	# Put everything together
+	var vertices: Array[Vector3] = []
+	for i in range(6):
+		# Append corner points. For first, ommit the first one because its actually the last one of the whole hexagon
+		if i == 0:
+			vertices.append(corners[i][1])
+			vertices.append(corners[i][2])
+		else:
+			vertices.append(corners[i][0])
+			vertices.append(corners[i][1])
+			vertices.append(corners[i][2])
+
+		# Add additional vertices per side
+		var side_angle_start := (i * PI / 3.0) + corner_angle_offset
+		for j in range(1, extra_verts_per_side + 1):
+			var angle := side_angle_start + (j * side_angle_step)
+			vertices.append(Util.getHexVertex(r_outer, angle))
+
+	# Append first(left) corner vertex of first corner at the end
+	vertices.append(corners[0][0])
+
+	assert(vertices.size() == 6 * (3 + extra_verts_per_side))
+	return vertices

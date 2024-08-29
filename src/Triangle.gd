@@ -6,7 +6,7 @@ var c: Vector3
 var color: Color
 
 func _init(a_: Vector3, b_: Vector3, c_: Vector3, color_: Color = Color()) -> void:
-    if not Geometry2D.is_polygon_clockwise(PackedVector2Array([Utility.toVec2(a_), Utility.toVec2(b_), Utility.toVec2(c_)])):
+    if not Geometry2D.is_polygon_clockwise(PackedVector2Array([Util.toVec2(a_), Util.toVec2(b_), Util.toVec2(c_)])):
         self.a = a_
         self.b = b_
         self.c = c_
