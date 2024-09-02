@@ -52,6 +52,7 @@ func generate() -> void:
 		verts_center[i] += Util.randCircularOffset(HexConst.inner_radius * 0.1)
 		verts_center[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
 	
+	# Adjust outer/transitional vertex heights
 	modifyOuterVertexHeights(verts_outer, adjacent_hex, height)
 
 	#########################################
@@ -79,7 +80,7 @@ func generate() -> void:
 	# Only for statistics output
 	var mdt := MeshDataTool.new()
 	mdt.create_from_surface(terrainMesh.mesh as ArrayMesh, 0)
-	print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
+	#print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
 
 
 static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Array[AdjacentHex], own_height: int) -> void:
@@ -106,8 +107,9 @@ static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Arra
 
 		# Determine corner vertex index and set height
 		var index := i * (3 + HexConst.extra_verts_per_side)
-		#verts_outer[index].y = corner_height * HexConst.height
-		verts_outer[index].y = HexConst.transition_height(corner_height)
+		# use relative height here!
+		var y: float = HexConst.transition_height(corner_height - own_height)
+		verts_outer[index].y = y
 
 
 	# For each direction: Adjust height of outer vertices according do adjacent tiles.
