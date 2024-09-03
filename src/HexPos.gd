@@ -1,26 +1,10 @@
 @tool
 class_name HexPos
 
+# Class variables
 var q: int
 var r: int
 var s: int
-
-# +X = right = 0
-
-static var hexpos_directions: Array[HexPos] = [
-    HexPos.new(1, 0, -1), # 0: +X, bot-right   | r=0
-    HexPos.new(0, 1, -1), # 1: +Z, bot         | q=0
-    HexPos.new(-1, 1, 0), # 2: +X, bot-left    | s=0
-    HexPos.new(-1, 0, 1), # 3: -X, top-left    | r=0
-    HexPos.new(0, -1, 1), # 4: -Z, top         | q=0
-    HexPos.new(1, -1, 0), # 5: -X, top-right   | s=0
-]
-
-# static var hexpos_diagonals: Array[HexPos] = [
-#     # TODO anpassen
-#     HexPos.new(2, -1, -1), HexPos.new(1, -2, 1), HexPos.new(-1, -1, 2),
-#     HexPos.new(-2, 1, 1), HexPos.new(-1, 2, -1), HexPos.new(1, 1, -2)
-# ]
 
 func _init(q_: int, r_: int, s_: int) -> void:
     q = q_
@@ -30,6 +14,7 @@ func _init(q_: int, r_: int, s_: int) -> void:
         push_error("q + r + s must be 0")
 
 func hash() -> int:
+    # Maps [q,r] -> N, works bidirectionally and for signed integers
     # Based on signed Szudzik pairing but without /2 in the end
     # https://www.vertexfragment.com/ramblings/cantor-szudzik-pairing-functions/#signed-szudzik
     var a: int = 2 * q if q >= 0 else (-2 * q) - 1
@@ -37,6 +22,43 @@ func hash() -> int:
     var result: int = (a * a) + a + b if a >= b else (b * b) + a
     return result
 
+
+func add(other: HexPos) -> HexPos:
+    return HexPos.new(q + other.q, r + other.r, s + other.s)
+
+func hexpos_subtract(other: HexPos) -> HexPos:
+    return HexPos.new(q - other.q, r - other.r, s - other.s)
+
+
+# static func hexpos_rotate_left(a: HexPos) -> HexPos:
+#     return HexPos.new(-a.s, -a.q, -a.r)
+# static func hexpos_rotate_right(a: HexPos) -> HexPos:
+#     return HexPos.new(-a.r, -a.s, -a.q)
+
+
+func get_neighbor(dir: int) -> HexPos:
+    return add(hexpos_direction(dir))
+
+
+#########################################
+# Static functions
+#########################################
+static var hexpos_directions: Array[HexPos] = [
+    HexPos.new(1, 0, -1), # 0: +X, bot-right   | r=0
+    HexPos.new(0, 1, -1), # 1: +Z, bot         | q=0
+    HexPos.new(-1, 1, 0), # 2: +X, bot-left    | s=0
+    HexPos.new(-1, 0, 1), # 3: -X, top-left    | r=0
+    HexPos.new(0, -1, 1), # 4: -Z, top         | q=0
+    HexPos.new(1, -1, 0), # 5: -X, top-right   | s=0
+]
+
+# +X = right = 0
+
+# static var hexpos_diagonals: Array[HexPos] = [
+#     # TODO anpassen
+#     HexPos.new(2, -1, -1), HexPos.new(1, -2, 1), HexPos.new(-1, -1, 2),
+#     HexPos.new(-2, 1, 1), HexPos.new(-1, 2, -1), HexPos.new(1, 1, -2)
+# ]
 
 static func hexpos_direction(direction: int) -> HexPos:
     assert(direction >= 0)
@@ -46,30 +68,6 @@ static func hexpos_direction(direction: int) -> HexPos:
 # static func hexpos_direction_diagonal(direction: int) -> HexPos:
 #     assert(direction >= 0)
     # return hexpos_diagonals[direction % 6]
-
-
-static func hexpos_add(a: HexPos, b: HexPos) -> HexPos:
-    return HexPos.new(a.q + b.q, a.r + b.r, a.s + b.s)
-
-
-# static func hexpos_subtract(a: HexPos, b: HexPos) -> HexPos:
-#     return HexPos.new(a.q - b.q, a.r - b.r, a.s - b.s)
-
-
-# static func hexpos_scale(a: HexPos, k: int) -> HexPos:
-#     return HexPos.new(a.q * k, a.r * k, a.s * k)
-
-
-# static func hexpos_rotate_left(a: HexPos) -> HexPos:
-#     return HexPos.new(-a.s, -a.q, -a.r)
-
-
-# static func hexpos_rotate_right(a: HexPos) -> HexPos:
-#     return HexPos.new(-a.r, -a.s, -a.q)
-
-
-static func hexpos_neighbor(hex: HexPos, direction: int) -> HexPos:
-    return hexpos_add(hex, hexpos_direction(direction))
 
 
 # static func hexpos_diagonal_neighbor(hex: HexPos, direction: int) -> HexPos:
