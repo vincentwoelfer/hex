@@ -1,4 +1,4 @@
-class_name Utility
+class_name Util
 
 ######################################################
 # COLORS
@@ -12,12 +12,13 @@ static func randColorVariation(color: Color, variation: float = 0.2) -> Color:
 
 
 static func getDistincHexColor(i: int) -> Color:
+	# -> R-G-B - Magenta-
 	assert(i >= 0 and i <= 5)
 	if i == 0: return Color.RED
-	if i == 1: return Color.MEDIUM_BLUE
-	if i == 2: return Color.ORANGE
+	if i == 1: return Color.DARK_GREEN
+	if i == 2: return Color.MEDIUM_BLUE
 	if i == 3: return Color.DARK_MAGENTA
-	if i == 4: return Color.DARK_GREEN
+	if i == 4: return Color.ORANGE
 	if i == 5: return Color.AQUA
 	return Color.BLACK
 
@@ -106,76 +107,3 @@ static func getHexVertex(r: float, angle: float, smooth_strength: float = 0.0) -
 	return vec3FromRadiusAngle(getHexRadius(r, angle, smooth_strength), angle)
 
 
-static func generateFullHexagonNoCorners(r: float, extra_verts_per_side: int, smooth_strength: float) -> Array[Vector3]:
-	var total_verts: int = 6 * (1 + extra_verts_per_side)
-	var angle_step: float = 2.0 * PI / total_verts
-	var vertices: Array[Vector3] = []
-
-	for i in range(total_verts):
-		var angle := i * angle_step
-		vertices.append(getHexVertex(r, angle, smooth_strength))
-
-	assert(vertices.size() == total_verts)
-	return vertices
-
-
-# Compute the 3 Vector3 points for one hex corner
-static func getThreeHexCornerVertices(r_inner: float, r_outer: float, angle: float) -> Array[Vector3]:
-	#assert(is_zero_approx(fmod(angle, PI / 3.0)), "Angle must be a multiple of PI/3!")
-	#assert(r_outer > r_inner)
-
-	# No smooth strength since corner
-	var inner_corner := getHexVertex(r_inner, angle)
-	var outer_corner := getHexVertex(r_outer, angle)
-
-	# Distance between the two interior circles of the inner and outer radius of the hex
-	var dist := (r_outer * sqrt(3.0) / 2.0) - (r_inner * sqrt(3.0) / 2.0)
-
-	# 30deg = PI/6.0 = one half of a hexagon segment
-	var left_angle := angle - PI / 6.0
-	var right_angle := angle + PI / 6.0
-	var left := inner_corner + vec3FromRadiusAngle(dist, left_angle)
-	var right := inner_corner + vec3FromRadiusAngle(dist, right_angle)
-
-	return [left, outer_corner, right]
-
-
-static func generateFullHexagonWithCorners(r_inner: float, r_outer: float, extra_verts_per_side: int) -> Array[Vector3]:
-	var corners: Array = []
-	for angle in getSixHexAngles():
-		corners.append(getThreeHexCornerVertices(r_inner, r_outer, angle))
-
-	# Determine angle difference (from hex center) between the corners and their neighbours
-	var corner: Vector3 = corners[0][1]
-	var corner_neighbour: Vector3 = corners[0][2]
-	var corner_angle_offset: float = abs(toVec2(corner).angle_to(toVec2(corner_neighbour)))
-
-	# Compute how many additional vertices per side and at which angles.
-	# Basically we reduce the 60deg hex-segment on both sides by corner_angle_offset
-	# to get the center part of the side which is the same as the inner hexagon.
-	var side_angle_range := (PI / 3.0 - 2.0 * corner_angle_offset)
-	var side_angle_step := side_angle_range / (extra_verts_per_side + 1)
-
-	# Put everything together
-	var vertices: Array[Vector3] = []
-	for i in range(6):
-		# Append corner points. For first, ommit the first one because its actually the last one of the whole hexagon
-		if i == 0:
-			vertices.append(corners[i][1])
-			vertices.append(corners[i][2])
-		else:
-			vertices.append(corners[i][0])
-			vertices.append(corners[i][1])
-			vertices.append(corners[i][2])
-
-		# Add additional vertices per side
-		var side_angle_start := (i * PI / 3.0) + corner_angle_offset
-		for j in range(1, extra_verts_per_side + 1):
-			var angle := side_angle_start + (j * side_angle_step)
-			vertices.append(getHexVertex(r_outer, angle))
-
-	# Append first(left) corner vertex of first corner at the end
-	vertices.append(corners[0][0])
-
-	assert(vertices.size() == 6 * (3 + extra_verts_per_side))
-	return vertices
