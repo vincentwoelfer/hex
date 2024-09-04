@@ -62,13 +62,15 @@ func create_hex(hex: HexPos) -> void:
 	var adjacent_hex: Array[HexGeometry.AdjacentHex] = []
 
 	for dir in range(6):
-		var h := map.get_hex(HexPos.hexpos_neighbor(hex, dir)).height
+		var h := map.get_hex(hex.get_neighbor(dir)).height
+		var descr := ""
 
-		# If neighbour does not exists set height to same as own tile
+		# If neighbour does not exists set height to same as own tile and mark transition
 		if h == -1:
 			h = height
+			descr = 'void'
 
-		adjacent_hex.push_back(HexGeometry.AdjacentHex.new(h, ""))
+		adjacent_hex.push_back(HexGeometry.AdjacentHex.new(h, descr))
 
 	# Instantiate & Set parameters
 	var tile: HexGeometry = hex_geometry.instantiate()

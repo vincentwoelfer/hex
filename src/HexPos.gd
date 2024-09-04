@@ -26,7 +26,7 @@ func hash() -> int:
 func add(other: HexPos) -> HexPos:
     return HexPos.new(q + other.q, r + other.r, s + other.s)
 
-func hexpos_subtract(other: HexPos) -> HexPos:
+func subtract(other: HexPos) -> HexPos:
     return HexPos.new(q - other.q, r - other.r, s - other.s)
 
 

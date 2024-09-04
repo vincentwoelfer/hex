@@ -16,8 +16,8 @@ class AdjacentHex:
 
 	
 # Input
-var adjacent_hex: Array[AdjacentHex] = [AdjacentHex.new(0, ""), AdjacentHex.new(0, ""), AdjacentHex.new(1, ""), AdjacentHex.new(2, ""), AdjacentHex.new(0, ""), AdjacentHex.new(-1, "")]
-var height: int = 0
+var adjacent_hex: Array[AdjacentHex] = [AdjacentHex.new(3, ""), AdjacentHex.new(3, ""), AdjacentHex.new(1, ""), AdjacentHex.new(1, ""), AdjacentHex.new(0, ""), AdjacentHex.new(-1, "")]
+var height: int = 1
 
 func _init() -> void:
 	terrainMesh = MeshInstance3D.new()
@@ -77,14 +77,14 @@ func generate() -> void:
 	# Only for debugging
 	#terrainMesh.create_debug_tangents()
 
-	# Only for statistics output
+	# Only for statistics output-
 	var mdt := MeshDataTool.new()
 	mdt.create_from_surface(terrainMesh.mesh as ArrayMesh, 0)
 	#print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
 
 
 static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Array[AdjacentHex], own_height: int) -> void:
-	# Adjust corner vertices according to both adjacent tiles
+	# Adjust CORNER vertices according to both adjacent tiles
 	for i in range(6):
 		var corner_height: int = 0
 
@@ -105,17 +105,18 @@ static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Arra
 		else:
 			corner_height = h[1]
 
-		# Determine corner vertex index and set height
+		# Determine corner vertex index
 		var index := i * (3 + HexConst.extra_verts_per_side)
-		# use relative height here!
-		var y: float = HexConst.transition_height(corner_height - own_height)
+
+		# Normalize relative to own height. Dont use transition_height here, directly compute height of the neighbouring cell (or own if h=0)
+		var y: float = (corner_height - own_height) * HexConst.height
 		verts_outer[index].y = y
 
 
-	# For each direction: Adjust height of outer vertices according do adjacent tiles.
+	# For each DIRECTION: Adjust height of outer vertices according do adjacent tiles.
 	# This does not modify the corner vertices
 	for i in range(6):
-		# Determine height (relative to own height)
+		# Determine height (normalize relative to own height)
 		var y: float = HexConst.transition_height(adjacent[i].height - own_height)
 
 		# +1 to ommit corners
