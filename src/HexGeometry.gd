@@ -87,30 +87,43 @@ static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Arra
 	# Adjust CORNER vertices according to both adjacent tiles
 	for i in range(6):
 		var corner_height: int = 0
+		var corner_vertex_index := i * (3 + HexConst.extra_verts_per_side)
 
-		# heights array
-		var h: Array[int] = [own_height, adjacent[(i - 1 + 6) % 6].height, adjacent[i].height]
+		# Get adjacent and create sorted heights array
+		var adj: Array[AdjacentHex] = [adjacent[(i - 1 + 6) % 6], adjacent[i]]
+		var h: Array[int] = [own_height, adj[0].height, adj[1].height]
 		h.sort()
 
-		# All three same
-		if h[0] == h[1] and h[1] == h[2]:
-			corner_height = h[0]
-		# Two are same -> use the two
-		elif h[0] == h[1] or h[0] == h[2] or h[1] == h[2]:
-			if h[0] == h[1]:
-				corner_height = h[0]
+		# Check for special case where one adjacent is not valid (map border).
+		# If two are not valid all are set to own height and this is handled by the default case
+		var num_invalid: int = adj.reduce(func(accum: int, elem: AdjacentHex, ) -> int: return accum + 1 if elem.type == 'invalid' else accum, 0)
+		#var num_invalid: int = 0
+		if num_invalid == 1:
+			var adj_height := 0
+			if adj[0].type != 'invalid':
+				adj_height = adj[0].height
 			else:
-				corner_height = h[2]
-		# All different -> use middle one
+				adj_height = adj[1].height
+
+			var y: float = HexConst.transition_height(adj_height - own_height)
+			verts_outer[corner_vertex_index].y = y
 		else:
-			corner_height = h[1]
+			# All three same
+			if h[0] == h[1] and h[1] == h[2]:
+				corner_height = h[0]
+			# Two are same -> use the two
+			elif h[0] == h[1] or h[0] == h[2] or h[1] == h[2]:
+				if h[0] == h[1]:
+					corner_height = h[0]
+				else:
+					corner_height = h[2]
+			# All different -> use middle one
+			else:
+				corner_height = h[1]
 
-		# Determine corner vertex index
-		var index := i * (3 + HexConst.extra_verts_per_side)
-
-		# Normalize relative to own height. Dont use transition_height here, directly compute height of the neighbouring cell (or own if h=0)
-		var y: float = (corner_height - own_height) * HexConst.height
-		verts_outer[index].y = y
+			# Normalize relative to own height. Dont use transition_height here, directly compute height of the neighbouring cell (or own if h=0)
+			var y: float = (corner_height - own_height) * HexConst.height
+			verts_outer[corner_vertex_index].y = y
 
 
 	# For each DIRECTION: Adjust height of outer vertices according do adjacent tiles.

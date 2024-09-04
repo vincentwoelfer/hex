@@ -68,7 +68,7 @@ func create_hex(hex: HexPos) -> void:
 		# If neighbour does not exists set height to same as own tile and mark transition
 		if h == -1:
 			h = height
-			descr = 'void'
+			descr = 'invalid'
 
 		adjacent_hex.push_back(HexGeometry.AdjacentHex.new(h, descr))
 
