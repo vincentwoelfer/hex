@@ -107,3 +107,49 @@ static func getHexVertex(r: float, angle: float, smooth_strength: float = 0.0) -
 	return vec3FromRadiusAngle(getHexRadius(r, angle, smooth_strength), angle)
 
 
+######################################################
+# Array stuff
+######################################################
+static func isArrayConsecutive(arr: Array, N: int) -> bool:
+	# Sort the array
+	var sorted_arr := arr.duplicate()
+	sorted_arr.sort()
+
+	# Check consecutive elements considering wrap-around
+	for i in range(1, sorted_arr.size()):
+		if (sorted_arr[i]) % N != (sorted_arr[i - 1] + 1) % N:
+			return false
+
+	return true
+
+
+static func isPointOnEdge(point: Vector2, p1: Vector2, p2: Vector2) -> bool:
+	# Check if point lies on the line segment (p1, p2)
+	if is_equal_approx(point.distance_to(p1) + point.distance_to(p2), p1.distance_to(p2)):
+		return true
+	return false
+
+
+static func isPointOutsidePolygon(point: Vector2, polygon: PackedVector2Array) -> bool:
+	# First, check if the point lies on any of the polygon's edges
+	for i in range(polygon.size()):
+		var p1 := polygon[i]
+		var p2 := polygon[(i + 1) % polygon.size()]
+		if isPointOnEdge(point, p1, p2):
+			return false # The point is on the polygon outline -> counts as inside
+
+	# Ray-casting method for point containment
+	var num_intersections := 0
+	
+	for i in range(polygon.size()):
+		var p1 := polygon[i]
+		var p2 := polygon[(i + 1) % polygon.size()]
+		
+		# Check if the ray from 'point' to the right intersects the edge (p1, p2)
+		if ((p1.y > point.y) != (p2.y > point.y)):
+			var x_intersection := (p2.x - p1.x) * (point.y - p1.y) / (p2.y - p1.y) + p1.x
+			if point.x < x_intersection:
+				num_intersections += 1
+	
+	# If the number of intersections is odd, the point is inside; if even, it's outside
+	return num_intersections % 2 == 0

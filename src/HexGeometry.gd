@@ -59,7 +59,8 @@ func generate() -> void:
 	# Triangulate
 	#########################################
 	self.triangles.clear()
-	self.triangles = triangulate(verts_inner, verts_outer, verts_center)
+	self.triangles += triangulateCenter(verts_center, verts_inner)
+	self.triangles += triangulateOuter(verts_inner, verts_outer)
 
 	# Add triangles to mesh
 	var st: SurfaceTool = SurfaceTool.new()
@@ -140,52 +141,60 @@ static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Arra
 			verts_outer[x].y = y
 
 
-static func triangulate(verts_inner: Array[Vector3], verts_outer: Array[Vector3], verts_center: Array[Vector3]) -> Array[Triangle]:
+static func triangulateCenter(verts_center: Array[Vector3], verts_inner: Array[Vector3], ) -> Array[Triangle]:
 	var tris: Array[Triangle] = []
-
-	#########################################
-	# Triangles for inner Hex Surface
-	#########################################
 	var col := Color.FOREST_GREEN
 
 	# Generate PackedVec2Array
 	var verts_center_packed: PackedVector2Array = []
+	var verts_polygon_packed: PackedVector2Array = []
 	for v in verts_inner:
 		verts_center_packed.append(Util.toVec2(v))
+		verts_polygon_packed.append(Util.toVec2(v))
 	for v in verts_center:
 		verts_center_packed.append(Util.toVec2(v))
 
 	var indices: PackedInt32Array = Geometry2D.triangulate_delaunay(verts_center_packed)
 
-	var n_inner := verts_inner.size()
+	var s_in := verts_inner.size()
 
 	for i in range(0, indices.size(), 3):
+		# Conevert result-indices (i) into original vertex-array indices
 		var i1 := indices[i]
 		var i2 := indices[i + 1]
 		var i3 := indices[i + 2]
 
-		var p1 := verts_inner[i1] if i1 < n_inner else verts_center[i1 - n_inner]
-		var p2 := verts_inner[i2] if i2 < n_inner else verts_center[i2 - n_inner]
-		var p3 := verts_inner[i3] if i3 < n_inner else verts_center[i3 - n_inner]
+		var p1 := verts_inner[i1] if i1 < s_in else verts_center[i1 - s_in]
+		var p2 := verts_inner[i2] if i2 < s_in else verts_center[i2 - s_in]
+		var p3 := verts_inner[i3] if i3 < s_in else verts_center[i3 - s_in]
 
-		# Check if triangle is valid and skip if not. Invalid if:
-		# - Triangle consists of only circle-edge (certs_inner) points
-		# - Triangle points "inwards". e.g. the covered area lies outside of the circle
-		var all_vertices_on_circle := i1 < n_inner and i2 < n_inner and i3 < n_inner
-		if all_vertices_on_circle and HexGeometry.doesTrianglePointsInwards(verts_inner, i1, i2, i3):
+		# Check if triangle is valid and skip if not. Invalid if one midpoint is outside of polygon formed by inner_verts
+		var all_vertices_on_circle := i1 < s_in and i2 < s_in and i3 < s_in
+		if all_vertices_on_circle and isTriangleOutsideOfPolygon([p1, p2, p3], verts_polygon_packed):
 			continue
-
+			
 		tris.append(Triangle.new(p1, p2, p3, Util.randColorVariation(col, 0.05)))
+	
+	return tris
 
-	#########################################
-	# Triangles for outer Hex Surface
-	#########################################
+
+static func isTriangleOutsideOfPolygon(tri: Array[Vector3], polygon: PackedVector2Array) -> bool:
+	# Check if any of the three midpoints is outside of the polygon
+	var midpoints: Array[Vector3] = [(tri[0] + tri[1]) / 2.0, (tri[0] + tri[2]) / 2.0, (tri[1] + tri[2]) / 2.0]
+	for m in midpoints:
+		if Util.isPointOutsidePolygon(Util.toVec2(m), polygon):
+			return true
+	return false
+
+
+static func triangulateOuter(verts_inner: Array[Vector3], verts_outer: Array[Vector3]) -> Array[Triangle]:
+	var tris: Array[Triangle] = []
 	var s_in := verts_inner.size()
 	var s_out := verts_outer.size()
 
 	# Per Side
 	for x in range(6):
-		col = Util.getDistincHexColor(x)
+		var col := Util.getDistincHexColor(x)
 
 		# start inner
 		var i := x * (1 + HexConst.extra_verts_per_side)

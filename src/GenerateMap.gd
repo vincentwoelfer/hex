@@ -20,14 +20,14 @@ func _ready() -> void:
 			var f2: float = sqrt(3.0) / 2.0
 			var f3: float = sqrt(3.0)
 			var north: float = -(f2 * q + f3 * r)
-			var h: int = maxi(0, roundf(north+1) as int)
+			var h: int = maxi(0, roundf(north + 1) as int)
 
 			var hex := HexPos.new(q, r, s)
 			var x := HexPos.hexpos_to_xyz(hex).x
 			var y := HexPos.hexpos_to_xyz(hex).y
 			var hash_: int = hex.hash()
 
-			print("Adding with x/y= %5.2f / %5.2f| q=%d r=%d s=%d hash=%d \t| north= %3.1f | height= %d" % [x, y, hex.q, hex.r, hex.s, hash_, north, h])
+			#print("Adding with x/y= %5.2f / %5.2f| q=%d r=%d s=%d hash=%d \t| north= %3.1f | height= %d" % [x, y, hex.q, hex.r, hex.s, hash_, north, h])
 			map.add_hex(hex, h)
 
 	EventBus.Signal_HexConstChanged.connect(generate_geometry)
@@ -35,6 +35,8 @@ func _ready() -> void:
 
 
 func generate_geometry() -> void:
+	var t_start := Time.get_ticks_msec()
+
 	# Remove previous tiles
 	for n in get_children():
 		remove_child(n)
@@ -49,7 +51,8 @@ func generate_geometry() -> void:
 			var hex := HexPos.new(q, r, s)
 			create_hex(hex)
 
-	print("Regenerated map tiles!")
+	var t := (Time.get_ticks_msec() - t_start) / 1000.0
+	print("Regenerated map tiles in %.3f sec" % [t])
 
 func create_hex(hex: HexPos) -> void:
 	#print("Creating Hex at q=", hex.q, ", r=", hex.r, ", s=", hex.s)
