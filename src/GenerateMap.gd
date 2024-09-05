@@ -3,7 +3,7 @@ extends Node3D
 
 var hex_geometry := preload("res://scenes/HexGeometry.tscn")
 
-var N: int = 2
+var N: int = 3
 var map: HexMap = HexMap.new()
 
 # Called when the node enters the scene tree for the first time.
@@ -14,21 +14,23 @@ func _ready() -> void:
 		var r2: int = min(N, -q + N)
 		for r in range(r1, r2 + 1):
 			var s := -q - r
+			var hex := HexPos.new(q, r, s)
 
 			# var north: int = ceilf((s - r)) as int
 			# var h: int = maxi(0, north)
-			var f2: float = sqrt(3.0) / 2.0
-			var f3: float = sqrt(3.0)
-			var north: float = -(f2 * q + f3 * r)
-			var h: int = maxi(0, roundf(north + 1) as int)
+			# var f2: float = sqrt(3.0) / 2.0
+			# var f3: float = sqrt(3.0)
+			# var north: float = -(f2 * q + f3 * r)
+			# var height: int = maxi(0, roundf(north + 1) as int)
 
-			var hex := HexPos.new(q, r, s)
-			var x := HexPos.hexpos_to_xyz(hex).x
-			var y := HexPos.hexpos_to_xyz(hex).y
-			var hash_: int = hex.hash()
+			var height: int = (N - hex.magnitude()) * 2 + randi_range(-2, 2)
+			height = clampi(height, 0, 20)
+			# var x := HexPos.hexpos_to_xyz(hex).x
+			# var y := HexPos.hexpos_to_xyz(hex).y
+			# var hash_: int = hex.hash()
 
-			#print("Adding with x/y= %5.2f / %5.2f| q=%d r=%d s=%d hash=%d \t| north= %3.1f | height= %d" % [x, y, hex.q, hex.r, hex.s, hash_, north, h])
-			map.add_hex(hex, h)
+			#print("Adding with x/y= %5.2f / %5.2f| q=%d r=%d s=%d hash=%d \t| north= %3.1f | height= %d" % [x, y, hex.q, hex.r, hex.s, hash_, north, height])
+			map.add_hex(hex, height)
 
 	EventBus.Signal_HexConstChanged.connect(generate_geometry)
 	generate_geometry()

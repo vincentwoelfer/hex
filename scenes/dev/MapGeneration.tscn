@@ -25,11 +25,11 @@ shadow_enabled = true
 [node name="HexConstModifier" parent="." instance=ExtResource("5_7csfd")]
 outer_radius = 3.0
 inner_radius = 2.5
-height = 1.2
+height = 2.1
 transition_height_factor = 0.5
-core_circle_smooth_strength = 0.5
-extra_verts_per_side = 5
-extra_verts_per_center = 4
+core_circle_smooth_strength = 0.25
+extra_verts_per_side = 3
+extra_verts_per_center = 5
 
 [node name="MapGeneration" type="Node3D" parent="."]
 script = ExtResource("1_2h4g3")

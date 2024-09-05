@@ -153,3 +153,12 @@ static func isPointOutsidePolygon(point: Vector2, polygon: PackedVector2Array) -
 	
 	# If the number of intersections is odd, the point is inside; if even, it's outside
 	return num_intersections % 2 == 0
+
+
+static func isTriangleOutsideOfPolygon(tri: Array[Vector3], polygon: PackedVector2Array) -> bool:
+	# Check if any of the three midpoints is outside of the polygon
+	var midpoints: Array[Vector3] = [(tri[0] + tri[1]) / 2.0, (tri[0] + tri[2]) / 2.0, (tri[1] + tri[2]) / 2.0]
+	for m in midpoints:
+		if Util.isPointOutsidePolygon(Util.toVec2(m), polygon):
+			return true
+	return false

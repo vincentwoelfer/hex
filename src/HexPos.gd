@@ -30,6 +30,10 @@ func subtract(other: HexPos) -> HexPos:
     return HexPos.new(q - other.q, r - other.r, s - other.s)
 
 
+# Distance to (0,0,0) aka "length"
+func magnitude() -> int:
+    return roundi((absi(q) + absi(r) + absi(s)) / 2.0)
+
 # static func hexpos_rotate_left(a: HexPos) -> HexPos:
 #     return HexPos.new(-a.s, -a.q, -a.r)
 # static func hexpos_rotate_right(a: HexPos) -> HexPos:
@@ -74,13 +78,8 @@ static func hexpos_direction(direction: int) -> HexPos:
 #     return hexpos_add(hex, hexpos_direction_diagonal(direction))
 
 
-static func hexpos_length(hex: HexPos) -> int:
-    # TODO Changed rounding behaviour, maybe this is buggy
-    return roundi((absi(hex.q) + absi(hex.r) + absi(hex.s)) / 2.0)
-
-
 # static func hexpos_distance(a: HexPos, b: HexPos) -> int:
-#     return hexpos_length(hexpos_subtract(a, b))
+    # return hexpos_length(hexpos_subtract(a, b))
 
 
 # static func hexpos_round(h: HexPosFrac) -> HexPos:

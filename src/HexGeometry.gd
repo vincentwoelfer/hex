@@ -170,21 +170,12 @@ static func triangulateCenter(verts_center: Array[Vector3], verts_inner: Array[V
 
 		# Check if triangle is valid and skip if not. Invalid if one midpoint is outside of polygon formed by inner_verts
 		var all_vertices_on_circle := i1 < s_in and i2 < s_in and i3 < s_in
-		if all_vertices_on_circle and isTriangleOutsideOfPolygon([p1, p2, p3], verts_polygon_packed):
+		if all_vertices_on_circle and Util.isTriangleOutsideOfPolygon([p1, p2, p3], verts_polygon_packed):
 			continue
 			
 		tris.append(Triangle.new(p1, p2, p3, Util.randColorVariation(col, 0.05)))
 	
 	return tris
-
-
-static func isTriangleOutsideOfPolygon(tri: Array[Vector3], polygon: PackedVector2Array) -> bool:
-	# Check if any of the three midpoints is outside of the polygon
-	var midpoints: Array[Vector3] = [(tri[0] + tri[1]) / 2.0, (tri[0] + tri[2]) / 2.0, (tri[1] + tri[2]) / 2.0]
-	for m in midpoints:
-		if Util.isPointOutsidePolygon(Util.toVec2(m), polygon):
-			return true
-	return false
 
 
 static func triangulateOuter(verts_inner: Array[Vector3], verts_outer: Array[Vector3]) -> Array[Triangle]:
