@@ -180,8 +180,8 @@ static func triangulate(verts_inner: Array[Vector3], verts_outer: Array[Vector3]
 	#########################################
 	# Triangles for outer Hex Surface
 	#########################################
-	var size_inner := verts_inner.size()
-	var size_outer := verts_outer.size()
+	var s_in := verts_inner.size()
+	var s_out := verts_outer.size()
 
 	# Per Side
 	for x in range(6):
@@ -193,19 +193,28 @@ static func triangulate(verts_inner: Array[Vector3], verts_outer: Array[Vector3]
 		var j := x * (3 + HexConst.extra_verts_per_side)
 
 		# end inner
-		var n1 := i + (1 + HexConst.extra_verts_per_side)
+		var n1 := (x + 1) * (1 + HexConst.extra_verts_per_side)
 		# end outer
-		var n2 := j + (3 + HexConst.extra_verts_per_side)
+		var n2 := (x + 1) * (3 + HexConst.extra_verts_per_side) - 1
+
+		# Triangulate start-corner manually here
+		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], Util.randColorVariation(col)))
+		j += 1
 		
+		# Only transition area between hexes, without corners!
 		while i < n1 or j < n2:
-			var outer_is_clockwise_further := Util.isClockwiseOrder(verts_inner[i % size_inner], verts_outer[j % size_outer])
+			var c := Util.randColorVariation(col)
+			var outer_is_clockwise_further := Util.isClockwiseOrder(verts_inner[i % s_in], verts_outer[j % s_out])
 
 			if j == n2 or (i < n1 and outer_is_clockwise_further):
-				tris.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_inner[(i + 1) % size_inner], Util.randColorVariation(col)))
+				tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_inner[(i + 1) % s_in], c))
 				i += 1
 			else:
-				tris.append(Triangle.new(verts_inner[i % size_inner], verts_outer[j % size_outer], verts_outer[(j + 1) % size_outer], Util.randColorVariation(col)))
+				tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], c))
 				j += 1
+
+		# Triangulate end-corner manually here
+		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], Util.randColorVariation(col)))
 
 	return tris
 				
