@@ -5,6 +5,8 @@ extends Node3D
 # Class variables
 var terrainMesh: MeshInstance3D
 var triangles: Array[Triangle]
+var sampler: PolygonSurfaceSampler
+
 
 class AdjacentHex:
 	var height: int
@@ -15,9 +17,10 @@ class AdjacentHex:
 		self.type = type_
 
 	
-# Input
+# Input Variables
 var adjacent_hex: Array[AdjacentHex] = [AdjacentHex.new(3, ""), AdjacentHex.new(3, ""), AdjacentHex.new(1, ""), AdjacentHex.new(1, ""), AdjacentHex.new(0, ""), AdjacentHex.new(-1, "")]
 var height: int = 1
+
 
 func _init() -> void:
 	terrainMesh = MeshInstance3D.new()
@@ -25,12 +28,13 @@ func _init() -> void:
 	terrainMesh.material_override = load("res://DefaultMaterial.tres")
 
 	add_child(terrainMesh, true)
-	#terrainMesh.owner = self
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	EventBus.Signal_HexConstChanged.connect(generate)
 	generate()
+
 
 func generate() -> void:
 	var verts_inner := generateFullHexagonNoCorners(HexConst.inner_radius, HexConst.extra_verts_per_side, HexConst.core_circle_smooth_strength)
@@ -74,6 +78,12 @@ func generate() -> void:
 	st.index()
 	st.generate_normals()
 	terrainMesh.mesh = st.commit()
+
+	# Recreate triangle sampler
+	self.sampler = PolygonSurfaceSampler.new(self.triangles)
+
+	for i in range(50):
+		addSphere(self.sampler.get_random_point())
 	
 	# Only for debugging
 	#terrainMesh.create_debug_tangents()
@@ -82,6 +92,30 @@ func generate() -> void:
 	var mdt := MeshDataTool.new()
 	mdt.create_from_surface(terrainMesh.mesh as ArrayMesh, 0)
 	#print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
+
+
+func addSphere(pos : Vector3) -> void:
+	 # Create a new MeshInstance3D
+	var sphere_instance := MeshInstance3D.new()
+
+	# Create a SphereMesh
+	var sphere_mesh := SphereMesh.new()
+	sphere_mesh.radius = 0.07  # Set radius of the sphere
+	sphere_mesh.height = 0.07  # Adjust height if needed
+	sphere_mesh.radial_segments = 4  # Number of radial segments (more = smoother)
+	sphere_mesh.rings = 4  # Number of rings (more = smoother)
+	
+	# Bright red material (unshaded).
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(1, 0, 0)
+	sphere_mesh.surface_set_material(0, material)
+
+	sphere_instance.mesh = sphere_mesh
+
+	# Add the sphere to the current scene
+	add_child(sphere_instance)
+	# Optionally, you can adjust its position
+	sphere_instance.position = pos
 
 
 static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Array[AdjacentHex], own_height: int) -> void:

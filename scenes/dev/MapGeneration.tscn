@@ -20,6 +20,8 @@ script = ExtResource("4_j2ckc")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 7, 0)
+light_color = Color(1, 1, 0.941176, 1)
+light_angular_distance = 1.75
 shadow_enabled = true
 
 [node name="HexConstModifier" parent="." instance=ExtResource("5_7csfd")]
@@ -32,4 +34,5 @@ extra_verts_per_side = 3
 extra_verts_per_center = 5
 
 [node name="MapGeneration" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 script = ExtResource("1_2h4g3")

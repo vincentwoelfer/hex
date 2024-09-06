@@ -28,9 +28,12 @@ func draw_debug_sphere(location: Vector3, r: float) -> void:
 
 # Export parameters
 var horizontalDistance: float = 6.0
-var height: float = 3.0
+var height: float = 5.0
 var zoom: float = 1.0
 var zoomTarget: float = 1.0
+# higher value = further away
+var zoom_min: float = 0.075
+var zoom_max: float = 7.0
 
 var lookAtPoint: Vector3
 var followPoint: Vector3
@@ -39,7 +42,7 @@ var orientation: int = 1
 # current rotation in angle
 var currRotation: float = 0
 
-var speed: float = 11
+var speed: float = 12
 var rotationLerpSpeed: float = 7.0
 var lerpSpeed: float = 8.0 # almost instant
 
@@ -59,7 +62,7 @@ func _input(event: InputEvent) -> void:
 		zoomTarget -= 0.25
 	if Input.is_action_pressed("zoom_cam_backward"):
 		zoomTarget += 0.25
-	zoomTarget = clampf(zoomTarget, 0.05, 2.0)
+	zoomTarget = clampf(zoomTarget, zoom_min, zoom_max)
 
 func getInputVec() -> Vector3:
 	var inputDir := Vector3.ZERO
@@ -80,7 +83,7 @@ func _process(delta: float) -> void:
 
 	# Default Orientation = 1 -> Forward = -Z , this is archived with 90° into sin/cos
 	# Thats why we subtract 90°
-	var forwardAngle := deg_to_rad((60.0 * orientation + 30.0) - 90.0) # Actually forwars
+	var forwardAngle := deg_to_rad((60.0 * orientation + 30.0) - 90.0) # Actually forward
 
 	currRotation = lerp_angle(currRotation, forwardAngle, rotationLerpSpeed * delta)
 	var forwardDir := Vector3(0, 0, -1).rotated(Vector3.UP, currRotation) # not actually forward, lerps
@@ -89,11 +92,11 @@ func _process(delta: float) -> void:
 	var inputDir := inputDirRaw.rotated(Vector3.UP, forwardAngle)
 
 	# Move follow point, lookAtPoint follows this
-	followPoint += inputDir * speed * delta
+	followPoint += inputDir * (speed + zoom / 3.0) * delta
 	lookAtPoint.x = lerpf(lookAtPoint.x, followPoint.x, lerpSpeed * delta)
 	lookAtPoint.z = lerpf(lookAtPoint.z, followPoint.z, lerpSpeed * delta)
 
-	draw_debug_sphere(lookAtPoint, maxf(zoomTarget * 0.25, 0.025))
+	draw_debug_sphere(lookAtPoint, maxf(zoomTarget * 0.1, 0.025))
 
 	# Camera position
 	var camPos := lookAtPoint

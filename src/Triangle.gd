@@ -17,6 +17,16 @@ func _init(a_: Vector3, b_: Vector3, c_: Vector3, color_: Color = Color()) -> vo
 	self.color = color_
 	assert(a != b and a != c and b != c, "Triangle points must be different")
 
+	# For testing, set color based on incline
+	var incline := calculateInclineDeg()
+	if incline <= 12.0:
+		incline = 0
+	incline = clampf(incline / 70.0, 0, 1)
+
+	var green := Color.FOREST_GREEN
+	var gray := Color.DIM_GRAY
+	color = green.lerp(gray, incline)
+
 func getArea() -> float:
 	return 0.5 * (b - a).cross(c - a).length()
 
@@ -30,15 +40,7 @@ func getRandPoint() -> Vector3:
 	return a * u + b * v + c * w
 
 func addToSurfaceTool(st: SurfaceTool) -> void:
-	var incline := calculateInclineDeg()
-
-	incline = clampf(incline / 70.0, 0, 1)
-	var green := Color.FOREST_GREEN
-	var gray := Color.DIM_GRAY
-	var col := green.lerp(gray, incline)
-
-	st.set_color(col)
-
+	st.set_color(color)
 	st.set_smooth_group(-1)
 	st.add_vertex(a)
 	st.set_smooth_group(-1)

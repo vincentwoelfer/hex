@@ -16,6 +16,7 @@ func _ready() -> void:
 			var s := -q - r
 			var hex := HexPos.new(q, r, s)
 
+			# More north = heigher (for testing)
 			# var north: int = ceilf((s - r)) as int
 			# var h: int = maxi(0, north)
 			# var f2: float = sqrt(3.0) / 2.0
@@ -23,13 +24,14 @@ func _ready() -> void:
 			# var north: float = -(f2 * q + f3 * r)
 			# var height: int = maxi(0, roundf(north + 1) as int)
 
-			var height: int = (N - hex.magnitude()) * 2 + randi_range(-2, 2)
-			height = clampi(height, 0, 20)
+			var height: int = (N - hex.magnitude()) * 2 + randi_range(-1, 1) * 4
+			height = clampi(height, 0, 40)
+
 			# var x := HexPos.hexpos_to_xyz(hex).x
 			# var y := HexPos.hexpos_to_xyz(hex).y
 			# var hash_: int = hex.hash()
-
 			#print("Adding with x/y= %5.2f / %5.2f| q=%d r=%d s=%d hash=%d \t| north= %3.1f | height= %d" % [x, y, hex.q, hex.r, hex.s, hash_, north, height])
+
 			map.add_hex(hex, height)
 
 	EventBus.Signal_HexConstChanged.connect(generate_geometry)
