@@ -7,9 +7,7 @@ var arrow_radius: float = 0.1
 func _ready() -> void:
 	var immediate_mesh := ImmediateMesh.new()
 	var material := StandardMaterial3D.new()
-	
 	material.albedo_color = Color.RED
-	immediate_mesh.surface_set_material(0, material)
 
 	var arrow := create_arrow()
 
@@ -18,10 +16,12 @@ func _ready() -> void:
 		immediate_mesh.surface_add_vertex(v[0])
 		immediate_mesh.surface_add_vertex(v[1])
 	immediate_mesh.surface_end()
+	immediate_mesh.surface_set_material(0, material)
 	
 	var mesh_instance := MeshInstance3D.new()
 	mesh_instance.mesh = immediate_mesh
 	add_child(mesh_instance)
+
 
 # Function to create an arrow geometry using ImmediateGeometry
 func create_arrow() -> Array[PackedVector3Array]:

@@ -102,19 +102,15 @@ func generate() -> void:
 
 func addRocks(transform_: Transform3D) -> void:
 	var mesh_scene: PackedScene
-	#mesh_scene = load("res://assets/meshes/rocks1/scene.gltf") # Load the specific mesh scene
+	mesh_scene = load("res://assets/meshes/rocks1/scene.gltf") # Load the specific mesh scene
 
-	#DebugDraw3D.draw_arrowhead(transform_.origin, transform_.origin + Vector3(1,1,1), Color.RED, 9999)
-	DebugDraw3D.draw_arrowhead(transform_, Color.RED, 0)
-	
+	var mesh_instance := mesh_scene.instantiate() as Node3D
+	add_child(mesh_instance)
+	mesh_instance.transform = transform_
+
 	#var arrow_instance := Arrow3D.new()
 	#arrow_instance.transform = transform_
 	#add_child(arrow_instance)
-
-
-	#var mesh_instance := mesh_scene.instantiate() as Node3D
-	#add_child(mesh_instance)#
-	#mesh_instance.transform = transform_
 	
 
 func addSphere(pos: Vector3) -> void:
