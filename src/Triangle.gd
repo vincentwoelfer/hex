@@ -27,8 +27,10 @@ func _init(a_: Vector3, b_: Vector3, c_: Vector3, color_: Color = Color()) -> vo
 	var gray := Color.DIM_GRAY
 	color = green.lerp(gray, incline)
 
+
 func getArea() -> float:
 	return 0.5 * (b - a).cross(c - a).length()
+
 
 func getRandPoint() -> Vector3:
 	var u: float = randf()
@@ -39,6 +41,7 @@ func getRandPoint() -> Vector3:
 	var w: float = 1.0 - u - v
 	return a * u + b * v + c * w
 
+
 func addToSurfaceTool(st: SurfaceTool) -> void:
 	st.set_color(color)
 	st.set_smooth_group(-1)
@@ -48,13 +51,19 @@ func addToSurfaceTool(st: SurfaceTool) -> void:
 	st.set_smooth_group(-1)
 	st.add_vertex(c)
 
-func calculateInclineDeg() -> float:
+
+func getNormal() -> Vector3:
 	# Calculate the edge vectors
 	var ab := b - a
 	var ac := c - a
 	
 	# Calculate the normal vector using the cross product
 	var normal := -ab.cross(ac).normalized()
+	return normal
+
+
+func calculateInclineDeg() -> float:
+	var normal := getNormal()
 
 	# # Calculate the angle of inclination using the up component (y)
 	var incline_angle := acos(normal.y)

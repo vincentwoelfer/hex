@@ -58,6 +58,7 @@ func generate_geometry() -> void:
 	var t := (Time.get_ticks_msec() - t_start) / 1000.0
 	print("Regenerated map tiles in %.3f sec" % [t])
 
+
 func create_hex(hex: HexPos) -> void:
 	#print("Creating Hex at q=", hex.q, ", r=", hex.r, ", s=", hex.s)
 	var pos: Vector2 = HexPos.hexpos_to_xyz(hex)

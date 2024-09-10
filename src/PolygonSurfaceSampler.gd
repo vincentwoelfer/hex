@@ -9,18 +9,31 @@ func _init(triangles_: Array[Triangle]) -> void:
 	_calculate_area_weights()
 
 
-func get_random_point() -> Vector3:
-	var tri_idx: int = _weighted_random_choice(self.area_weights)
-	var tri: Triangle = self.triangles[tri_idx]
-	return tri.getRandPoint()
-
-
 func get_random_points(num_points: int) -> Array[Vector3]:
 	var points: Array[Vector3] = []
 	points.resize(num_points)
 	for i in range(num_points):
 		points[i] = self.get_random_point()
 	return points
+
+
+func get_random_point() -> Vector3:
+	var tri_idx: int = _weighted_random_choice(self.area_weights)
+	var tri: Triangle = self.triangles[tri_idx]
+	return tri.getRandPoint()
+
+
+func get_random_point_transform() -> Transform3D:
+	var tri_idx: int = _weighted_random_choice(self.area_weights)
+	var tri: Triangle = self.triangles[tri_idx]
+
+	var transform: Transform3D = Transform3D()
+	transform.origin = tri.getRandPoint()
+	var normal := tri.getNormal()
+	# Set the orientation (normal as the z-axis direction)
+	transform.basis = Basis(normal.cross(Vector3(1, 0, 0)), normal.cross(Vector3(0, 1, 0)), normal).orthonormalized()
+
+	return transform
 
 
 func _calculate_area_weights() -> void:

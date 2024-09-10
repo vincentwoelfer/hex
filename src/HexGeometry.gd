@@ -36,6 +36,11 @@ func _ready() -> void:
 	generate()
 
 
+func _process(delta: float) -> void:
+	pass
+	#DebugDraw3D.draw_arrowhead(transform, Color.RED, 99999)
+
+
 func generate() -> void:
 	var verts_inner := generateFullHexagonNoCorners(HexConst.inner_radius, HexConst.extra_verts_per_side, HexConst.core_circle_smooth_strength)
 	var verts_outer := generateFullHexagonWithCorners(HexConst.inner_radius, HexConst.outer_radius, HexConst.extra_verts_per_side)
@@ -82,8 +87,9 @@ func generate() -> void:
 	# Recreate triangle sampler
 	self.sampler = PolygonSurfaceSampler.new(self.triangles)
 
-	for i in range(50):
-		addSphere(self.sampler.get_random_point())
+	#for i in range(50):
+	#	addSphere(self.sampler.get_random_point())
+	addRocks(self.sampler.get_random_point_transform())
 	
 	# Only for debugging
 	#terrainMesh.create_debug_tangents()
@@ -94,16 +100,33 @@ func generate() -> void:
 	#print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
 
 
-func addSphere(pos : Vector3) -> void:
+func addRocks(transform_: Transform3D) -> void:
+	var mesh_scene: PackedScene
+	#mesh_scene = load("res://assets/meshes/rocks1/scene.gltf") # Load the specific mesh scene
+
+	#DebugDraw3D.draw_arrowhead(transform_.origin, transform_.origin + Vector3(1,1,1), Color.RED, 9999)
+	DebugDraw3D.draw_arrowhead(transform_, Color.RED, 0)
+	
+	#var arrow_instance := Arrow3D.new()
+	#arrow_instance.transform = transform_
+	#add_child(arrow_instance)
+
+
+	#var mesh_instance := mesh_scene.instantiate() as Node3D
+	#add_child(mesh_instance)#
+	#mesh_instance.transform = transform_
+	
+
+func addSphere(pos: Vector3) -> void:
 	 # Create a new MeshInstance3D
 	var sphere_instance := MeshInstance3D.new()
 
 	# Create a SphereMesh
 	var sphere_mesh := SphereMesh.new()
-	sphere_mesh.radius = 0.07  # Set radius of the sphere
-	sphere_mesh.height = 0.07  # Adjust height if needed
-	sphere_mesh.radial_segments = 4  # Number of radial segments (more = smoother)
-	sphere_mesh.rings = 4  # Number of rings (more = smoother)
+	sphere_mesh.radius = 0.07 # Set radius of the sphere
+	sphere_mesh.height = 0.07 # Adjust height if needed
+	sphere_mesh.radial_segments = 4 # Number of radial segments (more = smoother)
+	sphere_mesh.rings = 4 # Number of rings (more = smoother)
 	
 	# Bright red material (unshaded).
 	var material := StandardMaterial3D.new()
