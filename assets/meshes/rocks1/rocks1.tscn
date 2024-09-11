@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://b6emi4gjki870"]
+
+[ext_resource type="PackedScene" uid="uid://bjk650gc8e6hv" path="res://assets/meshes/rocks1/scene.gltf" id="1_k5ai1"]
+
+[node name="Rocks1" type="Node3D"]
+
+[node name="Sketchfab_Scene" parent="." instance=ExtResource("1_k5ai1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.466203, 0)

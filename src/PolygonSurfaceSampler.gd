@@ -26,14 +26,7 @@ func get_random_point() -> Vector3:
 func get_random_point_transform() -> Transform3D:
 	var tri_idx: int = _weighted_random_choice(self.area_weights)
 	var tri: Triangle = self.triangles[tri_idx]
-
-	var transform: Transform3D = Transform3D()
-	transform.origin = tri.getRandPoint()
-	var normal := tri.getNormal()
-	# Set the orientation (normal as the z-axis direction)
-	transform.basis = Basis(normal.cross(Vector3(1, 0, 0)), normal.cross(Vector3(0, 1, 0)), normal).orthonormalized()
-
-	return transform
+	return Util.transformFromPointAndNormal(tri.getRandPoint(), tri.getNormal())
 
 
 func _calculate_area_weights() -> void:

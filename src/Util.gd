@@ -90,6 +90,19 @@ static func sortVecAccordingToAngles(vecs: Array[Vector3]) -> Array[Vector3]:
 	vecs.sort_custom(func(a: Vector3, b: Vector3) -> bool: return !isClockwiseOrder(a, b))
 	return vecs
 
+
+######################################################
+# 3D Vector Math
+######################################################
+static func transformFromPointAndNormal(point: Vector3, normal: Vector3) -> Transform3D:
+	var transform := Transform3D()
+	transform.origin = point
+	transform.basis.y = normal
+	transform.basis.x = -transform.basis.z.cross(normal)
+	transform.basis = transform.basis.orthonormalized()
+	return transform
+
+
 ######################################################
 # HEXAGON
 ######################################################
