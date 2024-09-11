@@ -16,7 +16,7 @@ class AdjacentHex:
 		self.height = height_
 		self.type = type_
 
-	
+
 # Input Variables
 var adjacent_hex: Array[AdjacentHex] = [AdjacentHex.new(3, ""), AdjacentHex.new(3, ""), AdjacentHex.new(1, ""), AdjacentHex.new(1, ""), AdjacentHex.new(0, ""), AdjacentHex.new(-1, "")]
 var height: int = 1
@@ -60,7 +60,7 @@ func generate() -> void:
 		var h_var := 0.07
 		verts_center[i] += Util.randCircularOffset(HexConst.inner_radius * 0.1)
 		verts_center[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
-	
+
 	# Adjust outer/transitional vertex heights
 	modifyOuterVertexHeights(verts_outer, adjacent_hex, height)
 
@@ -90,7 +90,7 @@ func generate() -> void:
 	#for i in range(50):
 	#	addSphere(self.sampler.get_random_point())
 	addRocks(self.sampler.get_random_point_transform())
-	
+
 	# Only for debugging
 	#terrainMesh.create_debug_tangents()
 
@@ -108,11 +108,11 @@ func addRocks(transform_: Transform3D) -> void:
 	var mesh_instance := mesh_scene.instantiate() as Node3D
 	mesh_instance.transform = transform_
 	add_child(mesh_instance)
-	
+
 	var arrow_instance := Arrow3D.new()
 	arrow_instance.transform = transform_
 	add_child(arrow_instance)
-	
+
 
 func addSphere(pos: Vector3) -> void:
 	 # Create a new MeshInstance3D
@@ -124,7 +124,7 @@ func addSphere(pos: Vector3) -> void:
 	sphere_mesh.height = 0.07 # Adjust height if needed
 	sphere_mesh.radial_segments = 4 # Number of radial segments (more = smoother)
 	sphere_mesh.rings = 4 # Number of rings (more = smoother)
-	
+
 	# Bright red material (unshaded).
 	var material := StandardMaterial3D.new()
 	material.albedo_color = Color(1, 0, 0)
@@ -226,9 +226,9 @@ static func triangulateCenter(verts_center: Array[Vector3], verts_inner: Array[V
 		var all_vertices_on_circle := i1 < s_in and i2 < s_in and i3 < s_in
 		if all_vertices_on_circle and Util.isTriangleOutsideOfPolygon([p1, p2, p3], verts_polygon_packed):
 			continue
-			
+
 		tris.append(Triangle.new(p1, p2, p3, Util.randColorVariation(col, 0.05)))
-	
+
 	return tris
 
 
@@ -254,7 +254,7 @@ static func triangulateOuter(verts_inner: Array[Vector3], verts_outer: Array[Vec
 		# Triangulate start-corner manually here
 		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], Util.randColorVariation(col)))
 		j += 1
-		
+
 		# Only transition area between hexes, without corners!
 		while i < n1 or j < n2:
 			var c := Util.randColorVariation(col)
@@ -271,7 +271,7 @@ static func triangulateOuter(verts_inner: Array[Vector3], verts_outer: Array[Vec
 		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], Util.randColorVariation(col)))
 
 	return tris
-				
+
 
 static func generateCenterPoints(num: int) -> Array[Vector3]:
 	var points: Array[Vector3] = []
@@ -301,7 +301,7 @@ static func doesTrianglePointsInwards(verts_inner: Array[Vector3], i1: int, i2: 
 	var dist_left := Util.toVec2(verts_inner[indices[0]]).distance_to(Vector2.ZERO)
 	var dist_center := Util.toVec2(verts_inner[indices[1]]).distance_to(Vector2.ZERO)
 	var dist_right := Util.toVec2(verts_inner[indices[2]]).distance_to(Vector2.ZERO)
-	
+
 	# Inwards if center is smaller than both other vertices
 	return dist_center <= dist_left and dist_center <= dist_right
 
