@@ -36,10 +36,20 @@ _subresources={
 "materials": {
 "DefaultMaterial.001": {
 "use_external/enabled": true,
-"use_external/path": "res://assets/blender/materials/DefaultMaterial.001.tres"
+"use_external/path": "res://assets/blender/materials/rock_collection_1_material.tres"
 }
 },
 "meshes": {
+"rock_collection_1_defaultMaterial_246": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"lods/raycast_normals": false,
+"save_to_file/enabled": true,
+"save_to_file/path": "res://assets/blender/objects/rock_collection_1_1.res"
+},
 "rock_collection_1_defaultMaterial_247": {
 "generate/lightmap_uv": 0,
 "generate/lods": 0,
@@ -48,7 +58,7 @@ _subresources={
 "lods/normal_split_angle": 25.0,
 "lods/raycast_normals": false,
 "save_to_file/enabled": true,
-"save_to_file/path": "res://assets/blender/extraced_meshes/rock_collection_1_defaultMaterial_247.res"
+"save_to_file/path": "res://assets/blender/objects/rock_collection_1_2.res"
 },
 "rock_collection_1_defaultMaterial_248": {
 "generate/lightmap_uv": 0,
@@ -58,7 +68,7 @@ _subresources={
 "lods/normal_split_angle": 25.0,
 "lods/raycast_normals": false,
 "save_to_file/enabled": true,
-"save_to_file/path": "res://assets/blender/extraced_meshes/rock_collection_1_defaultMaterial_248.res"
+"save_to_file/path": "res://assets/blender/objects/rock_collection_1_3.res"
 },
 "rock_collection_1_defaultMaterial_249": {
 "generate/lightmap_uv": 0,
@@ -68,7 +78,7 @@ _subresources={
 "lods/normal_split_angle": 25.0,
 "lods/raycast_normals": false,
 "save_to_file/enabled": true,
-"save_to_file/path": "res://assets/blender/extraced_meshes/rock_collection_1_defaultMaterial_249.res"
+"save_to_file/path": "res://assets/blender/objects/rock_collection_1_4.res"
 },
 "rock_collection_1_defaultMaterial_250": {
 "generate/lightmap_uv": 0,
@@ -78,7 +88,7 @@ _subresources={
 "lods/normal_split_angle": 25.0,
 "lods/raycast_normals": false,
 "save_to_file/enabled": true,
-"save_to_file/path": "res://assets/blender/extraced_meshes/rock_collection_1_defaultMaterial_250.res"
+"save_to_file/path": "res://assets/blender/objects/rock_collection_1_5.res"
 },
 "rock_collection_1_defaultMaterial_251": {
 "generate/lightmap_uv": 0,
@@ -88,7 +98,7 @@ _subresources={
 "lods/normal_split_angle": 25.0,
 "lods/raycast_normals": false,
 "save_to_file/enabled": true,
-"save_to_file/path": "res://assets/blender/extraced_meshes/rock_collection_1_defaultMaterial_251.res"
+"save_to_file/path": "res://assets/blender/objects/rock_collection_1_6.res"
 },
 "rock_collection_1_defaultMaterial_252": {
 "generate/lightmap_uv": 0,
@@ -98,7 +108,7 @@ _subresources={
 "lods/normal_split_angle": 25.0,
 "lods/raycast_normals": false,
 "save_to_file/enabled": true,
-"save_to_file/path": "res://assets/blender/extraced_meshes/rock_collection_1_defaultMaterial_252.res"
+"save_to_file/path": "res://assets/blender/objects/rock_collection_1_7.res"
 },
 "rock_collection_1_defaultMaterial_253": {
 "generate/lightmap_uv": 0,
@@ -108,7 +118,7 @@ _subresources={
 "lods/normal_split_angle": 25.0,
 "lods/raycast_normals": false,
 "save_to_file/enabled": true,
-"save_to_file/path": "res://assets/blender/extraced_meshes/rock_collection_1_defaultMaterial_253.res"
+"save_to_file/path": "res://assets/blender/objects/rock_collection_1_8.res"
 },
 "rock_collection_1_defaultMaterial_254": {
 "generate/lightmap_uv": 0,
@@ -118,7 +128,7 @@ _subresources={
 "lods/normal_split_angle": 25.0,
 "lods/raycast_normals": false,
 "save_to_file/enabled": true,
-"save_to_file/path": "res://assets/blender/extraced_meshes/rock_collection_1_defaultMaterial_254.res"
+"save_to_file/path": "res://assets/blender/objects/rock_collection_1_9.res"
 }
 }
 }
