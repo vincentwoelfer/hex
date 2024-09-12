@@ -24,12 +24,12 @@ var height: int = 1
 
 func _init() -> void:
 	terrainMesh = MeshInstance3D.new()
-	terrainMesh.name = "TerrainMesh"	
+	terrainMesh.name = "TerrainMesh"
 	terrainMesh.material_override = load("res://DefaultMaterial.tres")
 	add_child(terrainMesh, true)
 
 	for i in range(1, 10):
-		rockObjects.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res'))
+		rockObjects.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as ArrayMesh)
 
 
 # Called when the node enters the scene tree for the first time.
@@ -39,8 +39,10 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	for c in get_children():
+		if c.name.contains('rock'):
+			(c as Node3D).transform = (c as Node3D).transform.rotated_local(Vector3.UP, delta * 1.0)
 	pass
-	#DebugDraw3D.draw_arrowhead(transform, Color.RED, 99999)
 
 
 func generate() -> void:
@@ -89,9 +91,8 @@ func generate() -> void:
 	# Recreate triangle sampler
 	self.sampler = PolygonSurfaceSampler.new(self.triangles)
 
-	#for i in range(50):
-	#	addSphere(self.sampler.get_random_point())
-	addRocks(self.sampler.get_random_point_transform())
+	for i in range(20):
+		addRocks(self.sampler.get_random_point_transform())
 
 	# Only for debugging
 	#terrainMesh.create_debug_tangents()
@@ -103,39 +104,13 @@ func generate() -> void:
 
 
 func addRocks(transform_: Transform3D) -> void:
-	#var mesh_scene: PackedScene
-	#mesh_scene = load("res://assets/meshes/rocks1/scene.gltf") # Load the specific mesh scene
-	#mesh_scene = load("res://assets/meshes/rocks1/rocks1.tscn")
-
 	var instance := MeshInstance3D.new()
-	instance.set_mesh(self.rockObjects.pick_random() as ArrayMesh)
+	var mesh: ArrayMesh = self.rockObjects.pick_random()
+	instance.set_mesh(mesh)
 	
-	#instance.scale_object_local(Vector3.ONE * 0.11 + Vector3.UP * randf_range(-0.02, 0.02))
-	add_child(instance)
-	instance.transform = transform_
-
-	# ADD CHILD TO SCENE TREE
-	#treeMeshInstance.owner = get_tree().edited_scene_root
-
-	# # offset randomly
-	# var r = randf_range(0.1, horizontal_space/2.0 - 0.1)
-	# var angle = deg_to_rad(randf_range(0, 360))
-	# var offset := Vector3(r,0,0).rotated(Vector3.UP, angle)
-
-	# treeMeshInstance.global_position = pos + offset
-	# treeMeshInstance.rotate_y(deg_to_rad(randf_range(0, 360)))
-
-
-
-
-
-	# var mesh_instance := mesh_scene.instantiate() as Node3D
-	# mesh_instance.transform = transform_
-	# add_child(mesh_instance)
-
-	# var arrow_instance := Arrow3D.new()
-	# arrow_instance.transform = transform_
-	# add_child(arrow_instance)
+	instance.name = 'rock'
+	add_child(instance, true)
+	instance.transform = transform_.rotated_local(Vector3.UP, randf_range(0.0, TAU))
 
 
 func addSphere(pos: Vector3) -> void:
