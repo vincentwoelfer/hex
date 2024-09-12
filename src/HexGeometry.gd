@@ -39,9 +39,6 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	for c in get_children():
-		if c.name.contains('rock'):
-			(c as Node3D).transform = (c as Node3D).transform.rotated_local(Vector3.UP, delta * 1.0)
 	pass
 
 
@@ -91,7 +88,7 @@ func generate() -> void:
 	# Recreate triangle sampler
 	self.sampler = PolygonSurfaceSampler.new(self.triangles)
 
-	for i in range(20):
+	for i in range(randi_range(3, 8)):
 		addRocks(self.sampler.get_random_point_transform())
 
 	# Only for debugging
@@ -107,34 +104,9 @@ func addRocks(transform_: Transform3D) -> void:
 	var instance := MeshInstance3D.new()
 	var mesh: ArrayMesh = self.rockObjects.pick_random()
 	instance.set_mesh(mesh)
-	
 	instance.name = 'rock'
 	add_child(instance, true)
 	instance.transform = transform_.rotated_local(Vector3.UP, randf_range(0.0, TAU))
-
-
-func addSphere(pos: Vector3) -> void:
-	 # Create a new MeshInstance3D
-	var sphere_instance := MeshInstance3D.new()
-
-	# Create a SphereMesh
-	var sphere_mesh := SphereMesh.new()
-	sphere_mesh.radius = 0.07 # Set radius of the sphere
-	sphere_mesh.height = 0.07 # Adjust height if needed
-	sphere_mesh.radial_segments = 4 # Number of radial segments (more = smoother)
-	sphere_mesh.rings = 4 # Number of rings (more = smoother)
-
-	# Bright red material (unshaded).
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color(1, 0, 0)
-	sphere_mesh.surface_set_material(0, material)
-
-	sphere_instance.mesh = sphere_mesh
-
-	# Add the sphere to the current scene
-	add_child(sphere_instance)
-	# Optionally, you can adjust its position
-	sphere_instance.position = pos
 
 
 static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Array[AdjacentHex], own_height: int) -> void:

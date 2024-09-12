@@ -1,30 +1,6 @@
 extends Camera3D
 
 var debugSphere: MeshInstance3D
-func draw_debug_sphere(location: Vector3, r: float) -> void:
-	# Will usually work, but you might need to adjust this.
-	var scene_root := get_tree().root.get_children()[0]
-
-	# Create sphere with low detail of size.
-	var sphere := SphereMesh.new()
-	sphere.radial_segments = 6
-	sphere.rings = 6
-	sphere.radius = r
-	sphere.height = r * 2
-	# Bright red material (unshaded).
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color(1, 0, 0)
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-
-	sphere.surface_set_material(0, material)
-
-	# Add to meshinstance in the right place.
-	if debugSphere != null:
-		scene_root.remove_child(debugSphere)
-	debugSphere = MeshInstance3D.new()
-	debugSphere.mesh = sphere
-	scene_root.add_child(debugSphere)
-	debugSphere.global_transform.origin = location
 
 # Export parameters
 var horizontalDistance: float = 6.0
@@ -105,3 +81,26 @@ func _process(delta: float) -> void:
 
 	global_position = camPos
 	look_at(lookAtPoint)
+
+
+func draw_debug_sphere(location: Vector3, r: float) -> void:
+	var sphere := SphereMesh.new()
+	sphere.radial_segments = 6
+	sphere.rings = 6
+	sphere.radius = r
+	sphere.height = r * 2
+	# Bright red material (unshaded).
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color.RED
+	sphere.surface_set_material(0, material)
+
+	# Will usually work, but you might need to adjust this.
+	var scene_root := get_tree().root.get_children()[0]
+
+	# Add to meshinstance in the right place.
+	if debugSphere != null:
+		scene_root.remove_child(debugSphere)
+	debugSphere = MeshInstance3D.new()
+	debugSphere.mesh = sphere
+	scene_root.add_child(debugSphere)
+	debugSphere.global_transform.origin = location
