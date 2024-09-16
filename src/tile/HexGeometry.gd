@@ -141,21 +141,38 @@ static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Arra
 			var y: float = HexConst.transition_height(adj_height - own_height)
 			verts_outer[corner_vertex_index].y = y
 		else:
+			var y: float
 			# All three same
 			if h[0] == h[1] and h[1] == h[2]:
 				corner_height = h[0]
+				# Dont use transition_height here, directly compute height of the neighbouring cell (or own if h=0)
+				# Normalize relative to own height
+				y = (corner_height - own_height) * HexConst.height
+
 			# Two are same -> use the two
 			elif h[0] == h[1] or h[0] == h[2] or h[1] == h[2]:
-				if h[0] == h[1]:
-					corner_height = h[0]
+				# Use transition height here but compute between own and "the other".
+				# It doesnt matter if this cell and one other cell are the same or if both others are the same and this is the odd one
+				# We want the height which is not equal to our own height!
+				var other_height: float
+				if own_height != h[0]:
+					other_height = h[0]
+				elif own_height != h[1]:
+					other_height = h[1]
 				else:
-					corner_height = h[2]
+					other_height = h[2]
+				
+				# Normalize relative to own height
+				y = HexConst.transition_height(other_height - own_height)
+
 			# All different -> use middle one
 			else:
 				corner_height = h[1]
+				# Normalize relative to own height
+				# Dont use transition_height here, directly compute height of the neighbouring cell (or own if h=0)
+				y = (corner_height - own_height) * HexConst.height
 
-			# Normalize relative to own height. Dont use transition_height here, directly compute height of the neighbouring cell (or own if h=0)
-			var y: float = (corner_height - own_height) * HexConst.height
+			# Actually set height
 			verts_outer[corner_vertex_index].y = y
 
 
