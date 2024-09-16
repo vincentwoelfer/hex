@@ -2,6 +2,10 @@
 class_name HexGeometry
 extends Node3D
 
+const GRASS_MESH_HIGH := preload('res://assets/grass/grass_high.obj')
+const GRASS_MESH_LOW := preload('res://assets/grass/grass_low.obj')
+const GRASS_MAT := preload('res://assets/grass/mat_grass.tres')
+
 # Class variables
 var terrainMesh: MeshInstance3D
 var triangles: Array[Triangle]
@@ -9,6 +13,9 @@ var samplerAll: PolygonSurfaceSampler
 var samplerHorizontal: PolygonSurfaceSampler
 var samplerVertical: PolygonSurfaceSampler
 var rockObjects: Array[ArrayMesh]
+var grassMultiMesh: MultiMeshInstance3D
+
+var grass_density := 0.5
 
 class AdjacentHex:
 	var height: int
@@ -30,14 +37,38 @@ func _init() -> void:
 	terrainMesh.material_override = load("res://DefaultMaterial.tres")
 	add_child(terrainMesh, true)
 
+	# Load Rocks
 	for i in range(1, 10):
 		rockObjects.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as ArrayMesh)
+
+	# Create Grass Multimesh
+	grassMultiMesh = MultiMeshInstance3D.new()
+	grassMultiMesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	grassMultiMesh.material_override = GRASS_MAT
+	grassMultiMesh.extra_cull_margin = 1.0
+	add_child(grassMultiMesh, true)
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	EventBus.Signal_HexConstChanged.connect(generate)
 	generate()
+
+
+func create_grass_multimesh() -> MultiMesh:
+	var density_1d: int = ceil(HexConst.inner_radius * lerpf(0.0, 15.0, HexConst.grass_density));
+	var num_blades_total: int = density_1d * density_1d
+
+	var multimesh := MultiMesh.new()
+	var a: Mesh = GRASS_MESH_HIGH
+	multimesh.mesh = GRASS_MESH_HIGH
+	multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	multimesh.instance_count = num_blades_total
+
+	for i in range(num_blades_total):
+		multimesh.set_instance_transform(i, samplerHorizontal.get_random_point_transform())
+
+	return multimesh
 
 
 func _process(delta: float) -> void:
@@ -106,6 +137,9 @@ func generate() -> void:
 	mdt.create_from_surface(terrainMesh.mesh as ArrayMesh, 0)
 	#print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
 
+	# Regenerate grass
+	grassMultiMesh.multimesh = create_grass_multimesh()
+
 
 func addRocks(transform_: Transform3D) -> void:
 	var instance := MeshInstance3D.new()
@@ -161,7 +195,7 @@ static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Arra
 					other_height = h[1]
 				else:
 					other_height = h[2]
-				
+
 				# Normalize relative to own height
 				y = HexConst.transition_height(other_height - own_height)
 

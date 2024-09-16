@@ -1,0 +1,25 @@
+[gd_resource type="ShaderMaterial" load_steps=5 format=3 uid="uid://y6fsll8cbpbu"]
+
+[ext_resource type="Shader" path="res://assets/shaders/spatial/grass.gdshader" id="1_a5h3b"]
+[ext_resource type="Texture2D" uid="uid://cho05a0o3bybh" path="res://assets/WindNoise.tres" id="2_dl7us"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_s7tfy"]
+noise_type = 2
+frequency = 0.001
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_ktsdy"]
+width = 256
+height = 256
+seamless = true
+noise = SubResource("FastNoiseLite_s7tfy")
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_a5h3b")
+shader_parameter/clumping_factor = 0.8
+shader_parameter/clump_noise = SubResource("NoiseTexture2D_ktsdy")
+shader_parameter/wind_speed = 1.0
+shader_parameter/wind_noise = ExtResource("2_dl7us")
+shader_parameter/base_color = Color(0.0509804, 0.254902, 0.0117647, 1)
+shader_parameter/tip_color = Color(0.501961, 0.698039, 0.101961, 1)
+shader_parameter/subsurface_scattering_color = Color(1, 0.75, 0.1, 1)
