@@ -28,13 +28,13 @@ sky_mode = 1
 
 [node name="HexConstModifier" parent="." instance=ExtResource("5_7csfd")]
 outer_radius = 3.0
-inner_radius = 2.5
+inner_radius = 2.6
 height = 0.5
 transition_height_factor = 0.5
-core_circle_smooth_strength = 0.25
-extra_verts_per_side = 3
+core_circle_smooth_strength = 0.35
+extra_verts_per_side = 5
 extra_verts_per_center = 5
-grass_density = 0.8
+grass_density = 0.9
 
 [node name="MapGeneration" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
