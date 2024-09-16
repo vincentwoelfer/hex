@@ -6,7 +6,24 @@ var triangles: Array[Triangle]
 
 func _init(triangles_: Array[Triangle]) -> void:
 	self.triangles = triangles_
-	_calculate_area_weights()
+	self._calculate_area_weights()
+
+
+func filter_max_incline(max_incline_deg: float) -> void:
+	self.triangles = triangles.filter(func(tri: Triangle) -> bool:
+		# Return true to keep triangle
+		return tri.calculateInclineDeg() <= max_incline_deg
+	)
+	self._calculate_area_weights()
+
+
+func filter_min_incline(min_incline_deg: float) -> void:
+	self.triangles = triangles.filter(func(tri: Triangle) -> bool:
+		# Return true to keep triangle
+		return tri.calculateInclineDeg() >= min_incline_deg
+	)
+	self._calculate_area_weights()
+
 
 
 func get_random_points(num_points: int) -> Array[Vector3]:
