@@ -1,6 +1,7 @@
 # Needs to be tool to enable event bus already in the editor itself
 @tool
 extends Node
+#class_name EventBus
 
 signal Signal_HexConstChanged()
 

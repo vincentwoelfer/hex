@@ -20,8 +20,8 @@ config/icon="res://assets/icon.png"
 
 [autoload]
 
-EventBus="*res://src/EventBus.gd"
-HexConst="*res://src/HexConst.gd"
+EventBus="*res://src/global/EventBus.gd"
+HexConst="*res://src/global/HexConst.gd"
 
 [debug]
 

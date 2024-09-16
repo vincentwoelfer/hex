@@ -53,13 +53,13 @@ func generate() -> void:
 	# Adjust height of inner ring
 	for i in range(verts_inner.size()):
 		var h_var := 0.05
-		verts_inner[i] += Util.randCircularOffset(HexConst.inner_radius * 0.04)
+		verts_inner[i] += Colors.randCircularOffset(HexConst.inner_radius * 0.04)
 		verts_inner[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
 
 	# Adjust center vertices
 	for i in range(verts_center.size()):
 		var h_var := 0.07
-		verts_center[i] += Util.randCircularOffset(HexConst.inner_radius * 0.1)
+		verts_center[i] += Colors.randCircularOffset(HexConst.inner_radius * 0.1)
 		verts_center[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
 
 	# Adjust outer/transitional vertex heights
@@ -198,7 +198,7 @@ static func triangulateCenter(verts_center: Array[Vector3], verts_inner: Array[V
 		if all_vertices_on_circle and Util.isTriangleOutsideOfPolygon([p1, p2, p3], verts_polygon_packed):
 			continue
 
-		tris.append(Triangle.new(p1, p2, p3, Util.randColorVariation(col, 0.05)))
+		tris.append(Triangle.new(p1, p2, p3, Colors.randColorVariation(col, 0.05)))
 
 	return tris
 
@@ -210,7 +210,7 @@ static func triangulateOuter(verts_inner: Array[Vector3], verts_outer: Array[Vec
 
 	# Per Side
 	for x in range(6):
-		var col := Util.getDistincHexColor(x)
+		var col := Colors.getDistincHexColor(x)
 
 		# start inner
 		var i := x * (1 + HexConst.extra_verts_per_side)
@@ -223,12 +223,12 @@ static func triangulateOuter(verts_inner: Array[Vector3], verts_outer: Array[Vec
 		var n2 := (x + 1) * (3 + HexConst.extra_verts_per_side) - 1
 
 		# Triangulate start-corner manually here
-		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], Util.randColorVariation(col)))
+		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], Colors.randColorVariation(col)))
 		j += 1
 
 		# Only transition area between hexes, without corners!
 		while i < n1 or j < n2:
-			var c := Util.randColorVariation(col)
+			var c := Colors.randColorVariation(col)
 			var outer_is_clockwise_further := Util.isClockwiseOrder(verts_inner[i % s_in], verts_outer[j % s_out])
 
 			if j == n2 or (i < n1 and outer_is_clockwise_further):
@@ -239,7 +239,7 @@ static func triangulateOuter(verts_inner: Array[Vector3], verts_outer: Array[Vec
 				j += 1
 
 		# Triangulate end-corner manually here
-		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], Util.randColorVariation(col)))
+		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], Colors.randColorVariation(col)))
 
 	return tris
 
