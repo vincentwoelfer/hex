@@ -57,7 +57,8 @@ func _ready() -> void:
 
 func create_grass_multimesh() -> MultiMesh:
 	var density_1d: int = ceil(HexConst.inner_radius * lerpf(0.0, 20.0, HexConst.grass_density));
-	var num_blades_total: int = density_1d * density_1d
+	# Reduce in editor
+	var num_blades_total: int = density_1d * density_1d if not Engine.is_editor_hint() else round(density_1d * density_1d * 0.5)
 
 	var multimesh := MultiMesh.new()
 	var a: Mesh = GRASS_MESH_HIGH
