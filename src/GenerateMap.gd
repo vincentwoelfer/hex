@@ -24,8 +24,8 @@ func _ready() -> void:
 			# var north: float = -(f2 * q + f3 * r)
 			# var height: int = maxi(0, roundf(north + 1) as int)
 
-			var height: int = (N - hex.magnitude()) * 2 + randi_range(-1, 1) * 4
-			height = clampi(height, 0, 40)
+			var height: int = (N - hex.magnitude()) * 2 + randi_range(-1, 1) * 3
+			height = clampi(height, 0, 30)
 
 			# var x := HexPos.hexpos_to_xyz(hex).x
 			# var y := HexPos.hexpos_to_xyz(hex).y

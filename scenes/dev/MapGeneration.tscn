@@ -20,21 +20,21 @@ script = ExtResource("4_j2ckc")
 
 [node name="SunLight" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.34202, 0.939692, 0, -0.939692, 0.34202, 0, 20, 0)
-light_color = Color(1, 1, 0.941176, 1)
 light_angular_distance = 2.0
 shadow_enabled = true
 directional_shadow_blend_splits = true
 directional_shadow_max_distance = 300.0
+sky_mode = 1
 
 [node name="HexConstModifier" parent="." instance=ExtResource("5_7csfd")]
 outer_radius = 3.0
 inner_radius = 2.5
-height = 1.0
+height = 0.5
 transition_height_factor = 0.5
 core_circle_smooth_strength = 0.25
 extra_verts_per_side = 3
 extra_verts_per_center = 5
-grass_density = 1.0
+grass_density = 0.8
 
 [node name="MapGeneration" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
