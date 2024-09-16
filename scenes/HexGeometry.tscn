@@ -1,34 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://bv56c7u4hr2gf"]
+[gd_scene load_steps=2 format=3 uid="uid://l034f6qv603a"]
 
-[ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://DefaultEnvironment.tres" id="1_aag7o"]
-[ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://CameraAttributes.tres" id="2_jykeo"]
-[ext_resource type="Script" path="res://src/CameraController.gd" id="3_0jo5u"]
-[ext_resource type="PackedScene" uid="uid://l034f6qv603a" path="res://scenes/HexGeometry.tscn" id="4_ncbae"]
-[ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://src/dev-utility/USE_THIS_HexConstantsModifier.tscn" id="5_s3l6l"]
+[ext_resource type="Script" path="res://src/HexGeometry.gd" id="1_8frar"]
 
-[node name="TestScene" type="Node3D"]
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = ExtResource("1_aag7o")
-camera_attributes = ExtResource("2_jykeo")
-
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 8, 6)
-current = true
-fov = 80.0
-script = ExtResource("3_0jo5u")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 7, 0)
-shadow_enabled = true
-
-[node name="HexGeometry" parent="." instance=ExtResource("4_ncbae")]
-
-[node name="HexConstModifier" parent="." instance=ExtResource("5_s3l6l")]
-outer_radius = 3.0
-inner_radius = 1.9
-height = 0.7
-transition_height_factor = 0.35
-core_circle_smooth_strength = 0.5
-extra_verts_per_side = 2
-extra_verts_per_center = 4
+[node name="HexGeometry" type="Node3D"]
+script = ExtResource("1_8frar")

@@ -1,7 +1,6 @@
 # Needs to be tool to read these in other tool scripts!
 @tool
 extends Node
-#class_name HexConst
 
 # See https://www.redblobgames.com/grids/hexagons/
 # We use flat-top orientation

@@ -4,7 +4,7 @@
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://DefaultEnvironment.tres" id="2_2n06e"]
 [ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://CameraAttributes.tres" id="3_lr7o2"]
 [ext_resource type="Script" path="res://src/CameraController.gd" id="4_j2ckc"]
-[ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://src/dev-utility/USE_THIS_HexConstantsModifier.tscn" id="5_7csfd"]
+[ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://dev-utility/USE_THIS_HexConstantsModifier.tscn" id="5_7csfd"]
 
 [node name="TestScene" type="Node3D"]
 
