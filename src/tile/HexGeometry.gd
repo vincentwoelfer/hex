@@ -79,15 +79,13 @@ func _process(delta: float) -> void:
 		var height_start: float = grassMultiMesh.get_instance_shader_parameter('height_mod')
 		var height_end: float = randf_range(0.2, 4.0)
 
-		grassMultiMesh.set_instance_shader_parameter('tip_color', color_end)
-		grassMultiMesh.set_instance_shader_parameter('tip_color_dry', color_end)
-		grassMultiMesh.set_instance_shader_parameter('height_mod', height_end)
+		# grassMultiMesh.set_instance_shader_parameter('tip_color', color_end)
+		# grassMultiMesh.set_instance_shader_parameter('tip_color_dry', color_end)
+		# grassMultiMesh.set_instance_shader_parameter('height_mod', height_end)
 
-		# grassMultiMesh.set_instance_shader_parameter('height_mod', randf_range(0.2, 4.0))
-
-		#get_tree().create_tween().tween_method(set_shader_value.bind("tip_color"), color_start, color_end, 1.5)
-		#get_tree().create_tween().tween_method(set_shader_value.bind("tip_color_dry"), color_start, color_end, 1.5)
-		#get_tree().create_tween().tween_method(set_shader_value.bind("height_mod"), height_start, height_end, 1.5)
+		get_tree().create_tween().tween_method(set_shader_value.bind("tip_color"), color_start, color_end, 1.5)
+		get_tree().create_tween().tween_method(set_shader_value.bind("tip_color_dry"), color_start, color_end, 1.5)
+		get_tree().create_tween().tween_method(set_shader_value.bind("height_mod"), height_start, height_end, 1.5)
 
 
 # tween value automatically gets passed into this function
