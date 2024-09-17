@@ -57,7 +57,7 @@ func _ready() -> void:
 func create_grass_multimesh() -> MultiMesh:
 	var density_1d: int = ceil(HexConst.inner_radius * lerpf(0.0, 20.0, HexConst.grass_density));
 	# Reduce in editor
-	var num_blades_total: int = density_1d * density_1d if not Engine.is_editor_hint() else round(density_1d * density_1d * 0.5)
+	var num_blades_total: int = density_1d * density_1d if not Engine.is_editor_hint() else round(density_1d * density_1d * 0.2)
 
 	var multimesh := MultiMesh.new()
 	multimesh.mesh = GRASS_MESH_HIGH
@@ -73,11 +73,26 @@ func create_grass_multimesh() -> MultiMesh:
 func _process(delta: float) -> void:
 	#pass
 	if randf() < 1.0 / 600:
-		var c: Color = Colors.randColor()
-		grassMultiMesh.set_instance_shader_parameter('tip_color', c)
-		grassMultiMesh.set_instance_shader_parameter('tip_color_dry', c)
+		var color_start: Color = grassMultiMesh.get_instance_shader_parameter('tip_color')
+		var color_end: Color = Colors.randColor()
 
-		grassMultiMesh.set_instance_shader_parameter('height_mod', randf_range(0.2, 5.0))
+		var height_start: float = grassMultiMesh.get_instance_shader_parameter('height_mod')
+		var height_end: float = randf_range(0.2, 4.0)
+
+		grassMultiMesh.set_instance_shader_parameter('tip_color', color_end)
+		grassMultiMesh.set_instance_shader_parameter('tip_color_dry', color_end)
+		grassMultiMesh.set_instance_shader_parameter('height_mod', height_end)
+
+		# grassMultiMesh.set_instance_shader_parameter('height_mod', randf_range(0.2, 4.0))
+
+		#get_tree().create_tween().tween_method(set_shader_value.bind("tip_color"), color_start, color_end, 1.5)
+		#get_tree().create_tween().tween_method(set_shader_value.bind("tip_color_dry"), color_start, color_end, 1.5)
+		#get_tree().create_tween().tween_method(set_shader_value.bind("height_mod"), height_start, height_end, 1.5)
+
+
+# tween value automatically gets passed into this function
+func set_shader_value(value: Variant, key: String) -> void:
+	grassMultiMesh.set_instance_shader_parameter(key, value)
 
 
 func generate() -> void:
