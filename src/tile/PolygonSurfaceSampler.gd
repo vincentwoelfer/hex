@@ -25,19 +25,9 @@ func filter_min_incline(min_incline_deg: float) -> void:
 	self._calculate_area_weights()
 
 
-
-func get_random_points(num_points: int) -> Array[Vector3]:
-	var points: Array[Vector3] = []
-	points.resize(num_points)
-	for i in range(num_points):
-		points[i] = self.get_random_point()
-	return points
-
-
 func get_random_point() -> Vector3:
 	var tri_idx: int = _weighted_random_choice(self.area_weights)
-	var tri: Triangle = self.triangles[tri_idx]
-	return tri.getRandPoint()
+	return self.triangles[tri_idx].getRandPoint()
 
 
 func get_random_point_transform() -> Transform3D:

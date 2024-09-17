@@ -13,10 +13,13 @@ group_uniforms GrassColor;
 uniform vec3 base_color : source_color = vec3(0.05,0.2,0.01);
 uniform vec3 base_color_dry : source_color = vec3(0.25,0.15,0.01);
 
-uniform vec3 tip_color : source_color = vec3(0.5,0.5,0.1);
-uniform vec3 tip_color_dry : source_color = vec3(0.8,0.4,0.1);
+instance uniform vec3 tip_color : source_color = vec3(0.5,0.5,0.1);
+instance uniform vec3 tip_color_dry : source_color = vec3(0.8,0.4,0.1);
 
 uniform vec3 subsurface_scattering_color : source_color = vec3(1.0,0.75,0.1);
+
+group_uniforms GrassSize;
+instance uniform float height_mod: hint_range(0.1, 5.0) = 1.0;
 
 // Source: https://www.shadertoy.com/view/Xt3cDn
 float hash12(vec2 x) {
@@ -75,7 +78,7 @@ void vertex() {
 
 	VERTEX.y *= height_offset;
 	// TODO RESIZE CORRECTLY
-	VERTEX.y *= 0.6;
+	VERTEX.y *= 0.6 * height_mod;
 	VERTEX.x *= 0.6;
 	VERTEX.z *= 0.6;
 	vec3 vertex_model = VERTEX; // Vertex in model space before any rotations are applied

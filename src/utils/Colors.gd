@@ -2,7 +2,13 @@ class_name Colors
 
 
 static func randColor() -> Color:
-	return Color(randf_range(0.1, 0.9), randf_range(0.1, 0.9), randf_range(0.1, 0.9), 1.0)
+	return Color(randf(), randf(), randf(), 1.0)
+
+
+static func randColorNoExtreme(offset: float = 0.1) -> Color:
+	var lo := offset
+	var hi := 1.0 - offset
+	return Color(randf_range(lo, hi), randf_range(lo, hi), randf_range(lo, hi), 1.0)
 
 
 static func randColorVariation(color: Color, variation: float = 0.2) -> Color:

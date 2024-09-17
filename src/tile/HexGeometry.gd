@@ -4,7 +4,7 @@ extends Node3D
 
 const GRASS_MESH_HIGH := preload('res://assets/grass/grass_high.obj')
 const GRASS_MESH_LOW := preload('res://assets/grass/grass_low.obj')
-const GRASS_MAT := preload('res://assets/grass/mat_grass.tres')
+const GRASS_MAT: ShaderMaterial = preload('res://assets/grass/mat_grass.tres')
 
 # Class variables
 var terrainMesh: MeshInstance3D
@@ -14,8 +14,6 @@ var samplerHorizontal: PolygonSurfaceSampler
 var samplerVertical: PolygonSurfaceSampler
 var rockObjects: Array[ArrayMesh]
 var grassMultiMesh: MultiMeshInstance3D
-
-var grass_density := 0.5
 
 class AdjacentHex:
 	var height: int
@@ -46,6 +44,7 @@ func _init() -> void:
 	grassMultiMesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	grassMultiMesh.material_override = GRASS_MAT
 	grassMultiMesh.extra_cull_margin = 1.0
+
 	add_child(grassMultiMesh, true)
 
 
@@ -61,7 +60,6 @@ func create_grass_multimesh() -> MultiMesh:
 	var num_blades_total: int = density_1d * density_1d if not Engine.is_editor_hint() else round(density_1d * density_1d * 0.5)
 
 	var multimesh := MultiMesh.new()
-	var a: Mesh = GRASS_MESH_HIGH
 	multimesh.mesh = GRASS_MESH_HIGH
 	multimesh.transform_format = MultiMesh.TRANSFORM_3D
 	multimesh.instance_count = num_blades_total
@@ -73,7 +71,13 @@ func create_grass_multimesh() -> MultiMesh:
 
 
 func _process(delta: float) -> void:
-	pass
+	#pass
+	if randf() < 1.0 / 600:
+		var c: Color = Colors.randColor()
+		grassMultiMesh.set_instance_shader_parameter('tip_color', c)
+		grassMultiMesh.set_instance_shader_parameter('tip_color_dry', c)
+
+		grassMultiMesh.set_instance_shader_parameter('height_mod', randf_range(0.2, 5.0))
 
 
 func generate() -> void:
