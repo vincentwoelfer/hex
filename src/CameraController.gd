@@ -12,8 +12,7 @@ var zoom_min: float = 0.075
 var zoom_max: float = 7.0
 
 var lookAtPoint: Vector3
-var followPoint: Vector3
-# = target, also used for movement
+var followPoint: Vector3 # = target, also used for movement
 var orientation: int = 1
 # current rotation in angle
 var currRotation: float = 0
@@ -24,6 +23,7 @@ var lerpSpeed: float = 8.0 # almost instant
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_CONFINED
 	lookAtPoint = Vector3(0, 2, 0)
 	followPoint = Vector3(0, 2, 0)
 
@@ -50,8 +50,26 @@ func getInputVec() -> Vector3:
 		inputDir.x -= 1.0
 	if Input.is_action_pressed("move_cam_right"):
 		inputDir.x += 1.0
-
 	return inputDir.normalized()
+
+
+# TODO 3d to 2d
+# This code block is part of a script that inherits from Node3D.
+# `control` is a reference to a node inheriting from Control.
+# control.visible = not get_viewport().get_camera_3d().is_position_behind(global_transform.origin)
+# control.position = get_viewport().get_camera_3d().unproject_position(global_transform.origin)
+
+func raycast_into_world() -> Dictionary:
+	var mouse_pos := get_viewport().get_mouse_position()
+	var ray_origin: Vector3 = self.project_ray_origin(mouse_pos)
+	var ray_direction: Vector3 = self.project_ray_normal(mouse_pos)
+
+	var ray_query := PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + ray_direction * 1000.0)
+	ray_query.collide_with_areas = true
+
+	var space_state := get_world_3d().direct_space_state
+	var result := space_state.intersect_ray(ray_query)
+	return result
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
@@ -72,8 +90,6 @@ func _process(delta: float) -> void:
 	lookAtPoint.x = lerpf(lookAtPoint.x, followPoint.x, lerpSpeed * delta)
 	lookAtPoint.z = lerpf(lookAtPoint.z, followPoint.z, lerpSpeed * delta)
 
-	draw_debug_sphere(lookAtPoint, maxf(zoomTarget * 0.1, 0.025))
-
 	# Camera position
 	var camPos := lookAtPoint
 	camPos += -forwardDir * horizontalDistance * zoom
@@ -82,25 +98,27 @@ func _process(delta: float) -> void:
 	global_position = camPos
 	look_at(lookAtPoint)
 
+	draw_debug_sphere(lookAtPoint, maxf(zoomTarget * 0.1, 0.025))
+
+	self.check_for_selection()
+
+
+func check_for_selection() -> void:
+	var hit: Dictionary = self.raycast_into_world()
+	if not hit.is_empty():
+		# var collider: StaticBody3D = hit['collider']
+		# var terrainMesh: MeshInstance3D = collider.get_parent()
+		# terrainMesh.set_instance_shader_parameter("enabled", 1.0)
+
+		EventBus.emit_signal("Signal_SelectionPosition", hit['position'])
+
 
 func draw_debug_sphere(location: Vector3, r: float) -> void:
-	var sphere := SphereMesh.new()
-	sphere.radial_segments = 6
-	sphere.rings = 6
-	sphere.radius = r
-	sphere.height = r * 2
-	# Bright red material (unshaded).
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color.RED
-	sphere.surface_set_material(0, material)
+	if debugSphere == null:
+		var scene_root := get_tree().root
+		debugSphere = MeshInstance3D.new()
+		debugSphere.name = "DebugSphere"
+		scene_root.add_child(debugSphere)
 
-	# Will usually work, but you might need to adjust this.
-	var scene_root := get_tree().root.get_children()[0]
-
-	# Add to meshinstance in the right place.
-	if debugSphere != null:
-		scene_root.remove_child(debugSphere)
-	debugSphere = MeshInstance3D.new()
-	debugSphere.mesh = sphere
-	scene_root.add_child(debugSphere)
+	debugSphere.mesh = DebugShapes3D.create_sphere(r, Color.RED)
 	debugSphere.global_transform.origin = location

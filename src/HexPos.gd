@@ -82,22 +82,6 @@ static func hexpos_direction(direction: int) -> HexPos:
     # return hexpos_length(hexpos_subtract(a, b))
 
 
-# static func hexpos_round(h: HexPosFrac) -> HexPos:
-#     var qi: int = roundi(h.q)
-#     var ri: int = roundi(h.r)
-#     var si: int = roundi(h.s)
-#     var q_diff: float = abs(qi - h.q)
-#     var r_diff: float = abs(ri - h.r)
-#     var s_diff: float = abs(si - h.s)
-#     if q_diff > r_diff and q_diff > s_diff:
-#         qi = -ri - si
-#     elif r_diff > s_diff:
-#         ri = -qi - si
-#     else:
-#         si = -qi - ri
-#     return HexPos.new(qi, ri, si)
-
-
 # static func hexpos_lerp(a: HexPosFrac, b: HexPosFrac, t: float) -> HexPosFrac:
 #     return HexPosFrac.new(a.q * (1.0 - t) + b.q * t, a.r * (1.0 - t) + b.r * t, a.s * (1.0 - t) + b.s * t)
 
@@ -114,7 +98,7 @@ static func hexpos_direction(direction: int) -> HexPos:
 #     return results
 
 
-static func hexpos_to_xyz(h: HexPos) -> Vector2:
+static func hexpos_to_xyz(hex_pos: HexPos) -> Vector2:
     var size: Vector2 = Vector2(HexConst.outer_radius, HexConst.outer_radius)
     var origin: Vector2 = Vector2(0, 0)
 
@@ -123,23 +107,26 @@ static func hexpos_to_xyz(h: HexPos) -> Vector2:
     var f2: float = sqrt(3.0) / 2.0
     var f3: float = sqrt(3.0)
     
-    var x: float = (f0 * h.q) * size.x
-    var y: float = (f2 * h.q + f3 * h.r) * size.y
+    var x: float = (f0 * hex_pos.q) * size.x
+    var y: float = (f2 * hex_pos.q + f3 * hex_pos.r) * size.y
 
     return Vector2(x + origin.x, y + origin.y)
 
 
-# static func pixel_to_hexpos(p: Vector2) -> HexPosFrac:
-#     var size: Vector2 = Vector2(HexConst.outer_radius, HexConst.outer_radius)
-#     var origin: Vector2 = Vector2(0, 0)
+static func xyz_to_hexpos_frac(world_pos: Vector3) -> HexPosFrac:
+    return xy_to_hexpos_frac(Vector2(world_pos.x, world_pos.z))
 
-#     var b0: float = 2.0 / 3.0
-#     var b1: float = 0.0
-#     var b2: float = -1.0 / 3.0
-#     var b3: float = sqrt(3.0) / 3.0
+static func xy_to_hexpos_frac(world_pos: Vector2) -> HexPosFrac:
+    var size: Vector2 = Vector2(HexConst.outer_radius, HexConst.outer_radius)
+    var origin: Vector2 = Vector2(0, 0)
 
-#     var pt: Vector2 = Vector2((p.x - origin.x) / size.x, (p.y - origin.y) / size.y)
-#     var q_: float = b0 * pt.x + b1 * pt.y
-#     var r_: float = b2 * pt.x + b3 * pt.y
+    var b0: float = 2.0 / 3.0
+    var b1: float = 0.0
+    var b2: float = -1.0 / 3.0
+    var b3: float = sqrt(3.0) / 3.0
 
-#     return HexPosFrac.new(q_, r_, -q_ - r_)
+    var pt: Vector2 = Vector2((world_pos.x - origin.x) / size.x, (world_pos.y - origin.y) / size.y)
+    var q_: float = b0 * pt.x + b1 * pt.y
+    var r_: float = b2 * pt.x + b3 * pt.y
+
+    return HexPosFrac.new(q_, r_, -q_ - r_)

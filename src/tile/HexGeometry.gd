@@ -5,6 +5,8 @@ extends Node3D
 const GRASS_MESH_HIGH := preload('res://assets/grass/grass_high.obj')
 const GRASS_MESH_LOW := preload('res://assets/grass/grass_low.obj')
 const GRASS_MAT: ShaderMaterial = preload('res://assets/grass/mat_grass.tres')
+const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/shaders/spatial/mat_highlight.tres')
+const DEFAULT_GEOM_MATERIAL: Material = preload("res://DefaultMaterial.tres")
 
 # Class variables
 var terrainMesh: MeshInstance3D
@@ -32,8 +34,11 @@ var height: int = 1
 func _init() -> void:
 	terrainMesh = MeshInstance3D.new()
 	terrainMesh.name = "TerrainMesh"
-	terrainMesh.material_override = load("res://DefaultMaterial.tres")
+	terrainMesh.material_override = DEFAULT_GEOM_MATERIAL
+	terrainMesh.material_overlay = HIGHLIGHT_MAT
 	add_child(terrainMesh, true)
+
+	# 	terrainMesh.set_instance_shader_parameter("enabled", 1.0)
 
 	# Load Rocks
 	for i in range(1, 10):
@@ -44,7 +49,6 @@ func _init() -> void:
 	grassMultiMesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	grassMultiMesh.material_override = GRASS_MAT
 	grassMultiMesh.extra_cull_margin = 1.0
-
 	add_child(grassMultiMesh, true)
 
 
@@ -71,9 +75,8 @@ func create_grass_multimesh() -> MultiMesh:
 
 
 func _process(delta: float) -> void:
-	#pass
 	if randf() < 1.0 / 600:
-		var color_start: Color = grassMultiMesh.get_instance_shader_parameter('tip_color')
+		var color_start: Color = await grassMultiMesh.get_instance_shader_parameter('tip_color')
 		var color_end: Color = Colors.randColor()
 
 		var height_start: float = grassMultiMesh.get_instance_shader_parameter('height_mod')
@@ -83,6 +86,7 @@ func _process(delta: float) -> void:
 		# grassMultiMesh.set_instance_shader_parameter('tip_color_dry', color_end)
 		# grassMultiMesh.set_instance_shader_parameter('height_mod', height_end)
 
+		# set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 		get_tree().create_tween().tween_method(set_shader_value.bind("tip_color"), color_start, color_end, 1.5)
 		get_tree().create_tween().tween_method(set_shader_value.bind("tip_color_dry"), color_start, color_end, 1.5)
 		get_tree().create_tween().tween_method(set_shader_value.bind("height_mod"), height_start, height_end, 1.5)
@@ -157,6 +161,9 @@ func generate() -> void:
 
 	# Regenerate grass
 	grassMultiMesh.multimesh = create_grass_multimesh()
+
+	# Regenerate collision shape
+	terrainMesh.create_convex_collision(true, true)
 
 
 func addRocks(transform_: Transform3D) -> void:

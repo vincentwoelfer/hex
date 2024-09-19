@@ -22,6 +22,4 @@ shader_parameter/wind_speed = 1.5
 shader_parameter/wind_noise = ExtResource("2_dl7us")
 shader_parameter/base_color = Color(0.0509804, 0.254902, 0.0117647, 1)
 shader_parameter/base_color_dry = Color(0.25, 0.15, 0.01, 1)
-shader_parameter/tip_color = Color(0.501961, 0.698039, 0.101961, 1)
-shader_parameter/tip_color_dry = Color(0.8, 0.4, 0.1, 1)
 shader_parameter/subsurface_scattering_color = Color(1, 0.75, 0.1, 1)

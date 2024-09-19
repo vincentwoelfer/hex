@@ -28,9 +28,9 @@ static func getDistincHexColor(i: int) -> Color:
 
 
 static func getColorForIncline(inclineDeg: float) -> Color:
-	if inclineDeg <= 15.0:
-		inclineDeg = 0
-	inclineDeg = clampf(inclineDeg / 70.0, 0, 1)
+	if inclineDeg <= 25.0:
+		inclineDeg = 0.0
+	inclineDeg = clampf(inclineDeg / 70.0, 0.0, 1.0)
 
 	#const green := Color.FOREST_GREEN
 	var green := Color.DARK_GREEN.lerp(Color8(22, 17, 12), 0.9)
