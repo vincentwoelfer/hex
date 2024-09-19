@@ -26,6 +26,8 @@ func _init(hexpos_: HexPos, height_: int) -> void:
     self.shade = randf()
     self.nutrition = randf()
 
+func is_valid() -> bool:
+    return hexpos != null
 
 func calculate_shadow(sun_intensity: float) -> float:
     return sun_intensity * shade

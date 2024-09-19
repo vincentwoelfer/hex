@@ -17,6 +17,8 @@ var samplerVertical: PolygonSurfaceSampler
 var rockObjects: Array[ArrayMesh]
 var grassMultiMesh: MultiMeshInstance3D
 
+var label := Label.new()
+
 class AdjacentHex:
 	var height: int
 	var type: String # unused for now
@@ -51,6 +53,8 @@ func _init() -> void:
 	grassMultiMesh.extra_cull_margin = 1.0
 	add_child(grassMultiMesh, true)
 
+	add_child(label)
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -76,7 +80,7 @@ func create_grass_multimesh() -> MultiMesh:
 
 func _process(delta: float) -> void:
 	if randf() < 1.0 / 600:
-		var color_start: Color = await grassMultiMesh.get_instance_shader_parameter('tip_color')
+		var color_start: Color = grassMultiMesh.get_instance_shader_parameter('tip_color')
 		var color_end: Color = Colors.randColor()
 
 		var height_start: float = grassMultiMesh.get_instance_shader_parameter('height_mod')
@@ -91,6 +95,16 @@ func _process(delta: float) -> void:
 		get_tree().create_tween().tween_method(set_shader_value.bind("tip_color_dry"), color_start, color_end, 1.5)
 		get_tree().create_tween().tween_method(set_shader_value.bind("height_mod"), height_start, height_end, 1.5)
 
+	### TODO LABEL
+	#var pos_3d_local: Vector3 = Vector3(0, height * HexConst.height + 0.5, 0)
+	#var pos_3d_global: Vector3 = global_transform * pos_3d_local
+	var pos_3d_global: Vector3 = global_position + Vector3(0.0, 0.5, 0.0)
+
+	#label.push_color(Color.RED)
+	label.text = str(pos_3d_global.y) + str('aaaa')
+	label.position = get_viewport().get_camera_3d().unproject_position(pos_3d_global)
+	label.visible = not get_viewport().get_camera_3d().is_position_behind(pos_3d_global)
+	
 
 # tween value automatically gets passed into this function
 func set_shader_value(value: Variant, key: String) -> void:

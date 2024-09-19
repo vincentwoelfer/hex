@@ -10,8 +10,8 @@ uniform float wind_speed : hint_range(0.0, 5.0) = 1.0;
 uniform sampler2D wind_noise;
 
 group_uniforms GrassColor;
-uniform vec3 base_color : source_color = vec3(0.05,0.2,0.01);
-uniform vec3 base_color_dry : source_color = vec3(0.25,0.15,0.01);
+instance uniform vec3 base_color : source_color = vec3(0.05,0.2,0.01);
+instance uniform vec3 base_color_dry : source_color = vec3(0.25,0.15,0.01);
 
 instance uniform vec3 tip_color : source_color = vec3(0.5,0.5,0.1);
 instance uniform vec3 tip_color_dry : source_color = vec3(0.8,0.4,0.1);

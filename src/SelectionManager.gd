@@ -11,8 +11,10 @@ func _ready() -> void:
 func parse_selection_position(pos: Vector3) -> void:
 	var hex_pos_frac: HexPosFrac = HexPos.xyz_to_hexpos_frac(pos)
 	var hex_pos: HexPos = hex_pos_frac.round()
+	var hex_tile: HexTile = MapManager.map.get_hex(hex_pos)
 
-	self.update_selected_hex_tile(MapManager.map.get_hex(hex_pos))
+	if hex_tile.is_valid():
+		self.update_selected_hex_tile(hex_tile)
 
 
 func update_selected_hex_tile(new_selection: HexTile) -> void:

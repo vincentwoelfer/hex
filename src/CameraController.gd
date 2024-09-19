@@ -53,12 +53,6 @@ func getInputVec() -> Vector3:
 	return inputDir.normalized()
 
 
-# TODO 3d to 2d
-# This code block is part of a script that inherits from Node3D.
-# `control` is a reference to a node inheriting from Control.
-# control.visible = not get_viewport().get_camera_3d().is_position_behind(global_transform.origin)
-# control.position = get_viewport().get_camera_3d().unproject_position(global_transform.origin)
-
 func raycast_into_world() -> Dictionary:
 	var mouse_pos := get_viewport().get_mouse_position()
 	var ray_origin: Vector3 = self.project_ray_origin(mouse_pos)
@@ -106,10 +100,6 @@ func _process(delta: float) -> void:
 func check_for_selection() -> void:
 	var hit: Dictionary = self.raycast_into_world()
 	if not hit.is_empty():
-		# var collider: StaticBody3D = hit['collider']
-		# var terrainMesh: MeshInstance3D = collider.get_parent()
-		# terrainMesh.set_instance_shader_parameter("enabled", 1.0)
-
 		EventBus.emit_signal("Signal_SelectionPosition", hit['position'])
 
 
