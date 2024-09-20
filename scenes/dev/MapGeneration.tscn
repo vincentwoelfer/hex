@@ -17,7 +17,6 @@ camera_attributes = ExtResource("3_lr7o2")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 8, 6)
-visible = false
 attributes = SubResource("CameraAttributesPractical_t12eh")
 current = true
 fov = 80.0
@@ -39,7 +38,7 @@ transition_height_factor = 0.5
 core_circle_smooth_strength = 0.35
 extra_verts_per_side = 5
 extra_verts_per_center = 5
-grass_density = 0.2
+grass_density = 0.8
 
 [node name="MapGeneration" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)

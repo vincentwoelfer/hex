@@ -17,7 +17,7 @@ var samplerVertical: PolygonSurfaceSampler
 var rockObjects: Array[ArrayMesh]
 var grassMultiMesh: MultiMeshInstance3D
 
-var label := Label.new()
+var label := RichTextLabel.new()
 
 class AdjacentHex:
 	var height: int
@@ -48,6 +48,7 @@ func _init() -> void:
 
 	# Create Grass Multimesh
 	grassMultiMesh = MultiMeshInstance3D.new()
+	grassMultiMesh.name = 'GrassMultiMesh'
 	grassMultiMesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	grassMultiMesh.material_override = GRASS_MAT
 	grassMultiMesh.extra_cull_margin = 1.0
@@ -64,8 +65,12 @@ func _ready() -> void:
 
 func create_grass_multimesh() -> MultiMesh:
 	var density_1d: int = ceil(HexConst.inner_radius * lerpf(0.0, 20.0, HexConst.grass_density));
+	var num_blades_total: int = round(density_1d * density_1d)
+
 	# Reduce in editor
-	var num_blades_total: int = density_1d * density_1d if not Engine.is_editor_hint() else round(density_1d * density_1d * 0.2)
+	if Engine.is_editor_hint():
+		var in_editor_density_reduction := 0.1
+		num_blades_total = round(density_1d * density_1d * in_editor_density_reduction)
 
 	var multimesh := MultiMesh.new()
 	multimesh.mesh = GRASS_MESH_HIGH
@@ -98,13 +103,44 @@ func _process(delta: float) -> void:
 	### TODO LABEL
 	#var pos_3d_local: Vector3 = Vector3(0, height * HexConst.height + 0.5, 0)
 	#var pos_3d_global: Vector3 = global_transform * pos_3d_local
-	var pos_3d_global: Vector3 = global_position + Vector3(0.0, 0.5, 0.0)
+	var pos_3d_global: Vector3 = global_position + Vector3(0.0, 0.1, 0.0)
 
-	#label.push_color(Color.RED)
-	label.text = str(pos_3d_global.y) + str('aaaa')
 	label.position = get_viewport().get_camera_3d().unproject_position(pos_3d_global)
 	label.visible = not get_viewport().get_camera_3d().is_position_behind(pos_3d_global)
-	
+
+	label.bbcode_enabled = true
+	label.fit_content = true
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.scroll_active = false
+
+	label.clear()
+	label.text = ""
+	label.append_text('[center]')
+	label.push_font_size(80)
+	label.push_color(Color.BLUE)
+	label.push_outline_color(Color(1, 1, 1, 0.5))
+	label.push_outline_size(16)
+
+	label.append_text('[img color=#0000ff]res://assets/icons/raindrop.png[/img]: ')
+	label.append_text(str(global_position.y))
+
+	label.pop_all()
+
+	# IMAGES
+	#+ '[img=80]res://assets/icon.png[/img]!' \
+
+	#label.set_size(label.get_theme_font('normal_font').get_string_size(label.text))
+
+	## Camera Distance
+	var cam := get_viewport().get_camera_3d()
+	var dist: float = cam.global_position.distance_to(pos_3d_global)
+	dist = clampf(dist, 10.0, 25.0)
+	var label_scale: float = remap(dist, 10.0, 25.0, 1.0, 0.5)
+	label_scale = clampf(label_scale, 0.5, 1.0)
+
+	label.scale = Vector2.ONE * label_scale
+
+	label.position -= Vector2(label.size * 0.5 * label_scale)
 
 # tween value automatically gets passed into this function
 func set_shader_value(value: Variant, key: String) -> void:

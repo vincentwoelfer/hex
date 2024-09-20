@@ -32,3 +32,4 @@ transition_height_factor = 0.35
 core_circle_smooth_strength = 0.5
 extra_verts_per_side = 2
 extra_verts_per_center = 4
+grass_density = 0.8
