@@ -30,10 +30,6 @@ theme = ExtResource("1_v8han")
 theme_override_fonts/font = ExtResource("3_fuqjc")
 text = "Hex Title"
 
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 5)
-layout_mode = 2
-
 [node name="TooltipLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
