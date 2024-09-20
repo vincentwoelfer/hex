@@ -69,18 +69,23 @@ void vertex() {
 	// --- GRASS BLADE HEIGHT/WIDTH ---
 	vec3 camera_offset = NODE_POSITION_WORLD - CAMERA_POSITION_WORLD;
 	float camera_distance = length(camera_offset);
-	float height_offset = mix(0.4, 2.0, mix(hash0, clump0, 0.8));
 
-	VERTEX.x *= mix(0.6, 1.0, hash1);
+	// Random height offset factor between 0.4 and 2.0
+	// hash0 = pure random, clump = clump texture
+	// the last value interpolates the random factor between hash0 and clump
+	float height_offset = mix(0.25, 2.0, mix(hash0, clump0, 0.5));
+
+	// Offset width by random factor
+	VERTEX.x *= mix(0.6, 1.2, hash1); 
+
 	// The further the distance from the camera, the thicker the grass blade will
 	// appear to account for decreasing density with LOD
 	// VERTEX.x *= 1.0 + min(ease_in_quartic(0.033*camera_distance), 75.0);
 
-	VERTEX.y *= height_offset;
-	// TODO RESIZE CORRECTLY
-	VERTEX.y *= 0.6 * height_mod;
-	VERTEX.x *= 0.6;
-	VERTEX.z *= 0.6;
+	// Apply offsets and scale everything down by 0.6
+	VERTEX.y *= 0.6 * height_mod * height_offset;
+	VERTEX.x *= 0.5; // Thickness
+	// Z should have no effect since grass is flat
 	vec3 vertex_model = VERTEX; // Vertex in model space before any rotations are applied
 
 	// --- Player crushing grass - DISABLED ---
@@ -91,12 +96,15 @@ void vertex() {
 	float turn_angle_base = (mix(-0.15, 0.15, hash0) + clump2*clumping_factor)*TAU;
 	float wind_direction = texture(wind_noise, NODE_POSITION_WORLD.zx*0.005/wind_speed + TIME*0.005*wind_speed).x*TAU;
 	float wind_strength = mix(0.25, 1.0, texture(wind_noise, NODE_POSITION_WORLD.xz*0.025/wind_speed + TIME*0.05).x); // *crushed_factor;
-	wind_strength *= wind_strength;
-	//wind_strength *= mix(0.6, 0.7, hash1) * wind_speed;
+	wind_strength *= wind_strength; // quadratic
+	wind_strength *= mix(0.8, 1.2, hash1); // random offset to wind speed
 	wind_strength *= wind_speed;
+
+	// Rotate between base_angle and wind_direction based on wind strength
 	mat3 grass_rotate = rotate_y(mix(turn_angle_base, wind_direction, wind_strength));
 
-	float bend_angle_base = mix(0.12, 0.25, hash1 + height_offset*0.1)*PI*height_factor;
+	float bend_angle_base = mix(0.1, 0.2, hash1*0.5 + height_offset*0.1)*PI*height_factor;
+
 	// We sample wind noise identically to strength, but with a time offset based on
 	// the height to simulate the turbulence as the grass blade shakes from the wind.
 	float wind_strength_turbulence = mix(0.25, 1.0, texture(wind_noise, NODE_POSITION_WORLD.xz*0.025/wind_speed + (TIME + height_factor*height_factor*0.25)*0.05).x);
@@ -121,7 +129,7 @@ void vertex() {
 	// sign of the vertex position in model space. We multiply by a large factor
 	// and round to correct for precision errors from positions at x=0.
 	float thicken_direction = sign(round((grass_rotate * vertex_model).x * 1e6));
-	float thicken_factor = ease_in_quartic(1.0 - abs(dot_nv)) * abs(vertex_model.x);
+	float thicken_factor = ease_in_quartic(1.0 - abs(dot_nv)) * abs(vertex_model.x) * 2.0;
 	vertex_view.x += thicken_factor * thicken_direction;
 	VERTEX = (modelview_inverse(MODELVIEW_MATRIX) * vec4(vertex_view, 1.0)).xyz;
 }
@@ -143,7 +151,7 @@ void fragment() {
 	// Color becomes more uniform as distance increases
 	ALBEDO = mix(mix(base_color_, tip_color_, 0.5)*0.5, ALBEDO, fog_factor);
 
-	//AO = mix(0.1, 1.0, height_factor*height_factor); // Note: This looks better but is only visible when shadows are enabled!
+	AO = mix(0.1, 1.0, height_factor*height_factor); // Note: This looks better but is only visible when shadows are enabled!
 	ROUGHNESS = mix(1.0, 0.4, ease_out_quartic(height_factor));
 	ANISOTROPY = 0.85;
 }
