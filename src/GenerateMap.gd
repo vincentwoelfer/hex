@@ -75,14 +75,14 @@ func create_hex(hex_pos: HexPos) -> void:
 	var hex_geometry: HexGeometry = HEX_GEOMETRY_SCENE.instantiate()
 	hex_geometry.height = height
 	hex_geometry.adjacent_hex = adjacent_hex
-	hex_geometry.position = Vector3(pos.x, height * HexConst.height, pos.y)
-
 
 	# Add to tile
-	MapManager.map.get_hex(hex_pos).geometry = hex_geometry
+	var hex_tile: HexTile = MapManager.map.get_hex(hex_pos)	
+	hex_tile.position = Vector3(pos.x, height * HexConst.height, pos.y)
+	hex_tile.assign_geometry(hex_geometry)
 
 	# Add to the current scene
-	add_child(hex_geometry, true)
+	add_child(hex_tile, true)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

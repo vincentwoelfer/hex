@@ -13,6 +13,9 @@ func _init(q_: int, r_: int, s_: int) -> void:
     if q + r + s != 0:
         push_error("q + r + s must be 0")
 
+func _to_string() -> String:
+    return '(' + str(q) + ', ' + str(r) + ', ' + str(s) + ')'
+
 func hash() -> int:
     # Maps [q,r] -> N, works bidirectionally and for signed integers
     # Based on signed Szudzik pairing but without /2 in the end
