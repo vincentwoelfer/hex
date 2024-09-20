@@ -18,6 +18,8 @@ var label := RichTextLabel.new()
 var humidity: float
 var shade: float
 var nutrition: float
+var is_secret_stash: bool # Just a gimmick
+
 
 var color_humidity: Color = Color.BLUE.lightened(0.2)
 var color_shade: Color = Color.BLACK.lightened(0.1)
@@ -35,7 +37,8 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 	self.humidity = randf()
 	self.shade = randf()
 	self.nutrition = randf()
-
+	self.is_secret_stash = randf() < 0.1
+	
 	add_child(label)
 
 
