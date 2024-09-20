@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://bi8xpy2pdq81q"]
+[gd_scene load_steps=9 format=3 uid="uid://bi8xpy2pdq81q"]
 
 [ext_resource type="Script" path="res://src/GenerateMap.gd" id="1_2h4g3"]
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://DefaultEnvironment.tres" id="2_2n06e"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://src/CameraController.gd" id="4_j2ckc"]
 [ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://dev-utility/USE_THIS_HexConstantsModifier.tscn" id="5_7csfd"]
 [ext_resource type="Script" path="res://src/SelectionManager.gd" id="6_x1kdg"]
+[ext_resource type="PackedScene" uid="uid://i5fes5afbict" path="res://scenes/ui/Tooltip.tscn" id="7_molft"]
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_t12eh"]
 
@@ -46,3 +47,15 @@ script = ExtResource("1_2h4g3")
 
 [node name="SelectionManager" type="Node3D" parent="."]
 script = ExtResource("6_x1kdg")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Tooltip" parent="CanvasLayer" instance=ExtResource("7_molft")]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -570.0
+offset_top = 150.0
+offset_right = -70.0
+offset_bottom = 650.0
+grow_horizontal = 0

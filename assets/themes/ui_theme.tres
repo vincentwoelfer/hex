@@ -1,0 +1,10 @@
+[gd_resource type="Theme" load_steps=3 format=3 uid="uid://cb56p5o3gc754"]
+
+[ext_resource type="FontFile" uid="uid://d1hdvd6wmoho6" path="res://assets/fonts/Ubuntu_Mono/UbuntuMono-Regular.ttf" id="1_duwwb"]
+[ext_resource type="StyleBox" uid="uid://dqr6qlh17w66b" path="res://assets/ui/panel_stylebox.tres" id="1_x22qe"]
+
+[resource]
+default_base_scale = 1.0
+default_font = ExtResource("1_duwwb")
+default_font_size = 30
+Panel/styles/panel = ExtResource("1_x22qe")
