@@ -96,10 +96,11 @@ func update_label() -> void:
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	label.scroll_active = false
 
+	var text_size := 70
 	label.clear()
 	label.text = ""
 	label.append_text('[center]')
-	label.push_font_size(70)
+	label.push_font_size(text_size)
 	label.push_outline_size(18)
 	label.push_outline_color(Color(1, 1, 1, alpha))
 	#label.append_text('[font bottom_spacing=-20]')
@@ -108,17 +109,17 @@ func update_label() -> void:
 	# Humidity
 	label.push_color(color_humidity)
 	label.append_text(str(snappedf(self.humidity, 0.1)) + ' ')
-	label.append_text('[img color=#' + color_humidity.to_html() + ']res://assets/icons/raindrop.png[/img]\n')
+	label.append_text('[img height=' + str(text_size) + ' color=#' + color_humidity.to_html() + ']res://assets/icons/raindrop.png[/img]\n')
 
 	# Shade
 	label.push_color(color_shade)
 	label.append_text(str(snappedf(1.0 - self.shade, 0.1)) + ' ')
-	label.append_text('[img color=#' + color_shade.to_html() + ']res://assets/icons/shade_white.png[/img]\n')
+	label.append_text('[img height=' + str(text_size) + ' color=#' + color_shade.to_html() + ']res://assets/icons/shade_white.png[/img]\n')
 
 	# Nutrition
 	label.push_color(color_nutrition)
 	label.append_text(str(snappedf(self.nutrition, 0.1)) + ' ')
-	label.append_text('[img color=#' + color_nutrition.to_html() + ']res://assets/icons/nutrition.png[/img]\n')
+	label.append_text('[img height=' + str(text_size) + ' color=#' + color_nutrition.to_html() + ']res://assets/icons/nutrition.png[/img]\n')
 	
 
 	label.pop_all()

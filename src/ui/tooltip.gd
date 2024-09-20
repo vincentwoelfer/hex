@@ -38,7 +38,7 @@ func show_tooltip(hex_tile: HexTile) -> void:
 	tooltip.append_text('[img color=#' + icon_color.to_html() + ' width=' + str(icon_width) + ']res://assets/icons/shade_white.png[/img]')
 	tooltip.append_text(str(" ", snappedf(1.0 - hex_tile.shade, 0.1), "\t(Sun exposure)", '\n'))
 
-	tooltip.append_text('[img color=#' + icon_color.to_html() + ' width=' + str(icon_width) + ']res://assets/icons/nutrition.png[/img]')
+	tooltip.append_text('[img color=#' + icon_color.to_html() + ' width=' + str(icon_width) + ']res://assets/icons/nutrition_old.png[/img]')
 	tooltip.append_text(str(" ", snappedf(hex_tile.nutrition, 0.1), "\t(Nutrition content)", '\n'))
 	
 	tooltip.append_text("\n\n-------------------------\n")
