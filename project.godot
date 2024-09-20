@@ -43,6 +43,7 @@ window/size/viewport_width=3840
 window/size/viewport_height=2160
 window/size/mode=2
 window/size/initial_position_type=3
+window/size/resizable=false
 
 [gui]
 

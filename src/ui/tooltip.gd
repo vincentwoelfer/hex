@@ -43,7 +43,8 @@ func show_tooltip(hex_tile: HexTile) -> void:
 	tooltip.append_text(str(" ", snappedf(hex_tile.nutrition, 0.1), "\t(Nutrition content)",'\n'))
 	
 	tooltip.append_text("\n\n-------------------------\n")
-	tooltip.push_bold()
+	tooltip.push_italics()
+	tooltip.push_font_size(26)
 	tooltip.append_text(compose_infotext(hex_tile))
 	tooltip.pop_all()
 	
@@ -54,19 +55,19 @@ func show_tooltip(hex_tile: HexTile) -> void:
 	tween.tween_property(self, "modulate", Color.WHITE, fade_seconds)
 
 func compose_infotext(hex_tile: HexTile) -> String:
-	var default_text := "The ground is very fertile.\n"
+	var default_text := "\u2618The ground is very fertile.\n"
 	var hazard_text := ""
 	var event_text := ""
 	
 	if hex_tile.humidity < 0.2:
-		hazard_text += "The ground is very dry.\n"
+		hazard_text += "\u26A0The ground is very dry.\n"
 	if hex_tile.shade > 0.6:
-		hazard_text += "This spot receives little sun light.\n"
+		hazard_text += "\u26A0This spot receives little sun light.\n"
 	if hex_tile.nutrition < 0.3:
-		hazard_text += "The soil contains hardly any nutrients.\n"
+		hazard_text += "\u26A0The soil contains hardly any nutrients.\n"
 	
 	if hex_tile.is_secret_stash:
-		event_text += "It looks like there might be something burried here.\n"
+		event_text += "\u2753It looks like there might be something burried here.\n"
 	
 	if hazard_text != "":
 		default_text = ""
