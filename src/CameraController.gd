@@ -92,15 +92,18 @@ func _process(delta: float) -> void:
 	global_position = camPos
 	look_at(lookAtPoint)
 
-	draw_debug_sphere(lookAtPoint, maxf(zoomTarget * 0.1, 0.025))
+	#draw_debug_sphere(lookAtPoint, maxf(zoomTarget * 0.1, 0.025))
 
 	self.check_for_selection()
 
 
 func check_for_selection() -> void:
 	var hit: Dictionary = self.raycast_into_world()
+	var hit_pos := Vector3(9999, 0, 0)
 	if not hit.is_empty():
-		EventBus.emit_signal("Signal_SelectionPosition", hit['position'])
+		hit_pos = hit['position']
+		
+	EventBus.emit_signal("Signal_SelectionPosition", hit_pos)
 
 
 func draw_debug_sphere(location: Vector3, r: float) -> void:

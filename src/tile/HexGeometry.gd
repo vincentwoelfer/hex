@@ -85,10 +85,10 @@ func create_grass_multimesh() -> MultiMesh:
 
 func _process(delta: float) -> void:
 	if randf() < 1.0 / 600:
-		var color_start: Color = grassMultiMesh.get_instance_shader_parameter('tip_color')
+		var color_start: Color = self.get_shader_value_color('tip_color')
 		var color_end: Color = Colors.randColor()
 
-		var height_start: float = grassMultiMesh.get_instance_shader_parameter('height_mod')
+		var height_start: float = self.get_shader_value_float('height_mod')
 		var height_end: float = randf_range(0.2, 4.0)
 
 		# grassMultiMesh.set_instance_shader_parameter('tip_color', color_end)
@@ -100,10 +100,15 @@ func _process(delta: float) -> void:
 		get_tree().create_tween().tween_method(set_shader_value.bind("tip_color_dry"), color_start, color_end, 1.5)
 		get_tree().create_tween().tween_method(set_shader_value.bind("height_mod"), height_start, height_end, 1.5)
 
-	### TODO LABEL
-	#var pos_3d_local: Vector3 = Vector3(0, height * HexConst.height + 0.5, 0)
-	#var pos_3d_global: Vector3 = global_transform * pos_3d_local
+	### LABEL
 	var pos_3d_global: Vector3 = global_position + Vector3(0.0, 0.1, 0.0)
+	## Camera Distance -> Scale
+	var cam := get_viewport().get_camera_3d()
+	var dist: float = cam.global_position.distance_to(pos_3d_global)
+	dist = clampf(dist, 10.0, 25.0)
+	var label_scale: float = remap(dist, 10.0, 25.0, 1.0, 0.5)
+	label_scale = clampf(label_scale, 0.5, 1.0)
+	label.scale = Vector2.ONE * label_scale
 
 	label.position = get_viewport().get_camera_3d().unproject_position(pos_3d_global)
 	label.visible = not get_viewport().get_camera_3d().is_position_behind(pos_3d_global)
@@ -117,34 +122,36 @@ func _process(delta: float) -> void:
 	label.text = ""
 	label.append_text('[center]')
 	label.push_font_size(80)
-	label.push_color(Color.BLUE)
-	label.push_outline_color(Color(1, 1, 1, 0.5))
+	var text_col: Color = Color.BLUE
+	text_col.a = label_scale
+	label.push_color(text_col)
+	label.push_outline_color(Color(1, 1, 1, 0.5 * label_scale))
 	label.push_outline_size(16)
 
-	label.append_text('[img color=#0000ff]res://assets/icons/raindrop.png[/img]: ')
+	label.append_text('[img color=#' + text_col.to_html() + ']res://assets/icons/raindrop.png[/img]: ')
 	label.append_text(str(global_position.y))
 
 	label.pop_all()
 
-	# IMAGES
-	#+ '[img=80]res://assets/icon.png[/img]!' \
-
-	#label.set_size(label.get_theme_font('normal_font').get_string_size(label.text))
-
-	## Camera Distance
-	var cam := get_viewport().get_camera_3d()
-	var dist: float = cam.global_position.distance_to(pos_3d_global)
-	dist = clampf(dist, 10.0, 25.0)
-	var label_scale: float = remap(dist, 10.0, 25.0, 1.0, 0.5)
-	label_scale = clampf(label_scale, 0.5, 1.0)
-
-	label.scale = Vector2.ONE * label_scale
-
+	# Use size (including scale) to center position in 2d correctly
 	label.position -= Vector2(label.size * 0.5 * label_scale)
 
 # tween value automatically gets passed into this function
 func set_shader_value(value: Variant, key: String) -> void:
 	grassMultiMesh.set_instance_shader_parameter(key, value)
+
+func get_shader_value_color(key: String) -> Color:
+	var value: Variant = grassMultiMesh.get_instance_shader_parameter(key)
+	if value is not Color:
+		return Color()
+	return value
+
+
+func get_shader_value_float(key: String) -> float:
+	var value: Variant = grassMultiMesh.get_instance_shader_parameter(key)
+	if value is not float:
+		return 0.0
+	return value
 
 
 func generate() -> void:

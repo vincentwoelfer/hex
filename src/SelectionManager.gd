@@ -15,6 +15,8 @@ func parse_selection_position(pos: Vector3) -> void:
 
 	if hex_tile.is_valid():
 		self.update_selected_hex_tile(hex_tile)
+	else:
+		self.update_selected_hex_tile(null)
 
 
 func update_selected_hex_tile(new_selection: HexTile) -> void:
@@ -25,6 +27,7 @@ func update_selected_hex_tile(new_selection: HexTile) -> void:
 			highlight_current()
 	else:
 		unhighlight_current()
+		current_selection = null
 
 
 func highlight_current() -> void:
