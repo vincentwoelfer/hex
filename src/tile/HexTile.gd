@@ -17,20 +17,20 @@ var shade: float
 var nutrition: float
 
 func _init(hexpos_: HexPos, height_: int) -> void:
-    self.hexpos = hexpos_
-    self.height = height_
+	self.hexpos = hexpos_
+	self.height = height_
 
-    self.geometry = null
+	self.geometry = null
 
-    self.humidity = randf()
-    self.shade = randf()
-    self.nutrition = randf()
+	self.humidity = randf()
+	self.shade = randf()
+	self.nutrition = randf()
 
 func is_valid() -> bool:
-    return hexpos != null
+	return hexpos != null
 
 func calculate_shadow(sun_intensity: float) -> float:
-    return sun_intensity * shade
+	return sun_intensity * shade
 
 
 #######################

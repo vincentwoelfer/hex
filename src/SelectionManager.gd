@@ -20,14 +20,11 @@ func parse_selection_position(pos: Vector3) -> void:
 
 
 func update_selected_hex_tile(new_selection: HexTile) -> void:
-	if new_selection != null:
-		if new_selection != current_selection:
-			unhighlight_current()
-			current_selection = new_selection
-			highlight_current()
-	else:
+	if new_selection != current_selection:
+		EventBus.emit_signal("Signal_SelectionChanged", new_selection)
 		unhighlight_current()
-		current_selection = null
+		current_selection = new_selection
+		highlight_current()
 
 
 func highlight_current() -> void:

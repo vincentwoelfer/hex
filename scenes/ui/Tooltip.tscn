@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://i5fes5afbict"]
+
+[node name="Tooltip" type="PanelContainer"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 2
