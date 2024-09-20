@@ -17,8 +17,6 @@ var samplerVertical: PolygonSurfaceSampler
 var rockObjects: Array[ArrayMesh]
 var grassMultiMesh: MultiMeshInstance3D
 
-var label := RichTextLabel.new()
-
 class AdjacentHex:
 	var height: int
 	var type: String # unused for now
@@ -40,8 +38,6 @@ func _init() -> void:
 	terrainMesh.material_overlay = HIGHLIGHT_MAT
 	add_child(terrainMesh, true)
 
-	# 	terrainMesh.set_instance_shader_parameter("enabled", 1.0)
-
 	# Load Rocks
 	for i in range(1, 10):
 		rockObjects.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as ArrayMesh)
@@ -53,8 +49,6 @@ func _init() -> void:
 	grassMultiMesh.material_override = GRASS_MAT
 	grassMultiMesh.extra_cull_margin = 1.0
 	add_child(grassMultiMesh, true)
-
-	add_child(label)
 
 
 # Called when the node enters the scene tree for the first time.
@@ -100,41 +94,6 @@ func _process(delta: float) -> void:
 		get_tree().create_tween().tween_method(set_shader_value.bind("tip_color_dry"), color_start, color_end, 1.5)
 		get_tree().create_tween().tween_method(set_shader_value.bind("height_mod"), height_start, height_end, 1.5)
 
-	### LABEL
-	var pos_3d_global: Vector3 = global_position + Vector3(0.0, 0.1, 0.0)
-	## Camera Distance -> Scale
-	var cam := get_viewport().get_camera_3d()
-	var dist: float = cam.global_position.distance_to(pos_3d_global)
-	dist = clampf(dist, 10.0, 25.0)
-	var label_scale: float = remap(dist, 10.0, 25.0, 1.0, 0.5)
-	label_scale = clampf(label_scale, 0.5, 1.0)
-	label.scale = Vector2.ONE * label_scale
-
-	label.position = get_viewport().get_camera_3d().unproject_position(pos_3d_global)
-	label.visible = not get_viewport().get_camera_3d().is_position_behind(pos_3d_global)
-
-	label.bbcode_enabled = true
-	label.fit_content = true
-	label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	label.scroll_active = false
-
-	label.clear()
-	label.text = ""
-	label.append_text('[center]')
-	label.push_font_size(80)
-	var text_col: Color = Color.BLUE
-	text_col.a = label_scale
-	label.push_color(text_col)
-	label.push_outline_color(Color(1, 1, 1, 0.5 * label_scale))
-	label.push_outline_size(16)
-
-	label.append_text('[img color=#' + text_col.to_html() + ']res://assets/icons/raindrop.png[/img]: ')
-	label.append_text(str(global_position.y))
-
-	label.pop_all()
-
-	# Use size (including scale) to center position in 2d correctly
-	label.position -= Vector2(label.size * 0.5 * label_scale)
 
 # tween value automatically gets passed into this function
 func set_shader_value(value: Variant, key: String) -> void:

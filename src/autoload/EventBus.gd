@@ -17,12 +17,7 @@ func _ready() -> void:
 	# EventBus.emit_signal("Signal_HexConstChanged", ...)
 
 	Signal_HexConstChanged.connect(_on_Signal_HexConstChanged)
-	Signal_SelectionPosition.connect(_on_Signal_SelectionPosition)
 
 # Function to handle the signal
 func _on_Signal_HexConstChanged() -> void:
 	print("EventBus: Signal_HexConstChanged")
-
-func _on_Signal_SelectionPosition(selection_position: Vector3) -> void:
-	pass
-	#print("Selection at ", selection_position)
