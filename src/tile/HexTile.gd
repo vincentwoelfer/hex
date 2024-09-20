@@ -19,10 +19,12 @@ var humidity: float
 var shade: float
 var nutrition: float
 var is_secret_stash: bool # Just a gimmick
+var tile_type: String = "Meadow"
 
 
 var color_humidity: Color = Color.BLUE.lightened(0.2)
 var color_shade: Color = Color.BLACK.lightened(0.1)
+var color_nutrition: Color = Color.DARK_OLIVE_GREEN
 
 func _init(hexpos_: HexPos, height_: int) -> void:
 	self.hexpos = hexpos_
@@ -38,6 +40,10 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 	self.shade = randf()
 	self.nutrition = randf()
 	self.is_secret_stash = randf() < 0.1
+
+	# Doesnt do anything, surprise Nek
+	if self.humidity <= 0.1:
+		self.tile_type = "Dry Meadow"
 	
 	add_child(label)
 
@@ -46,18 +52,44 @@ func _process(delta: float) -> void:
 	update_label()
 
 
-func update_label() -> void:
-	var pos_3d_global: Vector3 = global_position + Vector3(0.0, 0.1, 0.0)
-	## Camera Distance -> Scale
-	var cam := get_viewport().get_camera_3d()
-	var dist: float = cam.global_position.distance_to(pos_3d_global)
-	dist = clampf(dist, 10.0, 25.0)
-	var label_scale: float = remap(dist, 10.0, 25.0, 1.0, 0.5)
-	label_scale = clampf(label_scale, 0.5, 1.0)
-	label.scale = Vector2.ONE * label_scale
+func get_scale_from_3d_distance_to_cam(global_pos: Vector3) -> float:
+	const near_dist := 10.0
+	const far_dist := 30.0
+	const min_scale := 0.4
+	const max_scale := 1.0
 
-	label.position = get_viewport().get_camera_3d().unproject_position(pos_3d_global)
-	label.visible = not get_viewport().get_camera_3d().is_position_behind(pos_3d_global)
+	var cam := get_viewport().get_camera_3d()
+	var dist: float = cam.global_position.distance_to(global_pos)
+	var factor: float = remap(dist, near_dist, far_dist, max_scale, min_scale)
+	return clampf(factor, min_scale, max_scale)
+
+
+func get_alpha_from_3d_distance_to_cam(global_pos: Vector3) -> float:
+	const near_dist := 30.0
+	const far_dist := 45.0
+	const min_scale := 0.3
+	const max_scale := 1.0
+
+	var cam := get_viewport().get_camera_3d()
+	var dist: float = cam.global_position.distance_to(global_pos)
+	var factor: float = remap(dist, near_dist, far_dist, max_scale, min_scale)
+	return clampf(factor, min_scale, max_scale)
+
+
+func update_label() -> void:
+	var label_pos: Vector3 = global_position + Vector3(0.0, 0.1, 0.0)
+	var scale_factor := get_scale_from_3d_distance_to_cam(label_pos)
+
+	# Colors
+	var alpha := get_alpha_from_3d_distance_to_cam(label_pos)
+	color_humidity.a = alpha
+	color_shade.a = alpha
+	color_nutrition.a = alpha
+
+	label.scale = Vector2.ONE * scale_factor
+
+	label.position = get_viewport().get_camera_3d().unproject_position(label_pos)
+	label.visible = not get_viewport().get_camera_3d().is_position_behind(label_pos)
 
 	label.bbcode_enabled = true
 	label.fit_content = true
@@ -67,29 +99,32 @@ func update_label() -> void:
 	label.clear()
 	label.text = ""
 	label.append_text('[center]')
-	label.push_font_size(80)
-	label.push_outline_size(16)
+	label.push_font_size(70)
+	label.push_outline_size(18)
+	label.push_outline_color(Color(1, 1, 1, alpha))
+	#label.append_text('[font bottom_spacing=-20]')
 	#label.push_bgcolor(Color(0,0,0,0.2))
 
 	# Humidity
-	color_humidity.a = clampf(label_scale, 0.8, 1)
 	label.push_color(color_humidity)
-	label.push_outline_color(Color(1, 1, 1, 1 * label_scale))
-	label.append_text(str(snappedf(self.humidity, 0.1)))
-	label.append_text(' [img color=#' + color_humidity.to_html() + ']res://assets/icons/raindrop.png[/img]\n')
+	label.append_text(str(snappedf(self.humidity, 0.1)) + ' ')
+	label.append_text('[img color=#' + color_humidity.to_html() + ']res://assets/icons/raindrop.png[/img]\n')
 
 	# Shade
-	color_shade.a = clampf(label_scale, 0.7, 1)
 	label.push_color(color_shade)
-	label.push_outline_color(Color(1, 1, 1, 1 * label_scale))
-	label.append_text(str(snappedf(self.shade, 0.1)))
-	label.append_text(' [img color=#' + color_shade.to_html() + ']res://assets/icons/shade.png[/img]\n')
+	label.append_text(str(snappedf(1.0 - self.shade, 0.1)) + ' ')
+	label.append_text('[img color=#' + color_shade.to_html() + ']res://assets/icons/shade_white.png[/img]\n')
+
+	# Nutrition
+	label.push_color(color_nutrition)
+	label.append_text(str(snappedf(self.nutrition, 0.1)) + ' ')
+	label.append_text('[img color=#' + color_nutrition.to_html() + ']res://assets/icons/nutrition.png[/img]\n')
 	
 
 	label.pop_all()
 
 	# Use size (including scale) to center position in 2d correctly
-	label.position -= Vector2(label.size * 0.5 * label_scale)
+	label.position -= Vector2(label.size * 0.5 * scale_factor)
 
 
 func assign_geometry(geom: HexGeometry) -> void:

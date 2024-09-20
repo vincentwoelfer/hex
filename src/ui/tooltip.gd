@@ -2,12 +2,11 @@ class_name Tooltip
 extends PanelContainer
 
 @onready var fade_seconds := 0.4
-@onready var header := %HeaderLabel
-@onready var tooltip := %TooltipLabel
+@onready var header: Label = %HeaderLabel
+@onready var tooltip: RichTextLabel = %TooltipLabel
 @export var icon_width := 36
 
 var icon_color: Color = Color.WHITE_SMOKE
-
 var tween: Tween
 
 func _ready() -> void:
@@ -27,7 +26,7 @@ func show_tooltip(hex_tile: HexTile) -> void:
 	if tween:
 		tween.kill()
 	
-	header.text = "Meadow"
+	header.text = hex_tile.tile_type
 	tooltip.text = ""
 	#color_humidity.a = clampf(1, 0.8, 1)
 	#label.push_color(color_humidity)
@@ -37,17 +36,16 @@ func show_tooltip(hex_tile: HexTile) -> void:
 
 	# Shade
 	tooltip.append_text('[img color=#' + icon_color.to_html() + ' width=' + str(icon_width) + ']res://assets/icons/shade_white.png[/img]')
-	tooltip.append_text(str(" ", snappedf(1.0 - hex_tile.shade, 0.1), "\t(Sun exposure)",'\n'))
+	tooltip.append_text(str(" ", snappedf(1.0 - hex_tile.shade, 0.1), "\t(Sun exposure)", '\n'))
 
 	tooltip.append_text('[img color=#' + icon_color.to_html() + ' width=' + str(icon_width) + ']res://assets/icons/nutrition.png[/img]')
-	tooltip.append_text(str(" ", snappedf(hex_tile.nutrition, 0.1), "\t(Nutrition content)",'\n'))
+	tooltip.append_text(str(" ", snappedf(hex_tile.nutrition, 0.1), "\t(Nutrition content)", '\n'))
 	
 	tooltip.append_text("\n\n-------------------------\n")
 	tooltip.push_italics()
 	tooltip.push_font_size(26)
 	tooltip.append_text(compose_infotext(hex_tile))
 	tooltip.pop_all()
-	
 	
 	
 	tween = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
