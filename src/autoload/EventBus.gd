@@ -7,6 +7,9 @@ signal Signal_HexConstChanged()
 signal Signal_SelectionPosition(selection_position: Vector3)
 signal Signal_SelectionChanged(new_hex: HexTile)
 
+# Debug Signals
+signal Signal_TooglePerTileUi(is_visible: bool)
+var is_per_tile_ui_on: bool = true
 
 func _ready() -> void:
 	# Connect signals here to enable logging functions below.
@@ -16,7 +19,15 @@ func _ready() -> void:
 	# Signal emittion:
 	# EventBus.emit_signal("Signal_HexConstChanged", ...)
 
+	# Connect to events to print debug info
 	Signal_HexConstChanged.connect(_on_Signal_HexConstChanged)
+
+
+# Reacht to keyboard inputs to directly trigger events
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("toogle_per_tile_ui"):
+		is_per_tile_ui_on = !is_per_tile_ui_on
+		Signal_TooglePerTileUi.emit(is_per_tile_ui_on)
 
 # Function to handle the signal
 func _on_Signal_HexConstChanged() -> void:

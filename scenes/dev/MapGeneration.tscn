@@ -52,6 +52,14 @@ script = ExtResource("1_2h4g3")
 script = ExtResource("6_x1kdg")
 
 [node name="WorldLightControl" parent="." instance=ExtResource("7_8h5wc")]
+sunrise = null
+sunset = null
+sunrise_effect_hours = null
+sunset_effect_hours = null
+max_light_energy = null
+min_light_energy = null
+light_energy_ramping_hours = null
+starting_weather = null
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 

@@ -13,6 +13,7 @@ var height: int
 # Visual Representation
 var geometry: HexGeometry
 var label := RichTextLabel.new()
+var is_label_visible := true
 
 # Field conditions
 var humidity: float
@@ -44,9 +45,15 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 	# Doesnt do anything, surprise Nek
 	if self.humidity <= 0.1:
 		self.tile_type = "Dry Meadow"
-	
+
 	add_child(label)
 
+	# Signals
+	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
+
+
+func toogleTileUi(_is_label_visible: bool) -> void:
+	self.is_label_visible = _is_label_visible
 
 func _process(delta: float) -> void:
 	update_label()
@@ -89,7 +96,8 @@ func update_label() -> void:
 	label.scale = Vector2.ONE * scale_factor
 
 	label.position = get_viewport().get_camera_3d().unproject_position(label_pos)
-	label.visible = not get_viewport().get_camera_3d().is_position_behind(label_pos)
+
+	label.visible = is_label_visible and not get_viewport().get_camera_3d().is_position_behind(label_pos)
 
 	label.bbcode_enabled = true
 	label.fit_content = true
@@ -119,7 +127,7 @@ func update_label() -> void:
 	label.push_color(color_nutrition)
 	label.append_text(str(snappedf(self.nutrition, 0.1)) + ' ')
 	label.append_text('[img color=#' + color_nutrition.to_html() + ']res://assets/icons/nutrition.png[/img]\n')
-	
+
 
 	label.pop_all()
 
@@ -160,4 +168,4 @@ func calculate_shadow(sun_intensity: float) -> float:
 ####################### Allgemeint Wetter:
 # Temperatur
 # Aktueller Regenfall -> mehr wasser
-# Aktuelle Sonne -> weniger wasser, mehr licht 
+# Aktuelle Sonne -> weniger wasser, mehr licht
