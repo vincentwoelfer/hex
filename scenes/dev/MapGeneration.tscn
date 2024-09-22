@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://bi8xpy2pdq81q"]
+[gd_scene load_steps=11 format=3 uid="uid://bi8xpy2pdq81q"]
 
 [ext_resource type="Script" path="res://src/GenerateMap.gd" id="1_2h4g3"]
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://DefaultEnvironment.tres" id="2_2n06e"]
@@ -8,10 +8,11 @@
 [ext_resource type="Script" path="res://src/SelectionManager.gd" id="6_x1kdg"]
 [ext_resource type="PackedScene" uid="uid://rt1v1gqdo1x0" path="res://scenes/world_light_control.tscn" id="7_8h5wc"]
 [ext_resource type="PackedScene" uid="uid://i5fes5afbict" path="res://scenes/ui/Tooltip.tscn" id="7_molft"]
+[ext_resource type="PackedScene" uid="uid://b3ol067ntho4v" path="res://scenes/ui/debug_info_panel.tscn" id="9_1vbi7"]
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_t12eh"]
 
-[node name="root" type="Node3D"]
+[node name="TestScene" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." groups=["world_environment"]]
 environment = ExtResource("2_2n06e")
@@ -19,14 +20,13 @@ camera_attributes = ExtResource("3_lr7o2")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 8, 6)
-visible = false
 attributes = SubResource("CameraAttributesPractical_t12eh")
 current = true
 fov = 80.0
 script = ExtResource("4_j2ckc")
 
 [node name="SunLight" type="DirectionalLight3D" parent="." groups=["sun"]]
-transform = Transform3D(1, 0, 0, 0, 0.34202, 0.939692, 0, -0.939692, 0.34202, 0, 20, 0)
+transform = Transform3D(0.535827, -0.288777, 0.793408, 0, 0.939692, 0.34202, -0.844328, -0.183263, 0.503512, 0, 20, 0)
 light_angular_distance = 2.0
 shadow_enabled = true
 directional_shadow_blend_splits = true
@@ -63,3 +63,14 @@ offset_top = 40.0
 offset_right = -40.0
 offset_bottom = 340.0
 grow_horizontal = 0
+
+[node name="DebugInfoPanel" parent="CanvasLayer" node_paths=PackedStringArray("world_light_control") instance=ExtResource("9_1vbi7")]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 25.0
+offset_top = -231.0
+offset_right = 475.0
+offset_bottom = -25.0
+grow_vertical = 0
+world_light_control = NodePath("../../WorldLightControl")
