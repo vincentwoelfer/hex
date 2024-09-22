@@ -14,4 +14,6 @@ func _process(delta: float) -> void:
 func update_infotext() -> void:
 	var hour = floor(world_light_control.world_time)
 	var minutes = floor((world_light_control.world_time - hour) * 6)
-	infotext.text = str("Daytime: ", hour, ":", minutes, "0h")
+	infotext.text = ""
+	infotext.append_text(str("Daytime: ", hour, ":", minutes, "0h\n"))
+	infotext.append_text(str("Weather: ", world_light_control.WeatherType.keys()[world_light_control.current_weather]))
