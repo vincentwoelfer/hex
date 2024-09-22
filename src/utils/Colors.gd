@@ -29,6 +29,7 @@ static func getDistincHexColor(i: int) -> Color:
 
 static func getColorForIncline(inclineDeg: float) -> Color:
 	if inclineDeg <= 25.0:
+		
 		inclineDeg = 0.0
 	inclineDeg = clampf(inclineDeg / 70.0, 0.0, 1.0)
 
