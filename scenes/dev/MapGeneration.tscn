@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://bi8xpy2pdq81q"]
+[gd_scene load_steps=10 format=3 uid="uid://bi8xpy2pdq81q"]
 
 [ext_resource type="Script" path="res://src/GenerateMap.gd" id="1_2h4g3"]
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://DefaultEnvironment.tres" id="2_2n06e"]
@@ -6,13 +6,14 @@
 [ext_resource type="Script" path="res://src/CameraController.gd" id="4_j2ckc"]
 [ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://dev-utility/USE_THIS_HexConstantsModifier.tscn" id="5_7csfd"]
 [ext_resource type="Script" path="res://src/SelectionManager.gd" id="6_x1kdg"]
+[ext_resource type="PackedScene" uid="uid://rt1v1gqdo1x0" path="res://scenes/world_light_control.tscn" id="7_8h5wc"]
 [ext_resource type="PackedScene" uid="uid://i5fes5afbict" path="res://scenes/ui/Tooltip.tscn" id="7_molft"]
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_t12eh"]
 
 [node name="TestScene" type="Node3D"]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." groups=["world_environment"]]
 environment = ExtResource("2_2n06e")
 camera_attributes = ExtResource("3_lr7o2")
 
@@ -23,7 +24,7 @@ current = true
 fov = 80.0
 script = ExtResource("4_j2ckc")
 
-[node name="SunLight" type="DirectionalLight3D" parent="."]
+[node name="SunLight" type="DirectionalLight3D" parent="." groups=["sun"]]
 transform = Transform3D(1, 0, 0, 0, 0.34202, 0.939692, 0, -0.939692, 0.34202, 0, 20, 0)
 light_angular_distance = 2.0
 shadow_enabled = true
@@ -47,6 +48,8 @@ script = ExtResource("1_2h4g3")
 
 [node name="SelectionManager" type="Node3D" parent="."]
 script = ExtResource("6_x1kdg")
+
+[node name="WorldLightControl" parent="." instance=ExtResource("7_8h5wc")]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
