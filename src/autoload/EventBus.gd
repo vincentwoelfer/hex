@@ -25,9 +25,11 @@ func _ready() -> void:
 
 # Reacht to keyboard inputs to directly trigger events
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("toogle_per_tile_ui"):
-		is_per_tile_ui_on = !is_per_tile_ui_on
-		Signal_TooglePerTileUi.emit(is_per_tile_ui_on)
+	# Only execute in game, check necessary because EventBus is @tool
+	if not Engine.is_editor_hint():
+		if event.is_action_pressed("toogle_per_tile_ui"):
+			is_per_tile_ui_on = !is_per_tile_ui_on
+			Signal_TooglePerTileUi.emit(is_per_tile_ui_on)
 
 # Function to handle the signal
 func _on_Signal_HexConstChanged() -> void:
