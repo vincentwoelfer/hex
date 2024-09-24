@@ -1,19 +1,28 @@
-@tool
 class_name WorldTimeManager
 extends Node
 
-const HOURS_PER_DAY: float = 24.0
+var current_world_time: float = 6.0
+@export var duration_sec_per_hour: float = 0.5
 
-@export_range(0.0, HOURS_PER_DAY, 0.5) var current_time: float = 12.0:
-	set(value):
-		current_time = value
-		EventBus.Signal_ChangeWorldTime.emit(current_time)
+var timer: Timer
+
+func _on_timer_timeout() -> void:
+	print("Timer has finished!")
+
 
 func _ready() -> void:
-	pass
+	timer = Timer.new()
+	timer.wait_time = duration_sec_per_hour
+	timer.one_shot = false
+	timer.timeout.connect(_on_timer_tick)
+	add_child(timer)
+	timer.start()
 
 
-func _process(delta: float) -> void:
-	pass
+func _on_timer_tick() -> void:
+	# Advance one hour
+	current_world_time += 1.0
 
+	var day_time: float = fmod(current_world_time, 24.0)
 
+	EventBus.Signal_ChangeWorldTime.emit(day_time)

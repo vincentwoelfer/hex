@@ -13,7 +13,7 @@ var zoom_max: float = 7.0
 
 var lookAtPoint: Vector3
 var followPoint: Vector3 # = target, also used for movement
-var orientation: int = 1
+var orientation: int = 1 # from north looking south (to see the sun moving best)
 # current rotation in angle
 var currRotation: float = 0
 
@@ -26,6 +26,7 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CONFINED
 	lookAtPoint = Vector3(0, 2, 0)
 	followPoint = Vector3(0, 2, 0)
+	currRotation = compute_forward_angle(orientation)
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("rotate_cam_left"):
@@ -65,13 +66,19 @@ func raycast_into_world() -> Dictionary:
 	var result := space_state.intersect_ray(ray_query)
 	return result
 
+
+func compute_forward_angle(orientation_: float) -> float:
+	# Default Orientation = 1 -> Forward = -Z , this is archived with 90° into sin/cos
+	# Thats why we subtract 90°
+	var forwardAngle := deg_to_rad((60.0 * orientation_ + 30.0) - 90.0) # Actually forward
+	return forwardAngle
+
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	zoom = lerpf(zoom, zoomTarget, rotationLerpSpeed * delta)
 
-	# Default Orientation = 1 -> Forward = -Z , this is archived with 90° into sin/cos
-	# Thats why we subtract 90°
-	var forwardAngle := deg_to_rad((60.0 * orientation + 30.0) - 90.0) # Actually forward
+	var forwardAngle := compute_forward_angle(orientation)
 
 	currRotation = lerp_angle(currRotation, forwardAngle, rotationLerpSpeed * delta)
 	var forwardDir := Vector3(0, 0, -1).rotated(Vector3.UP, currRotation) # not actually forward, lerps
@@ -102,7 +109,7 @@ func check_for_selection() -> void:
 	var hit_pos := Vector3(9999, 0, 0)
 	if not hit.is_empty():
 		hit_pos = hit['position']
-		
+
 	EventBus.emit_signal("Signal_SelectedWorldPosition", hit_pos)
 
 

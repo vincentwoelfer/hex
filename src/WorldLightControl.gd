@@ -9,7 +9,12 @@ var sky: PanoramaSkyMaterial
 
 const HOURS_PER_DAY: float = 24.0
 
-var current_time: float = 12.0
+@export_range(0.0, HOURS_PER_DAY, 0.2) var current_time: float = 18.0:
+	set(value):
+		current_time = value
+		if Engine.is_editor_hint():
+			jump_to_time(current_time)
+
 
 @export_category("Sunshine hours")
 @export var sunrise: float = 6.0
@@ -20,6 +25,7 @@ var current_time: float = 12.0
 @export var sunrise_effect_hours: float = 3.0
 @export var sunset_effect_hours: float = 3.0
 
+# TODO interpolate energy differently. Color change needs to happen ~2-3 hours, light intensity change only within 30min
 @export var min_sun_light_energy: float = 0.0
 @export var max_sun_light_energy: float = 2.0
 @export var min_sky_light_energy: float = 0.5
@@ -33,18 +39,26 @@ var current_time: float = 12.0
 @export var starting_weather: WeatherType = WeatherType.SUNSHINE
 var current_weather: WeatherType
 
-var tween_duration := 1.0
 var tween: Tween
+var tween_duration := 0.5
+var tween_max_duration: float
 
-var sun_rotation_x_start := 360.0
-var sun_rotation_x_finish := 180.0
-var sun_rotation_y_start := 120.0
-var sun_rotation_y_finish := 60.0
+# Height. -90 = Zenith.
+var sun_rotation_x_down := 0.0
+var sun_rotation_x_zenith := -32.0 # Should match ~scotland
+# down -> zenith -> down
+
+# East -> West, 0.0 = from South
+var sun_rotation_y_start := 90.0
+var sun_rotation_y_finish := -90.0
 
 func _ready() -> void:
 	world_environment = get_node('%WorldEnvironment')
 	sun = get_node('%SunLight')
 	sky = world_environment.environment.sky.sky_material as PanoramaSkyMaterial
+
+	#tween_max_duration = get_node('%WorldTimeManager')
+	tween_max_duration = 0.49
 
 	current_weather = starting_weather
 	EventBus.Signal_ChangeWorldTime.connect(change_time)
@@ -90,7 +104,7 @@ func tween_to_time(time: float) -> void:
 
 	# Create Tween
 	tween = create_tween().set_parallel(true)
-	var current_tween_duration := tween_duration
+	var current_tween_duration := minf(tween_duration, tween_max_duration)
 
 	for property: String in properties.keys():
 		if property.begins_with('sun_'):
@@ -123,8 +137,16 @@ func interpolate_properties_for_time(time: float) -> Dictionary:
 	var sun_light_energy: float = lerpf(min_sun_light_energy, max_sun_light_energy, interpolation_factor)
 	var sky_light_energy: float = lerpf(min_sky_light_energy, max_sky_light_energy, interpolation_factor)
 	var light_color: Color = color_lerp_from.lerp(daytime_light_color, interpolation_factor)
+
+	# Lerp sun altitude from 0 -> zenith -> 0
+	var sun_x: float
+	if day_time_frac <= 0.5:
+		sun_x = deg_to_rad(lerpf(sun_rotation_x_down, sun_rotation_x_zenith, day_time_frac * 2.0))
+	else:
+		sun_x = deg_to_rad(lerpf(sun_rotation_x_zenith, sun_rotation_x_down, (day_time_frac - 0.5) * 2.0))
+
 	var sun_rotation: Vector3 = Vector3(
-			deg_to_rad(lerpf(sun_rotation_x_start, sun_rotation_x_finish, day_time_frac)),
+			sun_x,
 			deg_to_rad(lerpf(sun_rotation_y_start, sun_rotation_y_finish, day_time_frac)),
 			0.0)
 
