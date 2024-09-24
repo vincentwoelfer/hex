@@ -9,7 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://i5fes5afbict" path="res://scenes/ui/Tooltip.tscn" id="7_molft"]
 [ext_resource type="Script" path="res://src/WorldLightControl.gd" id="8_4pj04"]
 [ext_resource type="Script" path="res://src/WorldTimeManager.gd" id="8_q81ch"]
-[ext_resource type="PackedScene" uid="uid://b3ol067ntho4v" path="res://scenes/ui/debug_info_panel.tscn" id="9_1vbi7"]
+[ext_resource type="PackedScene" path="res://scenes/ui/debug_info_panel.tscn" id="9_1vbi7"]
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_t12eh"]
 
