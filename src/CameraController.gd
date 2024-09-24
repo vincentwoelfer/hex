@@ -103,7 +103,7 @@ func check_for_selection() -> void:
 	if not hit.is_empty():
 		hit_pos = hit['position']
 		
-	EventBus.emit_signal("Signal_SelectionPosition", hit_pos)
+	EventBus.emit_signal("Signal_SelectedWorldPosition", hit_pos)
 
 
 func draw_debug_sphere(location: Vector3, r: float) -> void:

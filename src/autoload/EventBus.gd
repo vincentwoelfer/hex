@@ -4,8 +4,10 @@
 extends Node
 
 signal Signal_HexConstChanged()
-signal Signal_SelectionPosition(selection_position: Vector3)
-signal Signal_SelectionChanged(new_hex: HexTile)
+signal Signal_SelectedWorldPosition(selection_position: Vector3)
+signal Signal_SelectedHexTile(new_hex: HexTile)
+
+signal Signal_ChangeWorldTime(new_time: float)
 
 # Debug Signals
 signal Signal_TooglePerTileUi(is_visible: bool)

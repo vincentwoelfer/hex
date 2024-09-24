@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://rt1v1gqdo1x0"]
 
-[ext_resource type="Script" path="res://src/world_light_control.gd" id="1_0sb10"]
+[ext_resource type="Script" path="res://src/WorldLightControl.gd" id="1_0sb10"]
 
 [node name="WorldLightControl" type="Node"]
 script = ExtResource("1_0sb10")

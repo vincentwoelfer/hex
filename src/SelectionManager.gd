@@ -5,7 +5,7 @@ var current_selection: HexTile = null
 
 
 func _ready() -> void:
-	EventBus.Signal_SelectionPosition.connect(parse_selection_position)
+	EventBus.Signal_SelectedWorldPosition.connect(parse_selection_position)
 
 
 func parse_selection_position(pos: Vector3) -> void:
@@ -21,7 +21,7 @@ func parse_selection_position(pos: Vector3) -> void:
 
 func update_selected_hex_tile(new_selection: HexTile) -> void:
 	if new_selection != current_selection:
-		EventBus.emit_signal("Signal_SelectionChanged", new_selection)
+		EventBus.emit_signal("Signal_SelectedHexTile", new_selection)
 		unhighlight_current()
 		current_selection = new_selection
 		highlight_current()
