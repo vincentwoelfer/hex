@@ -37,7 +37,7 @@ static func getColorForIncline(inclineDeg: float) -> Color:
 	#const green := Color.FOREST_GREEN
 	var green := Color.DARK_GREEN.lerp(Color8(22, 17, 12), 0.9)
 	#const gray := Color.DIM_GRAY
-	const gray := Color8(16, 13, 13, 255)
+	const gray := Color8(16, 17, 13, 255)
 	
 	var color := green.lerp(gray, inclineDeg)
 
