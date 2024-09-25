@@ -51,8 +51,8 @@ var tween: Tween
 var desired_tween_duration := 0.5
 
 # Height. -90 = Zenith.
-var sun_rotation_x_down := -0.5
-var sun_rotation_x_zenith := -32.0 # Should match ~scotland
+var sun_rotation_x_down := -10.0
+var sun_rotation_x_zenith := -30.0 # Should match ~scotland
 # down -> zenith -> down
 
 # East -> West, 0.0 = from South
