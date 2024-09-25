@@ -1,0 +1,21 @@
+extends PanelContainer
+
+@onready var header: Label = %HeaderLabel
+@onready var infotext: RichTextLabel = %DebugLabel
+@onready var world_light_control: WorldLightControl = %WorldLightControl
+
+
+func _process(delta: float) -> void:
+	header.text = "Debug Info Box"
+	update_infotext()
+
+
+func update_infotext() -> void:
+	# Todo
+	var hour := floorf(world_light_control.current_time)
+	var minutes := floorf((world_light_control.current_time - hour) * 6)
+
+	infotext.text = ""
+	infotext.append_text(str("Daytime: ", hour, ":", minutes, "0h\n"))
+	infotext.append_text(str("Weather: ", world_light_control.WeatherType.keys()[world_light_control.current_weather], "\n"))
+	infotext.append_text(str("FPS: ", snappedf(Engine.get_frames_per_second(), 0.1)))

@@ -10,7 +10,7 @@ var icon_color: Color = Color.WHITE_SMOKE
 var tween: Tween
 
 func _ready() -> void:
-	EventBus.Signal_SelectionChanged.connect(on_selection_changed)
+	EventBus.Signal_SelectedHexTile.connect(on_selection_changed)
 	modulate = Color.TRANSPARENT
 	hide()
 	

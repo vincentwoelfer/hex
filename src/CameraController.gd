@@ -5,15 +5,15 @@ var debugSphere: MeshInstance3D
 # Export parameters
 var horizontalDistance: float = 6.0
 var height: float = 5.0
-var zoom: float = 1.0
-var zoomTarget: float = 1.0
+var currZoom: float = 4.0
+var zoomTarget: float = currZoom
 # higher value = further away
 var zoom_min: float = 0.075
 var zoom_max: float = 7.0
 
 var lookAtPoint: Vector3
 var followPoint: Vector3 # = target, also used for movement
-var orientation: int = 1
+var orientation: int = 1 # from north looking south (to see the sun moving best)
 # current rotation in angle
 var currRotation: float = 0
 
@@ -26,6 +26,7 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CONFINED
 	lookAtPoint = Vector3(0, 2, 0)
 	followPoint = Vector3(0, 2, 0)
+	currRotation = compute_forward_angle(orientation)
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("rotate_cam_left"):
@@ -65,13 +66,19 @@ func raycast_into_world() -> Dictionary:
 	var result := space_state.intersect_ray(ray_query)
 	return result
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	zoom = lerpf(zoom, zoomTarget, rotationLerpSpeed * delta)
 
+func compute_forward_angle(orientation_: float) -> float:
 	# Default Orientation = 1 -> Forward = -Z , this is archived with 90° into sin/cos
 	# Thats why we subtract 90°
-	var forwardAngle := deg_to_rad((60.0 * orientation + 30.0) - 90.0) # Actually forward
+	var forwardAngle := deg_to_rad((60.0 * orientation_ + 30.0) - 90.0) # Actually forward
+	return forwardAngle
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	currZoom = lerpf(currZoom, zoomTarget, rotationLerpSpeed * delta)
+
+	var forwardAngle := compute_forward_angle(orientation)
 
 	currRotation = lerp_angle(currRotation, forwardAngle, rotationLerpSpeed * delta)
 	var forwardDir := Vector3(0, 0, -1).rotated(Vector3.UP, currRotation) # not actually forward, lerps
@@ -80,19 +87,19 @@ func _process(delta: float) -> void:
 	var inputDir := inputDirRaw.rotated(Vector3.UP, forwardAngle)
 
 	# Move follow point, lookAtPoint follows this
-	followPoint += inputDir * (speed + zoom / 3.0) * delta
+	followPoint += inputDir * (speed + currZoom / 3.0) * delta
 	lookAtPoint.x = lerpf(lookAtPoint.x, followPoint.x, lerpSpeed * delta)
 	lookAtPoint.z = lerpf(lookAtPoint.z, followPoint.z, lerpSpeed * delta)
 
 	# Camera position
 	var camPos := lookAtPoint
-	camPos += -forwardDir * horizontalDistance * zoom
-	camPos.y += zoom * height
+	camPos += -forwardDir * horizontalDistance * currZoom
+	camPos.y += currZoom * height
 
 	global_position = camPos
 	look_at(lookAtPoint)
 
-	#draw_debug_sphere(lookAtPoint, maxf(zoomTarget * 0.1, 0.025))
+	#draw_debug_sphere(lookAtPoint, maxf(currcurrcurrcurrcurrZoomTarget * 0.1, 0.025))
 
 	self.check_for_selection()
 
@@ -102,8 +109,8 @@ func check_for_selection() -> void:
 	var hit_pos := Vector3(9999, 0, 0)
 	if not hit.is_empty():
 		hit_pos = hit['position']
-		
-	EventBus.emit_signal("Signal_SelectionPosition", hit_pos)
+
+	EventBus.emit_signal("Signal_SelectedWorldPosition", hit_pos)
 
 
 func draw_debug_sphere(location: Vector3, r: float) -> void:

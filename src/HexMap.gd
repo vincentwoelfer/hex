@@ -19,3 +19,14 @@ func get_hex(hex: HexPos) -> HexTile:
 		#print("Map has no tile at r: %d, q: %d, s:%d!" % [hex.r, hex.q, hex.s])
 		return HexTile.new(null, -1)
 	return tiles[key]
+
+
+# TODO warning does not remove from scene tree, do that beforehand!
+func remove_hex(hex: HexPos) -> void:
+	var key: int = hex.hash()
+	tiles.erase(key)
+
+
+# TODO warning does not remove from scene tree, do that beforehand!
+func clear_all() -> void:
+	tiles.clear()

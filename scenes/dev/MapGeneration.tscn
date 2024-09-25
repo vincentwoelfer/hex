@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://bi8xpy2pdq81q"]
+[gd_scene load_steps=12 format=3 uid="uid://bi8xpy2pdq81q"]
 
 [ext_resource type="Script" path="res://src/GenerateMap.gd" id="1_2h4g3"]
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://DefaultEnvironment.tres" id="2_2n06e"]
@@ -7,30 +7,35 @@
 [ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://dev-utility/USE_THIS_HexConstantsModifier.tscn" id="5_7csfd"]
 [ext_resource type="Script" path="res://src/SelectionManager.gd" id="6_x1kdg"]
 [ext_resource type="PackedScene" uid="uid://i5fes5afbict" path="res://scenes/ui/Tooltip.tscn" id="7_molft"]
+[ext_resource type="Script" path="res://src/WorldLightControl.gd" id="8_4pj04"]
+[ext_resource type="Script" path="res://src/WorldTimeManager.gd" id="8_q81ch"]
+[ext_resource type="PackedScene" uid="uid://b3ol067ntho4v" path="res://scenes/ui/debug_info_panel.tscn" id="9_1vbi7"]
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_t12eh"]
 
-[node name="root" type="Node3D"]
+[node name="TestScene" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+unique_name_in_owner = true
 environment = ExtResource("2_2n06e")
 camera_attributes = ExtResource("3_lr7o2")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 8, 6)
-visible = false
 attributes = SubResource("CameraAttributesPractical_t12eh")
 current = true
 fov = 80.0
 script = ExtResource("4_j2ckc")
 
 [node name="SunLight" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.34202, 0.939692, 0, -0.939692, 0.34202, 0, 20, 0)
+unique_name_in_owner = true
+transform = Transform3D(0.0784591, 0.0360961, -0.996264, 0, 0.999345, 0.0362077, 0.996917, -0.00284082, 0.0784077, 0, 0, 0)
+light_color = Color(1, 0.4904, 0.310856, 1)
+light_energy = 2.2828
 light_angular_distance = 2.0
 shadow_enabled = true
 directional_shadow_blend_splits = true
 directional_shadow_max_distance = 300.0
-sky_mode = 1
 
 [node name="HexConstModifier" parent="." instance=ExtResource("5_7csfd")]
 outer_radius = 4.0
@@ -49,6 +54,17 @@ script = ExtResource("1_2h4g3")
 [node name="SelectionManager" type="Node3D" parent="."]
 script = ExtResource("6_x1kdg")
 
+[node name="WorldLightControl" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("8_4pj04")
+current_time = 21.6
+max_sun_light_energy = 3.0
+min_sky_light_energy = 0.2
+
+[node name="WorldTimeManager" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("8_q81ch")
+
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="Tooltip" parent="CanvasLayer" instance=ExtResource("7_molft")]
@@ -60,3 +76,13 @@ offset_top = 40.0
 offset_right = -40.0
 offset_bottom = 340.0
 grow_horizontal = 0
+
+[node name="DebugInfoPanel" parent="CanvasLayer" instance=ExtResource("9_1vbi7")]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 25.0
+offset_top = -231.0
+offset_right = 475.0
+offset_bottom = -25.0
+grow_vertical = 0

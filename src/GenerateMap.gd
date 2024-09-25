@@ -3,7 +3,7 @@ extends Node3D
 
 var HEX_GEOMETRY_SCENE := preload("res://scenes/HexGeometry.tscn")
 
-var N: int = 3
+var N: int = 4
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -37,6 +37,9 @@ func generate_geometry() -> void:
 	for n in get_children():
 		remove_child(n)
 		n.queue_free()
+
+	# Delete from hexmap
+	MapManager.map.clear_all()
 
 	# Create Geometry
 	for q in range(-N, N + 1):

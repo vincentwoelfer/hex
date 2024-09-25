@@ -4,9 +4,21 @@
 extends Node
 
 signal Signal_HexConstChanged()
-signal Signal_SelectionPosition(selection_position: Vector3)
-signal Signal_SelectionChanged(new_hex: HexTile)
+signal Signal_SelectedWorldPosition(selection_position: Vector3)
+signal Signal_SelectedHexTile(new_hex: HexTile)
 
+# Debug Signals
+signal Signal_TooglePerTileUi(is_visible: bool)
+# TODO this should not be saved here!
+var is_per_tile_ui_on: bool = true
+
+# TIME
+# Only for visual purposes
+signal Signal_SetVisualLightTime(new_time: float)
+
+#
+signal Signal_AdvanceWorldTimeOneHour()
+signal Signal_ToogleWorldTimeAutoAdvance()
 
 func _ready() -> void:
 	# Connect signals here to enable logging functions below.
@@ -16,7 +28,23 @@ func _ready() -> void:
 	# Signal emittion:
 	# EventBus.emit_signal("Signal_HexConstChanged", ...)
 
+	# Connect to events to print debug info
 	Signal_HexConstChanged.connect(_on_Signal_HexConstChanged)
+
+
+# Reacht to keyboard inputs to directly trigger events
+func _input(event: InputEvent) -> void:
+	# Only execute in game, check necessary because EventBus is @tool
+	if not Engine.is_editor_hint():
+		if event.is_action_pressed("toogle_per_tile_ui"):
+			is_per_tile_ui_on = !is_per_tile_ui_on
+			Signal_TooglePerTileUi.emit(is_per_tile_ui_on)
+
+		if event.is_action_pressed("toogle_world_time_auto_advance"):
+			Signal_ToogleWorldTimeAutoAdvance.emit()
+
+		if event.is_action_pressed("advance_world_time_one_hour"):
+			Signal_AdvanceWorldTimeOneHour.emit()
 
 # Function to handle the signal
 func _on_Signal_HexConstChanged() -> void:
