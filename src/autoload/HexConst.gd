@@ -9,14 +9,14 @@ extends Node
 # Distance from center to the corners.
 # This is the same as the length of the sides.
 # Also known as "size"
-var outer_radius: float = 3.0
+var outer_radius: float = 4.0
 
 # Radius of the workable Regular area.
 # Must be smaller than outer_radius * 0.86 (size of largest circle in outer hex)
-var inner_radius: float = 2.0
+var inner_radius: float = 3.5
 
 # Height of one hex cell
-var height: float = 1.0
+var height: float = 0.5
 
 # Transition points are at height * this factor above zero.
 # 0.5 = in the middle
@@ -24,17 +24,17 @@ var height: float = 1.0
 var transition_height_factor: float = 0.5
 
 # Between 0 (hard hexagon) and 1 (circle)
-var core_circle_smooth_strength := 0.5
+var core_circle_smooth_strength := 0.35
 
 # Extra vertices per hexagon side
-var extra_verts_per_side := 1
+var extra_verts_per_side := 4
 
 # Extra vertices per hexagon center
-var extra_verts_per_center := 0
+var extra_verts_per_center := 5
 
 
 # NOT HEX CONST - here for editing in edior and hex-geom regeneration triggering
-var grass_density := 1.0
+var grass_density := 0.8
 
 # ========================================================
 # ==================== Derived values ====================

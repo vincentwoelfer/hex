@@ -2,11 +2,18 @@
 extends Node3D
 
 var HEX_GEOMETRY_SCENE := preload("res://scenes/HexGeometry.tscn")
+var height_noise: Noise = preload("res://assets/TerrainHeightNoise.tres")
+
+var min_height := 0
+var max_height := 20
 
 var N: int = 4
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	# Delete from hexmap
+	MapManager.map.clear_all()
+
 	# Create Map
 	for q in range(-N, N + 1):
 		var r1: int = max(-N, -q - N)
@@ -15,12 +22,19 @@ func _ready() -> void:
 			var s := -q - r
 			var hex_pos := HexPos.new(q, r, s)
 
-			var height: int = (N - hex_pos.magnitude()) * 2 + randi_range(-1, 1) * 3
-			height = clampi(height, 0, 30)
+			#var height: int = abs(N - hex_pos.magnitude()) * 2 + randi_range(-1, 1) * 3
+			#height = clampi(height, 0, 30)
+
+			var pos2D: Vector2 = HexPos.hexpos_to_xy(hex_pos)
+			var noise: float = height_noise.get_noise_2dv(pos2D)
+			noise = remap(noise, -1.0, 1.0, 0.0, 1.0)
+
+			var height_f: float = remap(noise, 0.0, 1.0, min_height, max_height)
+			var height: int = clampi(roundf(height_f) as int, min_height + 4, max_height)
 
 			# For debug printing only
-			# var x := HexPos.hexpos_to_xyz(hex_pos).x
-			# var y := HexPos.hexpos_to_xyz(hex_pos).y
+			# var x := HexPos.hexpos_to_xy(hex_pos).x
+			# var y := HexPos.hexpos_to_xy(hex_pos).y
 			# var hash_: int = hex_pos.hash()
 			#print("Adding with x/y= %5.2f / %5.2f| q=%d r=%d s=%d hash=%d \t| north= %3.1f | height= %d" % [x, y, hex_pos.q, hex_pos.r, hex_pos.s, hash_, north, height])
 
@@ -38,9 +52,6 @@ func generate_geometry() -> void:
 		remove_child(n)
 		n.queue_free()
 
-	# Delete from hexmap
-	MapManager.map.clear_all()
-
 	# Create Geometry
 	for q in range(-N, N + 1):
 		var r1: int = max(-N, -q - N)
@@ -55,10 +66,11 @@ func generate_geometry() -> void:
 
 
 func create_hex(hex_pos: HexPos) -> void:
-	var pos: Vector2 = HexPos.hexpos_to_xyz(hex_pos)
+	var world_pos: Vector2 = HexPos.hexpos_to_xy(hex_pos)
+	var hex_tile: HexTile = MapManager.map.get_hex(hex_pos)
 
 	# Lookup in map and get own height
-	var height: int = MapManager.map.get_hex(hex_pos).height
+	var height: int = hex_tile.height
 
 	# Get adjacent from map
 	var adjacent_hex: Array[HexGeometry.AdjacentHex] = []
@@ -79,9 +91,8 @@ func create_hex(hex_pos: HexPos) -> void:
 	hex_geometry.height = height
 	hex_geometry.adjacent_hex = adjacent_hex
 
-	# Add to tile
-	var hex_tile: HexTile = MapManager.map.get_hex(hex_pos)	
-	hex_tile.position = Vector3(pos.x, height * HexConst.height, pos.y)
+	# Add to tile	
+	hex_tile.position = Vector3(world_pos.x, height * HexConst.height, world_pos.y)
 	hex_tile.assign_geometry(hex_geometry)
 
 	# Add to the current scene

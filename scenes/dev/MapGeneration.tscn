@@ -1,10 +1,9 @@
-[gd_scene load_steps=12 format=3 uid="uid://bi8xpy2pdq81q"]
+[gd_scene load_steps=11 format=3 uid="uid://bi8xpy2pdq81q"]
 
 [ext_resource type="Script" path="res://src/GenerateMap.gd" id="1_2h4g3"]
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://DefaultEnvironment.tres" id="2_2n06e"]
 [ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://CameraAttributes.tres" id="3_lr7o2"]
 [ext_resource type="Script" path="res://src/CameraController.gd" id="4_j2ckc"]
-[ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://dev-utility/USE_THIS_HexConstantsModifier.tscn" id="5_7csfd"]
 [ext_resource type="Script" path="res://src/SelectionManager.gd" id="6_x1kdg"]
 [ext_resource type="PackedScene" uid="uid://i5fes5afbict" path="res://scenes/ui/Tooltip.tscn" id="7_molft"]
 [ext_resource type="Script" path="res://src/WorldLightControl.gd" id="8_4pj04"]
@@ -29,23 +28,13 @@ script = ExtResource("4_j2ckc")
 
 [node name="SunLight" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true
-transform = Transform3D(0.0784591, 0.0360961, -0.996264, 0, 0.999345, 0.0362077, 0.996917, -0.00284082, 0.0784077, 0, 0, 0)
-light_color = Color(1, 0.4904, 0.310856, 1)
-light_energy = 2.2828
+transform = Transform3D(0.707107, 0.241845, -0.664463, 0, 0.939693, 0.34202, 0.707107, -0.241845, 0.664463, 0, 50, 0)
+light_color = Color(1, 1, 0.803922, 1)
+light_energy = 3.0
 light_angular_distance = 2.0
 shadow_enabled = true
 directional_shadow_blend_splits = true
 directional_shadow_max_distance = 300.0
-
-[node name="HexConstModifier" parent="." instance=ExtResource("5_7csfd")]
-outer_radius = 4.0
-inner_radius = 3.5
-height = 0.5
-transition_height_factor = 0.5
-core_circle_smooth_strength = 0.35
-extra_verts_per_side = 5
-extra_verts_per_center = 5
-grass_density = 0.8
 
 [node name="MapGeneration" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
@@ -57,7 +46,6 @@ script = ExtResource("6_x1kdg")
 [node name="WorldLightControl" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("8_4pj04")
-current_time = 21.6
 max_sun_light_energy = 3.0
 min_sky_light_energy = 0.2
 

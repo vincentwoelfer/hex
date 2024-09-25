@@ -16,6 +16,7 @@ func _init(q_: int, r_: int, s_: int) -> void:
 func _to_string() -> String:
     return '(' + str(q) + ', ' + str(r) + ', ' + str(s) + ')'
 
+
 func hash() -> int:
     # Maps [q,r] -> N, works bidirectionally and for signed integers
     # Based on signed Szudzik pairing but without /2 in the end
@@ -101,7 +102,7 @@ static func hexpos_direction(direction: int) -> HexPos:
 #     return results
 
 
-static func hexpos_to_xyz(hex_pos: HexPos) -> Vector2:
+static func hexpos_to_xy(hex_pos: HexPos) -> Vector2:
     var size: Vector2 = Vector2(HexConst.outer_radius, HexConst.outer_radius)
     var origin: Vector2 = Vector2(0, 0)
 

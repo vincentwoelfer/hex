@@ -1,8 +1,7 @@
 class_name HexMap
 
 # Hash-Map of Hexes. Key = int (HexPos.has()), Value = HexTile
-#var tiles: Dictionary[int, HexTile] = {}
-var tiles: Dictionary = {}
+var tiles: Dictionary[int, HexTile] = {}
 
 func add_hex(hex: HexPos, height: int) -> HexTile:
 	var key: int = hex.hash()

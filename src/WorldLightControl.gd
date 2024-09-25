@@ -64,9 +64,13 @@ func _ready() -> void:
 	sun = get_node('%SunLight') as DirectionalLight3D
 	sky = world_environment.environment.sky.sky_material as PanoramaSkyMaterial
 	world_time_manager = get_node('%WorldTimeManager') as WorldTimeManager
-
+	
 	# Get actual starting time from world_time_manager
-	current_time = fmod(world_time_manager.current_world_time, HOURS_PER_DAY)
+	# Should be same as in world_time_manager but reading it here gives an error
+	if not Engine.is_editor_hint():
+		current_time = fmod(world_time_manager.current_world_time, HOURS_PER_DAY)
+	else:
+		current_time = 18.0
 
 	current_weather = starting_weather
 	EventBus.Signal_SetVisualLightTime.connect(change_time)
@@ -130,7 +134,7 @@ func tween_to_time(time: float) -> void:
 			tween.tween_property(world_environment.environment, property.trim_prefix('env_'), properties[property], current_tween_duration)
 
 
-func interpolate_properties_for_time(time: float) -> Dictionary:
+func interpolate_properties_for_time(time: float) -> Dictionary[String, Variant]:
 	var time_from_sunrise := time - sunrise
 	var time_to_sunset := sunset - time
 	var sun_hours_per_day := HOURS_PER_DAY - sunrise - (HOURS_PER_DAY - sunset)
@@ -181,7 +185,7 @@ func interpolate_properties_for_time(time: float) -> Dictionary:
 			deg_to_rad(lerpf(sun_rotation_y_start, sun_rotation_y_finish, day_time_frac)),
 			0.0)
 
-	var properties := {
+	var properties: Dictionary[String, Variant] = {
 		"sun_light_energy": sun_light_energy,
 		"sun_light_color": light_color,
 		"sun_rotation": sun_rotation,
