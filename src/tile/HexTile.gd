@@ -12,6 +12,7 @@ var height: int
 
 # Visual Representation
 var geometry: HexGeometry
+var plant: SurfacePlant
 
 # ToDo extract onto own class
 var label := RichTextLabel.new()
@@ -51,10 +52,29 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 
 	# Signals
 	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
+	EventBus.Signal_AdvanceWorldTimeOneStep.connect(processWorldStep)
+	EventBus.Signal_HexConstChanged.connect(generate_visuals)
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	generate_visuals()
+
+
+func generate_visuals() -> void:
+	if geometry != null and plant != null:
+		geometry.generate()
+		plant.populate_multimesh(geometry.samplerHorizontal)
+
+
+func processWorldStep() -> void:
+	# For now just end data here, this is not good!
+	if plant != null:
+		plant.processWorldStep(humidity, shade, nutrition)
 
 
 func toogleTileUi(_is_label_visible: bool) -> void:
 	self.is_label_visible = _is_label_visible
+
 
 func _process(delta: float) -> void:
 	update_label()
@@ -141,8 +161,14 @@ func assign_geometry(geom: HexGeometry) -> void:
 	if self.geometry != null:
 		remove_child(self.geometry)
 
+	if self.plant != null:
+		remove_child(self.plant)
+
 	self.geometry = geom
 	add_child(self.geometry, true)
+
+	self.plant = SurfacePlant.new()
+	add_child(self.plant, true)
 
 
 func is_valid() -> bool:

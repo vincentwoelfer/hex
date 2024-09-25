@@ -15,7 +15,6 @@ var samplerAll: PolygonSurfaceSampler
 var samplerHorizontal: PolygonSurfaceSampler
 var samplerVertical: PolygonSurfaceSampler
 var rockObjects: Array[ArrayMesh]
-var grassMultiMesh: MultiMeshInstance3D
 
 class AdjacentHex:
 	var height: int
@@ -41,76 +40,6 @@ func _init() -> void:
 	# Load Rocks
 	for i in range(1, 10):
 		rockObjects.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as ArrayMesh)
-
-	# Create Grass Multimesh
-	grassMultiMesh = MultiMeshInstance3D.new()
-	grassMultiMesh.name = 'GrassMultiMesh'
-	grassMultiMesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	grassMultiMesh.material_override = GRASS_MAT
-	grassMultiMesh.extra_cull_margin = 1.0
-	add_child(grassMultiMesh, true)
-
-
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	EventBus.Signal_HexConstChanged.connect(generate)
-	generate()
-
-
-func create_grass_multimesh() -> MultiMesh:
-	var density_1d: int = ceil(HexConst.inner_radius * lerpf(0.0, 20.0, HexConst.grass_density));
-	var num_blades_total: int = round(density_1d * density_1d)
-
-	# Reduce in editor
-	if Engine.is_editor_hint():
-		var in_editor_density_reduction := 0.1
-		num_blades_total = round(density_1d * density_1d * in_editor_density_reduction)
-
-	var multimesh := MultiMesh.new()
-	multimesh.mesh = GRASS_MESH_HIGH
-	multimesh.transform_format = MultiMesh.TRANSFORM_3D
-	multimesh.instance_count = num_blades_total
-
-	for i in range(num_blades_total):
-		multimesh.set_instance_transform(i, samplerHorizontal.get_random_point_transform())
-
-	return multimesh
-
-
-func _process(delta: float) -> void:
-	if randf() < 1.0 / 600:
-		var color_start: Color = self.get_shader_value_color('tip_color')
-		var color_end: Color = Colors.randColor()
-
-		var height_start: float = self.get_shader_value_float('height_mod')
-		var height_end: float = randf_range(0.2, 4.0)
-
-		# grassMultiMesh.set_instance_shader_parameter('tip_color', color_end)
-		# grassMultiMesh.set_instance_shader_parameter('tip_color_dry', color_end)
-		# grassMultiMesh.set_instance_shader_parameter('height_mod', height_end)
-
-		# set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
-		get_tree().create_tween().tween_method(set_shader_value.bind("tip_color"), color_start, color_end, 1.5)
-		get_tree().create_tween().tween_method(set_shader_value.bind("tip_color_dry"), color_start, color_end, 1.5)
-		get_tree().create_tween().tween_method(set_shader_value.bind("height_mod"), height_start, height_end, 1.5)
-
-
-# tween value automatically gets passed into this function
-func set_shader_value(value: Variant, key: String) -> void:
-	grassMultiMesh.set_instance_shader_parameter(key, value)
-
-func get_shader_value_color(key: String) -> Color:
-	var value: Variant = grassMultiMesh.get_instance_shader_parameter(key)
-	if value is not Color:
-		return Color()
-	return value
-
-
-func get_shader_value_float(key: String) -> float:
-	var value: Variant = grassMultiMesh.get_instance_shader_parameter(key)
-	if value is not float:
-		return 0.0
-	return value
 
 
 func generate() -> void:
@@ -174,9 +103,6 @@ func generate() -> void:
 	var mdt := MeshDataTool.new()
 	mdt.create_from_surface(terrainMesh.mesh as ArrayMesh, 0)
 	#print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
-
-	# Regenerate grass
-	grassMultiMesh.multimesh = create_grass_multimesh()
 
 	# Regenerate collision shape
 	terrainMesh.create_convex_collision(true, true)

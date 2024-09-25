@@ -56,6 +56,7 @@ func compose_infotext(hex_tile: HexTile) -> String:
 	var default_text := "\u2618The ground is very fertile.\n"
 	var hazard_text := ""
 	var event_text := ""
+	var plant_text := ""
 	
 	if hex_tile.humidity < 0.2:
 		hazard_text += "\u26A0The ground is very dry.\n"
@@ -69,8 +70,11 @@ func compose_infotext(hex_tile: HexTile) -> String:
 	
 	if hazard_text != "":
 		default_text = ""
+
+	plant_text += "Current Plant Health: " + str(snappedf(hex_tile.plant.curr_health, 0.01)) + "\n"
+	plant_text += "Current Plant Height: " + str(snappedf(hex_tile.plant.curr_height, 0.01)) + "\n"
 	
-	return default_text + hazard_text + event_text
+	return default_text + hazard_text + event_text + plant_text
 
 func hide_tooltip() -> void:
 	if tween:

@@ -11,10 +11,7 @@ uniform sampler2D wind_noise;
 
 group_uniforms GrassColor;
 instance uniform vec3 base_color : source_color = vec3(0.05,0.2,0.01);
-instance uniform vec3 base_color_dry : source_color = vec3(0.25,0.15,0.01);
-
 instance uniform vec3 tip_color : source_color = vec3(0.5,0.5,0.1);
-instance uniform vec3 tip_color_dry : source_color = vec3(0.8,0.4,0.1);
 
 uniform vec3 subsurface_scattering_color : source_color = vec3(1.0,0.75,0.1);
 
@@ -141,15 +138,15 @@ void fragment() {
 	// Blend grass normal with terrain normal based on distance (assumes up is 0,1,0!)
 	NORMAL = mix(vec3(0,1,0), NORMAL, fog_factor);
 
-	float h = clamp(NODE_POSITION_WORLD.y / 5., 0, 1);
-	vec3 base_color_ = mix(base_color, base_color_dry, h);
-	vec3 tip_color_ = mix(tip_color, tip_color_dry, h);
+	// float h = clamp(NODE_POSITION_WORLD.y / 5., 0, 1);
+	// vec3 base_color_ = mix(base_color, base_color_dry, h);
+	// vec3 tip_color_ = mix(tip_color, tip_color_dry, h);
 
 	float height_factor = 1.0 - UV.y;
-	ALBEDO = mix(base_color_, tip_color_, ease_in_quartic(height_factor));
+	ALBEDO = mix(base_color, tip_color, ease_in_quartic(height_factor));
 	ALBEDO *= mix(0.1, 1.0, height_factor*height_factor); // AO
 	// Color becomes more uniform as distance increases
-	ALBEDO = mix(mix(base_color_, tip_color_, 0.5)*0.5, ALBEDO, fog_factor);
+	ALBEDO = mix(mix(base_color, tip_color, 0.5)*0.5, ALBEDO, fog_factor);
 
 	AO = mix(0.1, 1.0, height_factor*height_factor); // Note: This looks better but is only visible when shadows are enabled!
 	ROUGHNESS = mix(1.0, 0.4, ease_out_quartic(height_factor));
