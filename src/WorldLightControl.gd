@@ -60,8 +60,8 @@ var sun_rotation_y_start := 90.0
 var sun_rotation_y_finish := -90.0
 
 func _ready() -> void:
-	world_environment = get_node('%WorldEnvironment')
-	sun = get_node('%SunLight')
+	world_environment = get_node('%WorldEnvironment') as WorldEnvironment
+	sun = get_node('%SunLight') as DirectionalLight3D
 	sky = world_environment.environment.sky.sky_material as PanoramaSkyMaterial
 	world_time_manager = get_node('%WorldTimeManager') as WorldTimeManager
 
