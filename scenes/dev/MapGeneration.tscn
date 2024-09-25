@@ -28,9 +28,9 @@ script = ExtResource("4_j2ckc")
 
 [node name="SunLight" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true
-transform = Transform3D(0.19509, -0.212281, 0.957537, 0, 0.976296, 0.21644, -0.980785, -0.0422253, 0.190466, 0, 50, 0)
-light_color = Color(1, 0.608, 0.424641, 1)
-light_energy = 1.91134
+transform = Transform3D(0.475947, -0.247072, 0.844056, 0, 0.959728, 0.280931, -0.879473, -0.133708, 0.45678, 0, 50, 0)
+light_color = Color(1, 1, 0.803922, 1)
+light_energy = 3.0
 light_angular_distance = 2.0
 shadow_enabled = true
 directional_shadow_blend_splits = true

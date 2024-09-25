@@ -13,11 +13,15 @@ var min_height := 0.2
 var max_height := 4.0
 
 var color_healthy := Color.SEA_GREEN
-var color_dry := Color.BURLYWOOD.darkened(0.4)
+#var color_dry := Color(0.9, 0.5, 0.3).darkened(0.2)
+var color_dry := Color(178, 80, 53)
+
 var rand_color_offset: Color
 
 var curr_height: float = min_height
 var curr_health: float = 1.0
+
+var speed := 0.5
 
 var tween: Tween
 
@@ -31,6 +35,8 @@ func _init() -> void:
 	add_child(mesh_instance, true)
 
 	rand_color_offset = Colors.randColorNoExtreme(0.2)
+	if randf() <= 0.25:
+		rand_color_offset = Color(1, 1, 1)
 
 	# Only for testing
 	set_shader_value(get_curr_color(), 'tip_color')
@@ -39,17 +45,26 @@ func _init() -> void:
 
 func get_curr_color() -> Color:
 	var curr_color: Color = color_dry.lerp(color_healthy, curr_health)
-	curr_color.lerp(rand_color_offset, 0.4)
+	curr_color = curr_color.lerp(rand_color_offset, 0.4)
+	curr_color = curr_color.clamp(Color.BLACK, Color.WHITE)
 	return curr_color
+
 
 func processWorldStep(humidity: float, shade: float, nutrition: float) -> void:
 	if tween:
 		tween.kill()
 
 	# Update own parameters
-	var health_delta := (humidity - 0.5) / 10.0
+	var health_delta := (humidity - curr_health) * speed # lerp towards humidity value
+	#health_delta += (humidity - 0.5) * 0.5 * speed # Favor extremes
+	health_delta += randf_range(-0.2, 0.2) * speed
 	curr_health = clampf(curr_health + health_delta, 0.0, 1.0)
-	curr_height = clampf(curr_height + nutrition / 10.0, min_height, max_height)
+	curr_height = clampf(curr_height + nutrition * speed, min_height, max_height)
+
+	# Die
+	if curr_health <= 0.08:
+		curr_height = min_height
+		curr_health = 1.0
 	
 	# Set shader
 	var color_start: Color = self.get_shader_value_color('tip_color')

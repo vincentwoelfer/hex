@@ -8,24 +8,29 @@ extends PanelContainer
 
 var icon_color: Color = Color.WHITE_SMOKE
 var tween: Tween
+var curr_selection: HexTile
 
 func _ready() -> void:
-	EventBus.Signal_SelectedHexTile.connect(on_selection_changed)
 	modulate = Color.TRANSPARENT
 	hide()
+
+	EventBus.Signal_SelectedHexTile.connect(on_selection_changed)
+	EventBus.Signal_WorldStep.connect(update_text)
 	
 
 func on_selection_changed(new_selection: HexTile) -> void:
 	if new_selection:
-		show_tooltip(new_selection)
+		curr_selection = new_selection
+		show_tooltip(curr_selection)
 	else:
 		hide_tooltip()
 
 
-func show_tooltip(hex_tile: HexTile) -> void:
-	if tween:
-		tween.kill()
-	
+func update_text() -> void:
+	var hex_tile := curr_selection
+	if curr_selection == null:
+		return
+
 	header.text = hex_tile.tile_type
 	tooltip.text = ""
 	#color_humidity.a = clampf(1, 0.8, 1)
@@ -46,7 +51,13 @@ func show_tooltip(hex_tile: HexTile) -> void:
 	tooltip.push_font_size(26)
 	tooltip.append_text(compose_infotext(hex_tile))
 	tooltip.pop_all()
+
+
+func show_tooltip(hex_tile: HexTile) -> void:
+	if tween:
+		tween.kill()
 	
+	update_text()	
 	
 	tween = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	tween.tween_callback(show)

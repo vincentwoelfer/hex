@@ -56,3 +56,4 @@ func advance_world_time_one_step() -> void:
 
 	var day_time: float = fmod(current_world_time, 24.0)
 	EventBus.Signal_SetVisualLightTime.emit(day_time)
+	EventBus.Signal_WorldStep.emit()

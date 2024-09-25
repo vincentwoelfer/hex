@@ -52,8 +52,9 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 
 	# Signals
 	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
-	EventBus.Signal_AdvanceWorldTimeOneStep.connect(processWorldStep)
 	EventBus.Signal_HexConstChanged.connect(generate_visuals)
+	
+	EventBus.Signal_WorldStep.connect(processWorldStep)
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:

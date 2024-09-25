@@ -12,13 +12,16 @@ signal Signal_TooglePerTileUi(is_visible: bool)
 # TODO this should not be saved here!
 var is_per_tile_ui_on: bool = false
 
+signal Signal_randomizeSelectedTile()
+
 # TIME
 # Only for visual purposes
 signal Signal_SetVisualLightTime(new_time: float)
 
 #
-signal Signal_AdvanceWorldTimeOneStep()
+signal Signal_AdvanceWorldTimeOneStep() # Is input signal
 signal Signal_ToogleWorldTimeAutoAdvance()
+signal Signal_WorldStep()
 
 func _ready() -> void:
 	# Connect signals here to enable logging functions below.
@@ -45,6 +48,9 @@ func _input(event: InputEvent) -> void:
 
 		if event.is_action_pressed("advance_world_time_one_step"):
 			Signal_AdvanceWorldTimeOneStep.emit()
+
+		if event.is_action_pressed("randomize_selected_tile"):
+			Signal_randomizeSelectedTile.emit()
 
 # Function to handle the signal
 func _on_Signal_HexConstChanged() -> void:

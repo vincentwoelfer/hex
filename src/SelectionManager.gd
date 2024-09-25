@@ -4,8 +4,9 @@ extends Node
 var current_selection: HexTile = null
 
 
-func _ready() -> void:
+func _init() -> void:
 	EventBus.Signal_SelectedWorldPosition.connect(parse_selection_position)
+	EventBus.Signal_randomizeSelectedTile.connect(randomize_selected_tile)
 
 
 func parse_selection_position(pos: Vector3) -> void:
@@ -35,3 +36,10 @@ func highlight_current() -> void:
 func unhighlight_current() -> void:
 	if current_selection != null:
 		current_selection.geometry.terrainMesh.set_instance_shader_parameter("enabled", 0.0)
+
+
+func randomize_selected_tile() -> void:
+	if current_selection != null:
+		current_selection.humidity = randf()
+		current_selection.shade = randf()
+		current_selection.nutrition = randf()

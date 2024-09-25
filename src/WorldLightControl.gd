@@ -18,8 +18,8 @@ const HOURS_PER_DAY: float = 24.0
 
 
 @export_category("Sunshine hours")
-@export var sunrise: float = 6.0
-@export var sunset: float = 22.0
+@export var sunrise: float = 4.0
+@export var sunset: float = 23.0
 
 @export_category("Light parameters")
 # Hours after sunrise / before sunset where the light is beeing interpolated
