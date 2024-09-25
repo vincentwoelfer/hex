@@ -65,14 +65,9 @@ func _ready() -> void:
 	sky = world_environment.environment.sky.sky_material as PanoramaSkyMaterial
 	world_time_manager = get_node('%WorldTimeManager') as WorldTimeManager
 	
-	# Get actual starting time from world_time_manager
-	# Should be same as in world_time_manager but reading it here gives an error
-	# if not Engine.is_editor_hint():
 	current_time = fmod(WorldTimeManager.start_time, HOURS_PER_DAY)
-	# else:
-	# 	current_time = 7.0
-
 	current_weather = starting_weather
+	
 	EventBus.Signal_SetVisualLightTime.connect(change_time)
 
 	jump_to_time(current_time)
