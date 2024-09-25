@@ -13,7 +13,7 @@ var height: int
 # Visual Representation
 var geometry: HexGeometry
 var label := RichTextLabel.new()
-var is_label_visible := true
+var is_label_visible := false
 
 # Field conditions
 var humidity: float

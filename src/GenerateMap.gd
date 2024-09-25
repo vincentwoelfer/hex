@@ -7,7 +7,7 @@ var height_noise: Noise = preload("res://assets/TerrainHeightNoise.tres")
 var min_height := 0
 var max_height := 20
 
-var N: int = 4
+var N: int = 3
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -26,7 +26,7 @@ func _ready() -> void:
 			#height = clampi(height, 0, 30)
 
 			var pos2D: Vector2 = HexPos.hexpos_to_xy(hex_pos)
-			var noise: float = height_noise.get_noise_2dv(pos2D)
+			var noise: float = height_noise.get_noise_2d(pos2D.x, pos2D.y)
 			noise = remap(noise, -1.0, 1.0, 0.0, 1.0)
 
 			var height_f: float = remap(noise, 0.0, 1.0, min_height, max_height)

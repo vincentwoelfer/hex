@@ -1,9 +1,9 @@
 class_name WorldTimeManager
 extends Node
 
-var current_world_time: float = 6.0
+var current_world_time: float = 7.0
 
-var duration_sec_per_hour: float = 0.5
+var duration_sec_per_hour: float = 1.0
 var auto_advance: bool = false
 
 var timer: Timer

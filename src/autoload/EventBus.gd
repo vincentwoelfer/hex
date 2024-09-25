@@ -10,7 +10,7 @@ signal Signal_SelectedHexTile(new_hex: HexTile)
 # Debug Signals
 signal Signal_TooglePerTileUi(is_visible: bool)
 # TODO this should not be saved here!
-var is_per_tile_ui_on: bool = true
+var is_per_tile_ui_on: bool = false
 
 # TIME
 # Only for visual purposes

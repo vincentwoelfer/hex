@@ -10,7 +10,7 @@ var world_time_manager: WorldTimeManager
 
 const HOURS_PER_DAY: float = 24.0
 
-@export_range(0.0, HOURS_PER_DAY, 0.2) var current_time: float = 18.0:
+@export_range(0.0, HOURS_PER_DAY, 0.2) var current_time: float = 7.0:
 	set(value):
 		current_time = value
 		if Engine.is_editor_hint():
@@ -28,8 +28,8 @@ const HOURS_PER_DAY: float = 24.0
 
 # TODO interpolate energy differently. Color change needs to happen ~2-3 hours, light intensity change only within 30min
 @export var min_sun_light_energy: float = 0.0
-@export var max_sun_light_energy: float = 2.0
-@export var min_sky_light_energy: float = 0.5
+@export var max_sun_light_energy: float = 3.0
+@export var min_sky_light_energy: float = 0.2
 @export var max_sky_light_energy: float = 1.0
 
 @export var daytime_light_color: Color = Color8(255, 255, 205) # 205 is no mistake!
@@ -70,7 +70,7 @@ func _ready() -> void:
 	if not Engine.is_editor_hint():
 		current_time = fmod(world_time_manager.current_world_time, HOURS_PER_DAY)
 	else:
-		current_time = 18.0
+		current_time = 7.0
 
 	current_weather = starting_weather
 	EventBus.Signal_SetVisualLightTime.connect(change_time)

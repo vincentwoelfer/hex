@@ -5,7 +5,7 @@ var debugSphere: MeshInstance3D
 # Export parameters
 var horizontalDistance: float = 6.0
 var height: float = 5.0
-var currZoom: float = 4.0
+var currZoom: float = 5.0
 var zoomTarget: float = currZoom
 # higher value = further away
 var zoom_min: float = 0.075
@@ -17,7 +17,7 @@ var orientation: int = 1 # from north looking south (to see the sun moving best)
 # current rotation in angle
 var currRotation: float = 0
 
-var speed: float = 12
+var speed: float = 14
 var rotationLerpSpeed: float = 7.0
 var lerpSpeed: float = 8.0 # almost instant
 

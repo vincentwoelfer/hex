@@ -4,6 +4,7 @@
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_lg2pq"]
 panorama = ExtResource("1_2j6i3")
+energy_multiplier = 0.70969
 
 [sub_resource type="Sky" id="Sky_u6v11"]
 sky_material = SubResource("PanoramaSkyMaterial_lg2pq")
@@ -14,5 +15,5 @@ background_mode = 2
 sky = SubResource("Sky_u6v11")
 sdfgi_use_occlusion = true
 volumetric_fog_enabled = true
-volumetric_fog_density = 0.009
+volumetric_fog_density = 0.0196667
 volumetric_fog_ambient_inject = 1.0
