@@ -71,6 +71,7 @@ func compose_infotext(hex_tile: HexTile) -> String:
 	if hazard_text != "":
 		default_text = ""
 
+	plant_text += "\n-------------------------\n"
 	plant_text += "Current Plant Health: " + str(snappedf(hex_tile.plant.curr_health, 0.01)) + "\n"
 	plant_text += "Current Plant Height: " + str(snappedf(hex_tile.plant.curr_height, 0.01)) + "\n"
 	
