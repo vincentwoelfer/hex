@@ -9,7 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://i5fes5afbict" path="res://scenes/ui/Tooltip.tscn" id="7_molft"]
 [ext_resource type="Script" path="res://src/WorldLightControl.gd" id="8_4pj04"]
 [ext_resource type="Script" path="res://src/WorldTimeManager.gd" id="8_q81ch"]
-[ext_resource type="PackedScene" path="res://scenes/ui/debug_info_panel.tscn" id="9_1vbi7"]
+[ext_resource type="PackedScene" uid="uid://b3ol067ntho4v" path="res://scenes/ui/debug_info_panel.tscn" id="9_1vbi7"]
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_t12eh"]
 
@@ -29,9 +29,9 @@ script = ExtResource("4_j2ckc")
 
 [node name="SunLight" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true
-transform = Transform3D(0.707107, 0.194905, -0.679714, 0, 0.961262, 0.275637, 0.707107, -0.194905, 0.679714, 0, 20, 0)
-light_color = Color(1, 1, 0.803922, 1)
-light_energy = 2.0
+transform = Transform3D(0.0784591, 0.0360961, -0.996264, 0, 0.999345, 0.0362077, 0.996917, -0.00284082, 0.0784077, 0, 0, 0)
+light_color = Color(1, 0.4904, 0.310856, 1)
+light_energy = 2.2828
 light_angular_distance = 2.0
 shadow_enabled = true
 directional_shadow_blend_splits = true
@@ -57,8 +57,12 @@ script = ExtResource("6_x1kdg")
 [node name="WorldLightControl" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("8_4pj04")
+current_time = 21.6
+max_sun_light_energy = 3.0
+min_sky_light_energy = 0.2
 
 [node name="WorldTimeManager" type="Node" parent="."]
+unique_name_in_owner = true
 script = ExtResource("8_q81ch")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]

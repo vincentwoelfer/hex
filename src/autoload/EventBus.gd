@@ -7,11 +7,18 @@ signal Signal_HexConstChanged()
 signal Signal_SelectedWorldPosition(selection_position: Vector3)
 signal Signal_SelectedHexTile(new_hex: HexTile)
 
-signal Signal_ChangeWorldTime(new_time: float)
-
 # Debug Signals
 signal Signal_TooglePerTileUi(is_visible: bool)
+# TODO this should not be saved here!
 var is_per_tile_ui_on: bool = true
+
+# TIME
+# Only for visual purposes
+signal Signal_SetVisualLightTime(new_time: float)
+
+#
+signal Signal_AdvanceWorldTimeOneHour()
+signal Signal_ToogleWorldTimeAutoAdvance()
 
 func _ready() -> void:
 	# Connect signals here to enable logging functions below.
@@ -32,6 +39,12 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_pressed("toogle_per_tile_ui"):
 			is_per_tile_ui_on = !is_per_tile_ui_on
 			Signal_TooglePerTileUi.emit(is_per_tile_ui_on)
+
+		if event.is_action_pressed("toogle_world_time_auto_advance"):
+			Signal_ToogleWorldTimeAutoAdvance.emit()
+
+		if event.is_action_pressed("advance_world_time_one_hour"):
+			Signal_AdvanceWorldTimeOneHour.emit()
 
 # Function to handle the signal
 func _on_Signal_HexConstChanged() -> void:

@@ -6,6 +6,7 @@ enum WeatherType {SUNSHINE, LIGHT_RAIN, HEAVY_RAIN, FOG}
 var world_environment: WorldEnvironment
 var sun: DirectionalLight3D
 var sky: PanoramaSkyMaterial
+var world_time_manager: WorldTimeManager
 
 const HOURS_PER_DAY: float = 24.0
 
@@ -32,19 +33,25 @@ const HOURS_PER_DAY: float = 24.0
 @export var max_sky_light_energy: float = 1.0
 
 @export var daytime_light_color: Color = Color8(255, 255, 205) # 205 is no mistake!
-@export var sunrise_light_color: Color = Color8(255, 165, 0)
-@export var sunset_light_color: Color = Color8(255, 165, 0)
+@export var sunrise_light_color: Color = Color(1, 0.412, 0.235)
+@export var sunset_light_color: Color = Color(1, 0.412, 0.235)
+
+@export_category("Fog parameters")
+@export var daytime_fog_density: float = 0.009
+@export var sunrise_fog_density: float = 0.025
+@export var sunset_fog_density: float = 0.015
+@export var nighttime_fog_density: float = 0.025
 
 @export_category("Weather parameters")
 @export var starting_weather: WeatherType = WeatherType.SUNSHINE
 var current_weather: WeatherType
 
+# Actual tween duration may be limited further if time is auto-advancing
 var tween: Tween
-var tween_duration := 0.5
-var tween_max_duration: float
+var desired_tween_duration := 0.5
 
 # Height. -90 = Zenith.
-var sun_rotation_x_down := 0.0
+var sun_rotation_x_down := -0.5
 var sun_rotation_x_zenith := -32.0 # Should match ~scotland
 # down -> zenith -> down
 
@@ -56,12 +63,13 @@ func _ready() -> void:
 	world_environment = get_node('%WorldEnvironment')
 	sun = get_node('%SunLight')
 	sky = world_environment.environment.sky.sky_material as PanoramaSkyMaterial
+	world_time_manager = get_node('%WorldTimeManager') as WorldTimeManager
 
-	#tween_max_duration = get_node('%WorldTimeManager')
-	tween_max_duration = 0.49
+	# Get actual starting time from world_time_manager
+	current_time = fmod(world_time_manager.current_world_time, HOURS_PER_DAY)
 
 	current_weather = starting_weather
-	EventBus.Signal_ChangeWorldTime.connect(change_time)
+	EventBus.Signal_SetVisualLightTime.connect(change_time)
 
 	jump_to_time(current_time)
 
@@ -93,6 +101,8 @@ func jump_to_time(time: float) -> void:
 			sun.set(property.trim_prefix('sun_'), properties[property])
 		elif property.begins_with('sky_'):
 			sky.set(property.trim_prefix('sky_'), properties[property])
+		elif property.begins_with('env_'):
+			world_environment.environment.set(property.trim_prefix('env_'), properties[property])
 
 
 # TODO this only works per hour. Example: If tweening from mid of day to sunset, the tween will instantly (during day) reduce light linerily instead of waiting till start of sunset
@@ -102,15 +112,22 @@ func tween_to_time(time: float) -> void:
 
 	var properties := interpolate_properties_for_time(time)
 
+	# Delete previous tween if still existing
+	if tween:
+		tween.kill()
+
 	# Create Tween
 	tween = create_tween().set_parallel(true)
-	var current_tween_duration := minf(tween_duration, tween_max_duration)
+	# Dont tween for longer than one hour lasts when auto-forwarding time
+	var current_tween_duration := minf(desired_tween_duration, world_time_manager.get_max_tween_time())
 
 	for property: String in properties.keys():
 		if property.begins_with('sun_'):
 			tween.tween_property(sun, property.trim_prefix('sun_'), properties[property], current_tween_duration)
 		elif property.begins_with('sky_'):
 			tween.tween_property(sky, property.trim_prefix('sky_'), properties[property], current_tween_duration)
+		elif property.begins_with('env_'):
+			tween.tween_property(world_environment.environment, property.trim_prefix('env_'), properties[property], current_tween_duration)
 
 
 func interpolate_properties_for_time(time: float) -> Dictionary:
@@ -121,22 +138,36 @@ func interpolate_properties_for_time(time: float) -> Dictionary:
 
 	# Determine interpolation factor. 1 = full day, 0 = full night
 	var interpolation_factor: float
+
 	var color_lerp_from: Color = daytime_light_color
+	var fog_density_lerp_from: float = daytime_fog_density
+
 	if is_sunrise(time):
 		interpolation_factor = clampf(time_from_sunrise / sunrise_effect_hours, 0.0, 1.0)
 		color_lerp_from = sunrise_light_color
+		fog_density_lerp_from = sunrise_fog_density
 	elif is_sunset(time):
 		interpolation_factor = clampf(time_to_sunset / sunset_effect_hours, 0.0, 1.0)
 		color_lerp_from = sunset_light_color
+		fog_density_lerp_from = sunset_fog_density
 	elif is_sun_above_surface(time):
 		interpolation_factor = 1.0
 	else:
 		interpolation_factor = 0.0
+		fog_density_lerp_from = nighttime_fog_density
+
 
 	# Actually interpolate light intensity
-	var sun_light_energy: float = lerpf(min_sun_light_energy, max_sun_light_energy, interpolation_factor)
-	var sky_light_energy: float = lerpf(min_sky_light_energy, max_sky_light_energy, interpolation_factor)
+	# Ease light energy so it fades slowly and changes apruptly the moment the sun sets/rises.
+	# ease-factor 1 = linear, < 1 = more abrupt close to 0.0
+	var light_energy_factor := ease(interpolation_factor, 0.4)
+	var sun_light_energy: float = lerpf(min_sun_light_energy, max_sun_light_energy, light_energy_factor)
+	var sky_light_energy: float = lerpf(min_sky_light_energy, max_sky_light_energy, light_energy_factor)
+
 	var light_color: Color = color_lerp_from.lerp(daytime_light_color, interpolation_factor)
+
+	# Fog
+	var fog_density: float = lerpf(fog_density_lerp_from, daytime_fog_density, interpolation_factor)
 
 	# Lerp sun altitude from 0 -> zenith -> 0
 	var sun_x: float
@@ -155,6 +186,7 @@ func interpolate_properties_for_time(time: float) -> Dictionary:
 		"sun_light_color": light_color,
 		"sun_rotation": sun_rotation,
 		"sky_energy_multiplier": sky_light_energy,
+		"env_volumetric_fog_density": fog_density,
 		}
 
 	return properties

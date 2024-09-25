@@ -5,8 +5,8 @@ var debugSphere: MeshInstance3D
 # Export parameters
 var horizontalDistance: float = 6.0
 var height: float = 5.0
-var zoom: float = 1.0
-var zoomTarget: float = 1.0
+var currZoom: float = 4.0
+var zoomTarget: float = currZoom
 # higher value = further away
 var zoom_min: float = 0.075
 var zoom_max: float = 7.0
@@ -76,7 +76,7 @@ func compute_forward_angle(orientation_: float) -> float:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	zoom = lerpf(zoom, zoomTarget, rotationLerpSpeed * delta)
+	currZoom = lerpf(currZoom, zoomTarget, rotationLerpSpeed * delta)
 
 	var forwardAngle := compute_forward_angle(orientation)
 
@@ -87,19 +87,19 @@ func _process(delta: float) -> void:
 	var inputDir := inputDirRaw.rotated(Vector3.UP, forwardAngle)
 
 	# Move follow point, lookAtPoint follows this
-	followPoint += inputDir * (speed + zoom / 3.0) * delta
+	followPoint += inputDir * (speed + currZoom / 3.0) * delta
 	lookAtPoint.x = lerpf(lookAtPoint.x, followPoint.x, lerpSpeed * delta)
 	lookAtPoint.z = lerpf(lookAtPoint.z, followPoint.z, lerpSpeed * delta)
 
 	# Camera position
 	var camPos := lookAtPoint
-	camPos += -forwardDir * horizontalDistance * zoom
-	camPos.y += zoom * height
+	camPos += -forwardDir * horizontalDistance * currZoom
+	camPos.y += currZoom * height
 
 	global_position = camPos
 	look_at(lookAtPoint)
 
-	#draw_debug_sphere(lookAtPoint, maxf(zoomTarget * 0.1, 0.025))
+	#draw_debug_sphere(lookAtPoint, maxf(currcurrcurrcurrcurrZoomTarget * 0.1, 0.025))
 
 	self.check_for_selection()
 
