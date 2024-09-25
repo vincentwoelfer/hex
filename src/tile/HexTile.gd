@@ -12,6 +12,8 @@ var height: int
 
 # Visual Representation
 var geometry: HexGeometry
+
+# ToDo extract onto own class
 var label := RichTextLabel.new()
 var is_label_visible := false
 
@@ -21,7 +23,6 @@ var shade: float
 var nutrition: float
 var is_secret_stash: bool # Just a gimmick
 var tile_type: String = "Meadow"
-
 
 var color_humidity: Color = Color.BLUE.lightened(0.2)
 var color_shade: Color = Color.BLACK.lightened(0.1)

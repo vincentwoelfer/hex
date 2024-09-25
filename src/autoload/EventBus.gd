@@ -17,7 +17,7 @@ var is_per_tile_ui_on: bool = false
 signal Signal_SetVisualLightTime(new_time: float)
 
 #
-signal Signal_AdvanceWorldTimeOneHour()
+signal Signal_AdvanceWorldTimeOneStep()
 signal Signal_ToogleWorldTimeAutoAdvance()
 
 func _ready() -> void:
@@ -43,8 +43,8 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_pressed("toogle_world_time_auto_advance"):
 			Signal_ToogleWorldTimeAutoAdvance.emit()
 
-		if event.is_action_pressed("advance_world_time_one_hour"):
-			Signal_AdvanceWorldTimeOneHour.emit()
+		if event.is_action_pressed("advance_world_time_one_step"):
+			Signal_AdvanceWorldTimeOneStep.emit()
 
 # Function to handle the signal
 func _on_Signal_HexConstChanged() -> void:

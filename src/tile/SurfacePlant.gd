@@ -10,7 +10,7 @@ const GRASS_MESH_LOW := preload('res://assets/grass/grass_low.obj')
 const GRASS_MAT: ShaderMaterial = preload('res://assets/grass/mat_grass.tres')
 
 func _init() -> void:
-    multiMesh = MultiMeshInstance3D.new()
+	multiMesh = MultiMeshInstance3D.new()
 	multiMesh.name = 'GrassMultiMesh'
 	multiMesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	multiMesh.material_override = GRASS_MAT
