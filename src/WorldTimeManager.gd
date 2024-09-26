@@ -4,6 +4,7 @@ extends Node
 var current_world_time: float = 7.0
 
 var duration_sec_per_hour: float = 1.0
+var speed_up_factor: float = 2.5
 var auto_advance: bool = false
 
 var timer: Timer
@@ -25,10 +26,18 @@ func _ready() -> void:
 	# Connect Signals
 	EventBus.Signal_ToogleWorldTimeAutoAdvance.connect(_on_Signal_ToogleWorldTimeAutoAdvance)
 	EventBus.Signal_AdvanceWorldTimeOneHour.connect(advance_world_time_one_hour)
+	EventBus.Signal_ToggleSpeedUpTime.connect(_on_Signal_ToogleSpeedUpTime)
+
 
 
 func _on_Signal_ToogleWorldTimeAutoAdvance() -> void:
 	self.set_auto_advance_time(not auto_advance)
+
+func _on_Signal_ToogleSpeedUpTime() -> void:
+	if self.timer.wait_time == duration_sec_per_hour:
+		self.timer.wait_time = duration_sec_per_hour / speed_up_factor
+	else:
+		self.timer.wait_time = duration_sec_per_hour
 
 
 func set_auto_advance_time(auto_advance_new: bool) -> void:
