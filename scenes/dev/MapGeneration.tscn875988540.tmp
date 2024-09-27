@@ -1,11 +1,10 @@
-[gd_scene load_steps=12 format=3 uid="uid://bi8xpy2pdq81q"]
+[gd_scene load_steps=11 format=3 uid="uid://bi8xpy2pdq81q"]
 
 [ext_resource type="Script" path="res://src/GenerateMap.gd" id="1_2h4g3"]
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://DefaultEnvironment.tres" id="2_2n06e"]
 [ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://CameraAttributes.tres" id="3_lr7o2"]
 [ext_resource type="Script" path="res://src/CameraController.gd" id="4_j2ckc"]
 [ext_resource type="Script" path="res://src/SelectionManager.gd" id="6_x1kdg"]
-[ext_resource type="PackedScene" uid="uid://gefdglv0vl5e" path="res://scenes/WeatherControl.tscn" id="7_2klec"]
 [ext_resource type="PackedScene" uid="uid://i5fes5afbict" path="res://scenes/ui/Tooltip.tscn" id="7_molft"]
 [ext_resource type="Script" path="res://src/WorldLightControl.gd" id="8_4pj04"]
 [ext_resource type="Script" path="res://src/WorldTimeManager.gd" id="8_q81ch"]
@@ -50,9 +49,6 @@ script = ExtResource("8_4pj04")
 current_time = 10.0
 sunrise_light_color = Color(1, 0.678431, 0.235294, 1)
 sunset_light_color = Color(1, 0.678431, 0.235294, 1)
-
-[node name="WeatherControl" parent="." instance=ExtResource("7_2klec")]
-unique_name_in_owner = true
 
 [node name="WorldTimeManager" type="Node" parent="."]
 unique_name_in_owner = true

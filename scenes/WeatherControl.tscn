@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://gefdglv0vl5e"]
+
+[ext_resource type="Script" path="res://src/WeatherControl.gd" id="1_ccpge"]
+
+[node name="WeatherControl" type="Node"]
+script = ExtResource("1_ccpge")

@@ -2,7 +2,6 @@
 class_name WorldLightControl
 extends Node
 
-enum WeatherType {SUNSHINE, LIGHT_RAIN, HEAVY_RAIN, FOG}
 var world_environment: WorldEnvironment
 var sun: DirectionalLight3D
 var sky: PanoramaSkyMaterial
@@ -38,13 +37,13 @@ const HOURS_PER_DAY: float = 24.0
 
 @export_category("Fog parameters")
 @export var daytime_fog_density: float = 0.009
-@export var sunrise_fog_density: float = 0.025
-@export var sunset_fog_density: float = 0.015
+@export var sunrise_fog_density: float = 0.015
+@export var sunset_fog_density: float = 0.012
 @export var nighttime_fog_density: float = 0.025
 
 @export_category("Weather parameters")
-@export var starting_weather: WeatherType = WeatherType.SUNSHINE
-var current_weather: WeatherType
+@export var starting_weather: WeatherControl.WeatherType = WeatherControl.WeatherType.SUNSHINE
+var current_weather: WeatherControl.WeatherType
 
 # Actual tween duration may be limited further if time is auto-advancing
 var tween: Tween
@@ -88,7 +87,7 @@ func change_time(new_time: float) -> void:
 		self.tween_to_time(current_time)
 
 
-func change_wather(new_weather: WeatherType) -> void:
+func change_weather(new_weather: WeatherControl.WeatherType) -> void:
 	if new_weather != current_weather:
 		current_weather = new_weather
 		#update_lighting(world_time, current_weather)
