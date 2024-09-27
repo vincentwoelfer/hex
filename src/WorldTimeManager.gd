@@ -6,6 +6,7 @@ var current_world_time: float = 7.0
 var duration_sec_per_hour: float = 1.0
 var speed_up_factor: float = 2.5
 var auto_advance: bool = false
+var day_time: float
 
 var timer: Timer
 
@@ -61,5 +62,5 @@ func advance_world_time_one_hour() -> void:
 	# Advance one hour
 	current_world_time += 1.0
 
-	var day_time: float = fmod(current_world_time, 24.0)
+	day_time = fmod(current_world_time, 24.0)
 	EventBus.Signal_SetVisualLightTime.emit(day_time)

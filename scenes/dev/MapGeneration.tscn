@@ -50,6 +50,7 @@ script = ExtResource("8_4pj04")
 current_time = 10.0
 sunrise_light_color = Color(1, 0.678431, 0.235294, 1)
 sunset_light_color = Color(1, 0.678431, 0.235294, 1)
+weather_impact_factor = null
 
 [node name="WeatherControl" parent="." instance=ExtResource("7_2klec")]
 unique_name_in_owner = true

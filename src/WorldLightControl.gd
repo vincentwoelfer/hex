@@ -6,6 +6,7 @@ var world_environment: WorldEnvironment
 var sun: DirectionalLight3D
 var sky: PanoramaSkyMaterial
 var world_time_manager: WorldTimeManager
+var weather_control: WeatherControl
 
 const HOURS_PER_DAY: float = 24.0
 
@@ -42,8 +43,7 @@ const HOURS_PER_DAY: float = 24.0
 @export var nighttime_fog_density: float = 0.025
 
 @export_category("Weather parameters")
-@export var starting_weather: WeatherControl.WeatherType = WeatherControl.WeatherType.SUNSHINE
-var current_weather: WeatherControl.WeatherType
+@export var weather_impact_factor: float = 0.4
 
 # Actual tween duration may be limited further if time is auto-advancing
 var tween: Tween
@@ -63,6 +63,7 @@ func _ready() -> void:
 	sun = get_node('%SunLight') as DirectionalLight3D
 	sky = world_environment.environment.sky.sky_material as PanoramaSkyMaterial
 	world_time_manager = get_node('%WorldTimeManager') as WorldTimeManager
+	weather_control = get_node('%WeatherControl') as WeatherControl
 	
 	# Get actual starting time from world_time_manager
 	# Should be same as in world_time_manager but reading it here gives an error
@@ -71,8 +72,8 @@ func _ready() -> void:
 	else:
 		current_time = 5.0
 
-	current_weather = starting_weather
 	EventBus.Signal_SetVisualLightTime.connect(change_time)
+	EventBus.Signal_WeatherChanged.connect(_on_weather_change)
 
 	jump_to_time(current_time)
 
@@ -87,10 +88,9 @@ func change_time(new_time: float) -> void:
 		self.tween_to_time(current_time)
 
 
-func change_weather(new_weather: WeatherControl.WeatherType) -> void:
-	if new_weather != current_weather:
-		current_weather = new_weather
-		#update_lighting(world_time, current_weather)
+func _on_weather_change(new_weather: WeatherControl.WeatherType) -> void:
+	if not world_time_manager.auto_advance:
+		self.tween_to_time(world_time_manager.day_time)
 
 
 func jump_to_time(time: float) -> void:
@@ -114,6 +114,9 @@ func tween_to_time(time: float) -> void:
 		return
 
 	var properties := interpolate_properties_for_time(time)
+	var weather_properties = weather_control.weather_properties[weather_control.current_weather]
+	for weather_property in weather_properties:
+		properties[weather_property] = lerp(properties[weather_property], weather_properties[weather_property], weather_impact_factor)
 
 	# Delete previous tween if still existing
 	if tween:
