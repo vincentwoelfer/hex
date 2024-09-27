@@ -64,3 +64,4 @@ func advance_world_time_one_hour() -> void:
 
 	day_time = fmod(current_world_time, 24.0)
 	EventBus.Signal_SetVisualLightTime.emit(day_time)
+	EventBus.Signal_DayTimeChanged.emit(day_time)

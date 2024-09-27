@@ -20,6 +20,8 @@ signal Signal_SetVisualLightTime(new_time: float)
 signal Signal_AdvanceWorldTimeOneHour()
 signal Signal_ToogleWorldTimeAutoAdvance()
 signal Signal_ToggleSpeedUpTime()
+signal Signal_DayTimeChanged(new_time: float)
+
 
 signal Signal_TriggerWeatherChange() # Manual trigger for debugging, not intended for broadcasting
 signal Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) # For broadcasting

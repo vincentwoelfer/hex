@@ -10,7 +10,7 @@ var weather_control: WeatherControl
 
 const HOURS_PER_DAY: float = 24.0
 
-@export_range(0.0, HOURS_PER_DAY, 0.2) var current_time: float = 5.0:
+@export_range(0.0, HOURS_PER_DAY, 0.2) var current_time: float = 7.0:
 	set(value):
 		current_time = value
 		if Engine.is_editor_hint():
@@ -70,7 +70,7 @@ func _ready() -> void:
 	if not Engine.is_editor_hint():
 		current_time = fmod(world_time_manager.current_world_time, HOURS_PER_DAY)
 	else:
-		current_time = 5.0
+		current_time = 7.0
 
 	EventBus.Signal_SetVisualLightTime.connect(change_time)
 	EventBus.Signal_WeatherChanged.connect(_on_weather_change)
