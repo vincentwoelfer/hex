@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="WeatherProfile" load_steps=2 format=3 uid="uid://bw0f2olh6avyu"]
+
+[ext_resource type="Script" path="res://assets/weather/WeatherProfile.gd" id="1_s2i1j"]
+
+[resource]
+script = ExtResource("1_s2i1j")
+temperature_change = 0
+weather_change_probability = 0.4
+weather_distribution = Dictionary[String, float]({
+"CLOUDY": 0.2,
+"SUNSHINE": 0.8
+})

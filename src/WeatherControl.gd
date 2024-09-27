@@ -2,10 +2,10 @@
 class_name WeatherControl
 extends Node
 
-enum WeatherType {SUNSHINE, DRIZZLE, RAIN, HEAVY_RAIN, FOG}
+enum WeatherType {SUNSHINE, CLOUDY, DRIZZLE, RAIN, HEAVY_RAIN, FOG}
 
 @export var starting_weather: WeatherControl.WeatherType = WeatherControl.WeatherType.SUNSHINE
-@export var weather_change_probability := 0.3 # per hour
+@export var weather_profile : WeatherProfile
 
 var current_weather: WeatherControl.WeatherType
 @onready var rain_particles: GPUParticles3D = %RainParticles
@@ -13,6 +13,10 @@ var current_weather: WeatherControl.WeatherType
 var weather_properties: Dictionary[WeatherType, Dictionary] = {
 	WeatherType.SUNSHINE: {
 		"sun_light_color": lerp(Color.LIGHT_YELLOW, Color.YELLOW, 0.4), 
+		},
+	WeatherType.CLOUDY:
+		{
+			"sun_light_color": Color.GRAY,	
 		},
 	WeatherType.DRIZZLE: {
 		"sun_light_color": Color.DARK_GRAY,
@@ -35,7 +39,7 @@ var weather_properties: Dictionary[WeatherType, Dictionary] = {
 
 func _ready() -> void:
 	current_weather = starting_weather
-	EventBus.Signal_TriggerWeatherChange.connect(random_weather_change)
+	EventBus.Signal_TriggerWeatherChange.connect(force_new_weather)
 	EventBus.Signal_DayTimeChanged.connect(_on_time_progression)
 	
 	rain_particles.amount = 0
@@ -68,21 +72,11 @@ func update_rain(new_weather: WeatherType) -> void:
 
 
 func _on_time_progression(day_time: float):
-	if randf() < weather_change_probability:
-		random_weather_change()
+	if randf() < weather_profile.weather_change_probability:
+		change_weather(weather_profile.sample_weather_type())
 
-func random_weather_change() -> void:
-	
-	# TODO set these according to the WeatherSource of the day
-	var weather_options := WeatherType.keys()
-	var weather_probabilities : Array = []
-	weather_probabilities.resize(weather_options.size())
-	weather_probabilities.fill(1)
-
-	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+func force_new_weather() -> void:
 	var new_weather = current_weather
-
 	while new_weather == current_weather:
-		new_weather = WeatherType[weather_options[rng.rand_weighted(weather_probabilities)]]
+		new_weather = weather_profile.sample_weather_type()
 	change_weather(new_weather)
-	
