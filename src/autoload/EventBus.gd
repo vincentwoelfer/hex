@@ -21,6 +21,9 @@ signal Signal_AdvanceWorldTimeOneHour()
 signal Signal_ToogleWorldTimeAutoAdvance()
 signal Signal_ToggleSpeedUpTime()
 
+signal Signal_TriggerWeatherChange() # Manual trigger, not intended for broadcasting
+
+
 func _ready() -> void:
 	# Connect signals here to enable logging functions below.
 	# Actual signal connection is done in the code catching the signal like this:
@@ -46,13 +49,16 @@ func _input(event: InputEvent) -> void:
 
 		if event.is_action_pressed("advance_world_time_one_hour"):
 			Signal_AdvanceWorldTimeOneHour.emit()
-			
+		
 		if event.is_action_pressed("hold_speed_up_time"):
 			Signal_ToggleSpeedUpTime.emit()
 			
 		if event.is_action_released("hold_speed_up_time"):
 			Signal_ToggleSpeedUpTime.emit()
 			
+		if event.is_action_pressed("trigger_weather_change"):
+			Signal_TriggerWeatherChange.emit()
+		
 		if event.is_action_pressed("quit_game"):
 			get_tree().quit()
 			
