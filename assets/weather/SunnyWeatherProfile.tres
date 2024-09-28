@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://assets/weather/WeatherProfile.gd" id="1_s2i1j"]
 
 [resource]
+resource_name = "Sunny"
 script = ExtResource("1_s2i1j")
 temperature_change = 0
 weather_change_probability = 0.4

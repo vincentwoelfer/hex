@@ -19,4 +19,5 @@ func update_infotext() -> void:
 	infotext.text = ""
 	infotext.append_text(str("Daytime: ", hour, ":", minutes, "0h\n"))
 	infotext.append_text(str("Weather: ", weather_control.WeatherType.keys()[weather_control.current_weather], "\n"))
+	infotext.append_text(str("Profile: ", weather_control.weather_profile.resource_name, " \n"))
 	infotext.append_text(str("FPS: ", snappedf(Engine.get_frames_per_second(), 0.1)))
