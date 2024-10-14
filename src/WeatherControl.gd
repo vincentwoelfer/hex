@@ -42,8 +42,7 @@ func _ready() -> void:
 	EventBus.Signal_TriggerWeatherChange.connect(force_new_weather)
 	EventBus.Signal_DayTimeChanged.connect(_on_time_progression)
 	
-	rain_particles.amount = 0
-	rain_particles.hide()
+	#rain_particles.hide()
 
 func change_weather(new_weather: WeatherType) -> void:
 	if new_weather != current_weather:
@@ -52,31 +51,31 @@ func change_weather(new_weather: WeatherType) -> void:
 		update_rain(new_weather)
 		
 func update_rain(new_weather: WeatherType) -> void:
-	var rain_amount := 0
-	var tween = get_tree().create_tween()
+	var rain_amount_ratio := 0.0
 	
-	var rainy_weather_types = [WeatherType.DRIZZLE, WeatherType.RAIN, WeatherType.HEAVY_RAIN]
+	var rainy_weather_types := [WeatherType.DRIZZLE, WeatherType.RAIN, WeatherType.HEAVY_RAIN]
 	if new_weather in rainy_weather_types:
 		match new_weather:
 			WeatherType.DRIZZLE: 
-				rain_amount = 150
+				rain_amount_ratio = 0.2
 			WeatherType.RAIN:
-				rain_amount = 300
+				rain_amount_ratio = 0.4
 			WeatherType.HEAVY_RAIN:
-				rain_amount = 1000
-		rain_particles.show()
+				rain_amount_ratio = 1.0
+		#rain_particles.show()
 	else:
-		rain_particles.hide()
+		rain_amount_ratio = 0.0
+		#rain_particles.hide()
 
-	rain_particles.amount = rain_amount
+	rain_particles.amount_ratio = rain_amount_ratio
 
 
-func _on_time_progression(day_time: float):
+func _on_time_progression(day_time: float) -> void:
 	if randf() < weather_profile.weather_change_probability:
 		change_weather(weather_profile.sample_weather_type())
 
 func force_new_weather() -> void:
-	var new_weather = current_weather
+	var new_weather := current_weather
 	while new_weather == current_weather:
 		new_weather = weather_profile.sample_weather_type()
 	change_weather(new_weather)
