@@ -26,6 +26,7 @@ cache/
 .tmp
 export.cfg
 export_presets.cfg
+.editorconfig
 
 # Blender
 .blend1
