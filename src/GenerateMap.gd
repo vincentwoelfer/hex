@@ -7,7 +7,7 @@ var height_noise: Noise = preload("res://assets/TerrainHeightNoise.tres")
 var min_height := 0
 var max_height := 20
 
-var N: int = 3
+var N: int = 4
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -31,6 +31,10 @@ func _ready() -> void:
 
 			var height_f: float = remap(noise, 0.0, 1.0, min_height, max_height)
 			var height: int = clampi(roundf(height_f) as int, min_height + 4, max_height)
+
+			# Border
+			if hex_pos.magnitude() == N:
+				height = 0
 
 			# For debug printing only
 			# var x := HexPos.hexpos_to_xy(hex_pos).x
@@ -81,7 +85,7 @@ func create_hex(hex_pos: HexPos) -> void:
 
 		# If neighbour does not exists set height to same as own tile and mark transition
 		if h == -1:
-			h = height
+			h = -1
 			descr = 'invalid'
 
 		adjacent_hex.push_back(HexGeometry.AdjacentHex.new(h, descr))
