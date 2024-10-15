@@ -46,7 +46,8 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 	if self.humidity <= 0.1:
 		self.tile_type = "Dry Meadow"
 
-	add_child(label)
+	if height > 0:
+		add_child(label)
 
 	# Signals
 	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
