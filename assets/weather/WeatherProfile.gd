@@ -5,13 +5,13 @@ extends Resource
 
 @export_category("Weather stats")
 @export var weather_change_probability := 0.4
-@export var weather_distribution : Dictionary[String, float] = {
-	"SUNSHINE": 1,
-	"RAIN": 1,
-}
+@export var weather_distribution: Dictionary[String, float] = {}
 
 func sample_weather_type() -> WeatherControl.WeatherType:
-	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	if weather_distribution.is_empty():
+		return WeatherControl.WeatherType.SUNSHINE
 
-	var	new_weather =  WeatherControl.WeatherType[weather_distribution.keys()[rng.rand_weighted(weather_distribution.values())]]
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	var rand_index: String = weather_distribution.keys()[rng.rand_weighted(weather_distribution.values())]
+	var new_weather: WeatherControl.WeatherType = WeatherControl.WeatherType[rand_index]
 	return new_weather

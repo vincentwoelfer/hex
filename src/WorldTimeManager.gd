@@ -1,7 +1,7 @@
 class_name WorldTimeManager
 extends Node
 
-var current_world_time: float = 7.0
+var current_world_time: float = 8.0
 
 var duration_sec_per_hour: float = 1.0
 var speed_up_factor: float = 2.5
@@ -9,10 +9,6 @@ var auto_advance: bool = false
 var day_time: float
 
 var timer: Timer
-
-func _on_timer_timeout() -> void:
-	print("Timer has finished!")
-
 
 func _ready() -> void:
 	timer = Timer.new()

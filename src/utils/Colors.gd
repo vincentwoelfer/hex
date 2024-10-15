@@ -31,7 +31,8 @@ static func getColorForIncline(inclineDeg: float) -> Color:
 	if inclineDeg <= 25.0:
 		inclineDeg = 0.0
 	if inclineDeg >= 30:
-		inclineDeg = 70.0
+		pass
+		#inclineDeg = 70.0
 	inclineDeg = clampf(inclineDeg / 70.0, 0.0, 1.0)
 
 	#const green := Color.FOREST_GREEN

@@ -36,6 +36,7 @@ func _ready() -> void:
 
 	# Connect to events to print debug info
 	Signal_HexConstChanged.connect(_on_Signal_HexConstChanged)
+	Signal_WeatherChanged.connect(_on_Signal_WeatherChanged)
 
 
 # Reacht to keyboard inputs to directly trigger events
@@ -67,3 +68,7 @@ func _input(event: InputEvent) -> void:
 # Function to handle the signal
 func _on_Signal_HexConstChanged() -> void:
 	print("EventBus: Signal_HexConstChanged")
+
+# Function to handle the signal
+func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:
+	print("EventBus: Weather Changed to ", WeatherControl.WeatherType.keys()[new_weather])

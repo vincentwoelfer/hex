@@ -7,7 +7,7 @@
 emission_shape_offset = Vector3(0, 50, 0)
 emission_shape = 3
 emission_box_extents = Vector3(30, 0, 30)
-direction = Vector3(0.15, -1, 0)
+direction = Vector3(0, -1, 0)
 spread = 5.0
 initial_velocity_min = 30.0
 initial_velocity_max = 40.0
@@ -22,9 +22,9 @@ point_count = 3
 [sub_resource type="RibbonTrailMesh" id="RibbonTrailMesh_q2bbo"]
 material = ExtResource("2_ky317")
 shape = 0
-size = 0.04
+size = 0.03
 sections = 2
-section_length = 0.6
+section_length = 0.5
 section_segments = 1
 curve = SubResource("Curve_36w1b")
 
@@ -39,6 +39,7 @@ cast_shadow = 0
 ignore_occlusion_culling = true
 amount = 32768
 lifetime = 1.5
+fixed_fps = 60
 fract_delta = false
 visibility_aabb = AABB(-50, -50, -50, 100, 100, 100)
 process_material = SubResource("ParticleProcessMaterial_swuwk")
