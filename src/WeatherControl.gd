@@ -59,7 +59,7 @@ func update_rain(new_weather: WeatherType) -> void:
 			WeatherType.DRIZZLE: 
 				rain_amount_ratio = 0.2
 			WeatherType.RAIN:
-				rain_amount_ratio = 0.4
+				rain_amount_ratio = 0.5
 			WeatherType.HEAVY_RAIN:
 				rain_amount_ratio = 1.0
 		#rain_particles.show()
