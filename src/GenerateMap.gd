@@ -2,7 +2,7 @@
 extends Node3D
 
 var HEX_GEOMETRY_SCENE := preload("res://scenes/HexGeometry.tscn")
-var height_noise: Noise = preload("res://assets/TerrainHeightNoise.tres")
+var height_noise: Noise = preload("res://assets/noise/TerrainHeightNoiseGenerator.tres")
 
 var min_height := 1
 var max_height := 20

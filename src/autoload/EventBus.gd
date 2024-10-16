@@ -59,13 +59,7 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_pressed("randomize_selected_tile"):
 			Signal_randomizeSelectedTile.emit()
 
-		if event.is_action_pressed("advance_world_time_one_hour"):
-			Signal_AdvanceWorldTimeOneStep.emit()
-		
 		if event.is_action_pressed("hold_speed_up_time"):
-			Signal_ToggleSpeedUpTime.emit()
-			
-		if event.is_action_released("hold_speed_up_time"):
 			Signal_ToggleSpeedUpTime.emit()
 			
 		if event.is_action_pressed("trigger_weather_change"):

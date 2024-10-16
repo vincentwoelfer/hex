@@ -58,6 +58,7 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 	
 	EventBus.Signal_WorldStep.connect(processWorldStep)
 
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	generate_visuals()
@@ -143,17 +144,17 @@ func update_label() -> void:
 	# Humidity
 	label.push_color(color_humidity)
 	label.append_text(str(snappedf(self.humidity, 0.1)) + ' ')
-	label.append_text('[img height=' + str(text_size) + ' color=#' + color_humidity.to_html() + ']res://assets/icons/raindrop.png[/img]\n')
+	label.append_text('[img height=' + str(text_size) + ' color=#' + color_humidity.to_html() + ']res://assets/ui/icons/raindrop.png[/img]\n')
 
 	# Shade
 	label.push_color(color_shade)
 	label.append_text(str(snappedf(1.0 - self.shade, 0.1)) + ' ')
-	label.append_text('[img height=' + str(text_size) + ' color=#' + color_shade.to_html() + ']res://assets/icons/shade_white.png[/img]\n')
+	label.append_text('[img height=' + str(text_size) + ' color=#' + color_shade.to_html() + ']res://assets/ui/icons/shade_white.png[/img]\n')
 
 	# Nutrition
 	label.push_color(color_nutrition)
 	label.append_text(str(snappedf(self.nutrition, 0.1)) + ' ')
-	label.append_text('[img height=' + str(text_size) + ' color=#' + color_nutrition.to_html() + ']res://assets/icons/nutrition.png[/img]\n')
+	label.append_text('[img height=' + str(text_size) + ' color=#' + color_nutrition.to_html() + ']res://assets/ui/icons/nutrition.png[/img]\n')
 
 
 	label.pop_all()

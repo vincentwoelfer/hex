@@ -2,8 +2,8 @@
 class_name HexGeometry
 extends Node3D
 
-const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/shaders/spatial/mat_highlight.tres')
-const DEFAULT_GEOM_MATERIAL: Material = preload("res://DefaultMaterial.tres")
+const HIGHLIGHT_MATERIAL: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
+const DEFAULT_GEOM_MATERIAL: Material = preload('res://assets/materials/default_geom_material.tres')
 
 # Class variables
 var terrainMesh: MeshInstance3D
@@ -31,7 +31,7 @@ func _init() -> void:
 	terrainMesh = MeshInstance3D.new()
 	terrainMesh.name = "TerrainMesh"
 	terrainMesh.material_override = DEFAULT_GEOM_MATERIAL
-	terrainMesh.material_overlay = HIGHLIGHT_MAT
+	terrainMesh.material_overlay = HIGHLIGHT_MATERIAL
 	add_child(terrainMesh, true)
 
 	# Load Rocks - hardcoded numbers for now

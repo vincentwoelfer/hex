@@ -5,14 +5,14 @@ extends Node3D
 # TODO make this extend ressource ????
 var mesh_instance: MultiMeshInstance3D = MultiMeshInstance3D.new()
 
-const GRASS_MESH_HIGH := preload('res://assets/grass/grass_high.obj')
-const GRASS_MESH_LOW := preload('res://assets/grass/grass_low.obj')
-const GRASS_MAT: ShaderMaterial = preload('res://assets/grass/mat_grass.tres')
+const GRASS_MESH_HIGH := preload('res://assets/meshes/plants/grass_hres.obj')
+const GRASS_MESH_LOW := preload('res://assets/meshes/plants/grass_lres.obj')
+const GRASS_MAT: ShaderMaterial = preload('res://assets/materials/grass_material.tres')
 
 var min_height := 0.2
 var max_height := 4.0
 
-var color_healthy := Color.SEA_GREEN
+var color_healthy := Color.PALE_GREEN
 #var color_dry := Color(0.9, 0.5, 0.3).darkened(0.2)
 var color_dry := Color(178, 80, 53)
 
@@ -35,8 +35,8 @@ func _init() -> void:
 	add_child(mesh_instance, true)
 
 	rand_color_offset = Colors.randColorNoExtreme(0.2)
-	if randf() <= 0.25:
-		rand_color_offset = Color(1, 1, 1)
+	#if randf() <= 0.25:
+	#	rand_color_offset = Color(1, 1, 1)
 
 	# Only for testing
 	set_shader_value(get_curr_color(), 'tip_color')
@@ -45,7 +45,8 @@ func _init() -> void:
 
 func get_curr_color() -> Color:
 	var curr_color: Color = color_dry.lerp(color_healthy, curr_health)
-	curr_color = curr_color.lerp(rand_color_offset, 0.4)
+
+	#curr_color = curr_color.lerp(rand_color_offset, 0.4)
 	curr_color = curr_color.clamp(Color.BLACK, Color.WHITE)
 	return curr_color
 
@@ -56,8 +57,9 @@ func processWorldStep(humidity: float, shade: float, nutrition: float) -> void:
 
 	# Update own parameters
 	var health_delta := (humidity - curr_health) * speed # lerp towards humidity value
-	#health_delta += (humidity - 0.5) * 0.5 * speed # Favor extremes
-	health_delta += randf_range(-0.2, 0.2) * speed
+	health_delta += (humidity - 0.5) * 0.5 * speed # Favor extremes
+	#health_delta += randf_range(-0.2, 0.2) * speed
+
 	curr_health = clampf(curr_health + health_delta, 0.0, 1.0)
 	curr_height = clampf(curr_height + nutrition * speed, min_height, max_height)
 
