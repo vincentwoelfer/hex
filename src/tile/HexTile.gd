@@ -38,6 +38,7 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 		self.name = 'HexTile-Invalid'
 
 	self.geometry = null
+	self.plant = null
 
 	self.humidity = randf()
 	self.shade = randf()
@@ -48,7 +49,8 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 	if self.humidity <= 0.1:
 		self.tile_type = "Dry Meadow"
 
-	add_child(label)
+	if height > 0:
+		add_child(label)
 
 	# Signals
 	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
@@ -62,8 +64,10 @@ func _ready() -> void:
 
 
 func generate_visuals() -> void:
-	if geometry != null and plant != null:
+	if geometry != null:
 		geometry.generate()
+
+	if plant != null:
 		plant.populate_multimesh(geometry.samplerHorizontal)
 
 
@@ -159,17 +163,19 @@ func update_label() -> void:
 
 
 func assign_geometry(geom: HexGeometry) -> void:
+	# Geometry
 	if self.geometry != null:
 		remove_child(self.geometry)
-
-	if self.plant != null:
-		remove_child(self.plant)
-
 	self.geometry = geom
 	add_child(self.geometry, true)
 
-	self.plant = SurfacePlant.new()
-	add_child(self.plant, true)
+	# Plant
+	if self.plant != null:
+		remove_child(self.plant)
+
+	if self.height > 0:
+		self.plant = SurfacePlant.new()
+		add_child(self.plant, true)
 
 
 func is_valid() -> bool:

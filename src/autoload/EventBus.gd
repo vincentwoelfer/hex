@@ -21,7 +21,13 @@ signal Signal_SetVisualLightTime(new_time: float)
 #
 signal Signal_AdvanceWorldTimeOneStep() # Is input signal
 signal Signal_ToogleWorldTimeAutoAdvance()
+
 signal Signal_WorldStep()
+signal Signal_ToggleSpeedUpTime()
+signal Signal_DayTimeChanged(new_time: float)
+
+signal Signal_TriggerWeatherChange() # Manual trigger for debugging, not intended for broadcasting
+signal Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) # For broadcasting
 
 func _ready() -> void:
 	# Connect signals here to enable logging functions below.
@@ -33,6 +39,7 @@ func _ready() -> void:
 
 	# Connect to events to print debug info
 	Signal_HexConstChanged.connect(_on_Signal_HexConstChanged)
+	Signal_WeatherChanged.connect(_on_Signal_WeatherChanged)
 
 
 # Reacht to keyboard inputs to directly trigger events
@@ -52,6 +59,25 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_pressed("randomize_selected_tile"):
 			Signal_randomizeSelectedTile.emit()
 
+		if event.is_action_pressed("advance_world_time_one_hour"):
+			Signal_AdvanceWorldTimeOneStep.emit()
+		
+		if event.is_action_pressed("hold_speed_up_time"):
+			Signal_ToggleSpeedUpTime.emit()
+			
+		if event.is_action_released("hold_speed_up_time"):
+			Signal_ToggleSpeedUpTime.emit()
+			
+		if event.is_action_pressed("trigger_weather_change"):
+			Signal_TriggerWeatherChange.emit()
+		
+		if event.is_action_pressed("quit_game"):
+			get_tree().quit()
+			
 # Function to handle the signal
 func _on_Signal_HexConstChanged() -> void:
 	print("EventBus: Signal_HexConstChanged")
+
+# Function to handle the signal
+func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:
+	print("EventBus: Weather Changed to ", WeatherControl.WeatherType.keys()[new_weather])

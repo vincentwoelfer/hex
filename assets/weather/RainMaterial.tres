@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://1g3n54rngfyf"]
+
+[ext_resource type="Shader" path="res://assets/shaders/spatial/rain.gdshader" id="1_anlw2"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_anlw2")
+shader_parameter/albedo = Color(0.941176, 0.941176, 0.941176, 0.235294)

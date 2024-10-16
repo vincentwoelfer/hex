@@ -2,15 +2,16 @@
 class_name WorldLightControl
 extends Node
 
-enum WeatherType {SUNSHINE, LIGHT_RAIN, HEAVY_RAIN, FOG}
 var world_environment: WorldEnvironment
 var sun: DirectionalLight3D
 var sky: PanoramaSkyMaterial
 var world_time_manager: WorldTimeManager
+var weather_control: WeatherControl
 
 const HOURS_PER_DAY: float = 24.0
+const START_TIME: float = 8.0
 
-@export_range(0.0, HOURS_PER_DAY, 0.2) var current_time: float = 7.0:
+@export_range(0.0, HOURS_PER_DAY, 0.2) var current_time: float = START_TIME:
 	set(value):
 		current_time = value
 		if Engine.is_editor_hint():
@@ -28,23 +29,22 @@ const HOURS_PER_DAY: float = 24.0
 
 # TODO interpolate energy differently. Color change needs to happen ~2-3 hours, light intensity change only within 30min
 @export var min_sun_light_energy: float = 0.0
-@export var max_sun_light_energy: float = 3.0
-@export var min_sky_light_energy: float = 0.2
-@export var max_sky_light_energy: float = 1.0
+@export var max_sun_light_energy: float = 2.5
+@export var min_sky_light_energy: float = 0.4
+@export var max_sky_light_energy: float = 1.8
 
 @export var daytime_light_color: Color = Color8(255, 255, 205) # 205 is no mistake!
 @export var sunrise_light_color: Color = Color(1, 0.412, 0.235)
 @export var sunset_light_color: Color = Color(1, 0.412, 0.235)
 
 @export_category("Fog parameters")
-@export var daytime_fog_density: float = 0.009
-@export var sunrise_fog_density: float = 0.025
-@export var sunset_fog_density: float = 0.015
-@export var nighttime_fog_density: float = 0.025
+@export var daytime_fog_density: float = 0.006
+@export var sunrise_fog_density: float = 0.012
+@export var sunset_fog_density: float = 0.01
+@export var nighttime_fog_density: float = 0.015
 
 @export_category("Weather parameters")
-@export var starting_weather: WeatherType = WeatherType.SUNSHINE
-var current_weather: WeatherType
+@export var weather_impact_factor: float = 0.7
 
 # Actual tween duration may be limited further if time is auto-advancing
 var tween: Tween
@@ -52,7 +52,7 @@ var desired_tween_duration := 0.5
 
 # Height. -90 = Zenith.
 var sun_rotation_x_down := -10.0
-var sun_rotation_x_zenith := -30.0 # Should match ~scotland
+var sun_rotation_x_zenith := -50.0 # Should match ~scotland
 # down -> zenith -> down
 
 # East -> West, 0.0 = from South
@@ -64,11 +64,17 @@ func _ready() -> void:
 	sun = get_node('%SunLight') as DirectionalLight3D
 	sky = world_environment.environment.sky.sky_material as PanoramaSkyMaterial
 	world_time_manager = get_node('%WorldTimeManager') as WorldTimeManager
+	weather_control = get_node('%WeatherControl') as WeatherControl
 	
-	current_time = fmod(WorldTimeManager.start_time, HOURS_PER_DAY)
-	current_weather = starting_weather
-	
+	# Get actual starting time from world_time_manager
+	# Should be same as in world_time_manager but reading it here gives an error
+	if not Engine.is_editor_hint():
+		current_time = fmod(world_time_manager.current_world_time, HOURS_PER_DAY)
+	else:
+		current_time = START_TIME
+
 	EventBus.Signal_SetVisualLightTime.connect(change_time)
+	EventBus.Signal_WeatherChanged.connect(_on_weather_change)
 
 	jump_to_time(current_time)
 
@@ -83,10 +89,9 @@ func change_time(new_time: float) -> void:
 		self.tween_to_time(current_time)
 
 
-func change_wather(new_weather: WeatherType) -> void:
-	if new_weather != current_weather:
-		current_weather = new_weather
-		#update_lighting(world_time, current_weather)
+func _on_weather_change(new_weather: WeatherControl.WeatherType) -> void:
+	if not world_time_manager.auto_advance:
+		self.tween_to_time(world_time_manager.day_time)
 
 
 func jump_to_time(time: float) -> void:
@@ -94,6 +99,18 @@ func jump_to_time(time: float) -> void:
 		return
 
 	var properties := interpolate_properties_for_time(time)
+
+	# Adapt with weather properties
+	var weather_properties := weather_control.weather_properties[weather_control.current_weather]
+	for weather_property: String in weather_properties:
+		# Lerp between time-of-day and weather value
+		if properties.has(weather_property):
+			properties[weather_property] = lerp(properties[weather_property], weather_properties[weather_property], weather_impact_factor)
+
+		# Only use weather value if key is not existent in time-of-day properties
+		else:
+			push_warning("Setting weather property ", weather_property, " which is not presend in time-of-day properties")
+			properties[weather_property] = weather_properties[weather_property]
 
 	for property: String in properties.keys():
 		if property.begins_with('sun_'):
@@ -109,14 +126,28 @@ func tween_to_time(time: float) -> void:
 	if sun == null or world_environment == null or sky == null:
 		return
 
-	var properties := interpolate_properties_for_time(time)
-
 	# Delete previous tween if still existing
 	if tween:
 		tween.kill()
 
+	# Get property values only dependent on time of day
+	var properties := interpolate_properties_for_time(time)
+
+	# Adapt with weather properties
+	var weather_properties := weather_control.weather_properties[weather_control.current_weather]
+	for weather_property: String in weather_properties:
+		# Lerp between time-of-day and weather value
+		if properties.has(weather_property):
+			properties[weather_property] = lerp(properties[weather_property], weather_properties[weather_property], weather_impact_factor)
+
+		# Only use weather value if key is not existent in time-of-day properties
+		else:
+			push_warning("Setting weather property ", weather_property, " which is not presend in time-of-day properties")
+			properties[weather_property] = weather_properties[weather_property]
+
 	# Create Tween
 	tween = create_tween().set_parallel(true)
+
 	# Dont tween for longer than one hour lasts when auto-forwarding time
 	var current_tween_duration := minf(desired_tween_duration, world_time_manager.get_max_tween_time())
 

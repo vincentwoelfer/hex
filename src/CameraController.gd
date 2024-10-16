@@ -13,7 +13,7 @@ var zoom_max: float = 7.0
 
 var lookAtPoint: Vector3
 var followPoint: Vector3 # = target, also used for movement
-var orientation: int = 1 # from north looking south (to see the sun moving best)
+var orientation: int = 4 # from north looking south (to see the sun moving best)
 # current rotation in angle
 var currRotation: float = 0
 

@@ -22,7 +22,7 @@ class AdjacentHex:
 		self.type = type_
 
 
-# Input Variables
+# Input Variables. The height is absolute!
 var adjacent_hex: Array[AdjacentHex] = [AdjacentHex.new(3, ""), AdjacentHex.new(3, ""), AdjacentHex.new(1, ""), AdjacentHex.new(1, ""), AdjacentHex.new(0, ""), AdjacentHex.new(-1, "")]
 var height: int = 1
 
@@ -75,6 +75,10 @@ func generate() -> void:
 	st.set_normal(Vector3.UP)
 
 	for tri in triangles:
+		# TODO improve based on tile type
+		if self.height == 0 and tri.calculateInclineDeg() <= 60:
+			tri.color = Color.BLACK
+
 		tri.addToSurfaceTool(st)
 
 	# Removes duplicates and actually create mesh
@@ -90,19 +94,17 @@ func generate() -> void:
 	self.samplerVertical = PolygonSurfaceSampler.new(self.triangles)
 	self.samplerVertical.filter_min_incline(15)
 
-	for i in range(randi_range(3, 8)):
-		addRocks(self.samplerHorizontal.get_random_point_transform())
+	if self.height > 0:
+		for i in range(randi_range(3, 8)):
+			addRocks(self.samplerHorizontal.get_random_point_transform())
 
-	# Only for debugging
-	#terrainMesh.create_debug_tangents()
+		# Regenerate collision shape
+		terrainMesh.create_convex_collision(true, true)
 
 	# Only for statistics output-
-	var mdt := MeshDataTool.new()
-	mdt.create_from_surface(terrainMesh.mesh as ArrayMesh, 0)
+	#var mdt := MeshDataTool.new()
+	#mdt.create_from_surface(terrainMesh.mesh as ArrayMesh, 0)
 	#print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
-
-	# Regenerate collision shape
-	terrainMesh.create_convex_collision(true, true)
 
 
 func addRocks(transform_: Transform3D) -> void:
@@ -128,7 +130,6 @@ static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Arra
 		# Check for special case where one adjacent is not valid (map border).
 		# If two are not valid all are set to own height and this is handled by the default case
 		var num_invalid: int = adj.reduce(func(accum: int, elem: AdjacentHex, ) -> int: return accum + 1 if elem.type == 'invalid' else accum, 0)
-		#var num_invalid: int = 0
 		if num_invalid == 1:
 			var adj_height := 0
 			if adj[0].type != 'invalid':

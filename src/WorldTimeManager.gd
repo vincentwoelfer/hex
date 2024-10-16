@@ -1,18 +1,16 @@
 class_name WorldTimeManager
 extends Node
 
-const start_time: float = 7.0
+const start_time: float = 8.0
 var current_world_time: float = start_time
 var duration_sec_per_hour: float = 1.0
 const time_step := 1.0
+var speed_up_factor: float = 2.5
 
 var auto_advance: bool = false
+var day_time: float
 
 var timer: Timer
-
-func _on_timer_timeout() -> void:
-	print("Timer has finished!")
-
 
 func _ready() -> void:
 	timer = Timer.new()
@@ -27,10 +25,18 @@ func _ready() -> void:
 	# Connect Signals
 	EventBus.Signal_ToogleWorldTimeAutoAdvance.connect(_on_Signal_ToogleWorldTimeAutoAdvance)
 	EventBus.Signal_AdvanceWorldTimeOneStep.connect(advance_world_time_one_step)
+	EventBus.Signal_ToggleSpeedUpTime.connect(_on_Signal_ToogleSpeedUpTime)
+
 
 
 func _on_Signal_ToogleWorldTimeAutoAdvance() -> void:
 	self.set_auto_advance_time(not auto_advance)
+
+func _on_Signal_ToogleSpeedUpTime() -> void:
+	if self.timer.wait_time == duration_sec_per_hour:
+		self.timer.wait_time = duration_sec_per_hour / speed_up_factor
+	else:
+		self.timer.wait_time = duration_sec_per_hour
 
 
 func set_auto_advance_time(auto_advance_new: bool) -> void:
@@ -54,6 +60,7 @@ func advance_world_time_one_step() -> void:
 	# Advance one hour
 	current_world_time += time_step
 
-	var day_time: float = fmod(current_world_time, 24.0)
+	day_time = fmod(current_world_time, 24.0)
 	EventBus.Signal_SetVisualLightTime.emit(day_time)
 	EventBus.Signal_WorldStep.emit()
+	EventBus.Signal_DayTimeChanged.emit(day_time)
