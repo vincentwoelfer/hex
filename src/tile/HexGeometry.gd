@@ -2,9 +2,6 @@
 class_name HexGeometry
 extends Node3D
 
-const GRASS_MESH_HIGH := preload('res://assets/grass/grass_high.obj')
-const GRASS_MESH_LOW := preload('res://assets/grass/grass_low.obj')
-const GRASS_MAT: ShaderMaterial = preload('res://assets/grass/mat_grass.tres')
 const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/shaders/spatial/mat_highlight.tres')
 const DEFAULT_GEOM_MATERIAL: Material = preload("res://DefaultMaterial.tres")
 
@@ -14,7 +11,7 @@ var triangles: Array[Triangle]
 var samplerAll: PolygonSurfaceSampler
 var samplerHorizontal: PolygonSurfaceSampler
 var samplerVertical: PolygonSurfaceSampler
-var rockObjects: Array[ArrayMesh]
+var allAvailRockMeshes: Array[ArrayMesh]
 
 class AdjacentHex:
 	var height: int
@@ -37,9 +34,9 @@ func _init() -> void:
 	terrainMesh.material_overlay = HIGHLIGHT_MAT
 	add_child(terrainMesh, true)
 
-	# Load Rocks
+	# Load Rocks - hardcoded numbers for now
 	for i in range(1, 10):
-		rockObjects.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as ArrayMesh)
+		allAvailRockMeshes.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as ArrayMesh)
 
 
 func generate() -> void:
@@ -110,7 +107,7 @@ func generate() -> void:
 
 func addRocks(transform_: Transform3D) -> void:
 	var instance := MeshInstance3D.new()
-	var mesh: ArrayMesh = self.rockObjects.pick_random()
+	var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
 	instance.set_mesh(mesh)
 	instance.name = 'rock'
 	add_child(instance, true)
