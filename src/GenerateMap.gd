@@ -8,10 +8,15 @@ func _ready() -> void:
 	generate_complete_map()
 
 	# Signals
-	EventBus.Signal_HexConstChanged.connect(generate_all_hex_tile_geometry)
+	EventBus.Signal_HexConstChanged.connect(generate_complete_map)
 
 
 func generate_complete_map() -> void:
+	# MAP GENERATION STEP 1
+	# Create and instantiate empty hex-tiles, add as child and set world position
+	# Only done ONCE and expects map to be empty
+	var t_start := Time.get_ticks_msec()
+
 	# Delete from hexmap
 	MapManager.map.clear_all()
 
@@ -20,12 +25,29 @@ func generate_complete_map() -> void:
 		var height: int = determine_height(hex_pos)
 		create_empty_hex_tile(hex_pos, height)
 
+	var t := (Time.get_ticks_msec() - t_start) / 1000.0
+	print("Created %d empty hex tiles in %.3f sec" % [coordinates.size(), t])
 
+	# MAP GENERATION STEP 2
+	# Generate hex-tiles (= Geometry, Plants...). This is done by the hex tile and we only call it for every tile
+	# This allows this to be parallelized later on
 	generate_all_hex_tile_geometry()
 
-# MAP GENERATION STEP 1
-# Create and instantiate empty hex-tiles, add as child and set world position
-# Only done ONCE and expects map to be empty
+
+# STEP 2
+func generate_all_hex_tile_geometry() -> void:
+	var t_start := Time.get_ticks_msec()
+	var num_threads := 1
+
+	var coordinates := get_all_hex_coordinates(MapManager.MAP_SIZE)
+	for hex_pos in coordinates:
+		MapManager.map.get_hex(hex_pos).generate()
+
+	var t := (Time.get_ticks_msec() - t_start) / 1000.0
+	print("Populated %d hex tiles in %.3f sec (%d threads)" % [coordinates.size(), t, num_threads])
+
+
+# For STEP 1
 func create_empty_hex_tile(hex_pos: HexPos, height: int) -> void:
 	# Verify that this hex_pos does not contain a tile yet
 	assert(!MapManager.map.get_hex(hex_pos).is_valid())
@@ -38,20 +60,6 @@ func create_empty_hex_tile(hex_pos: HexPos, height: int) -> void:
 
 	# Add to the current scene
 	add_child(hex_tile, true)
-
-
-# MAP GENERATION STEP 2
-# Generate hex-tiles (= Geometry, Plants...). This is done by the hex tile and we only call it for every tile
-# This allows this to be parallelized later on
-func generate_all_hex_tile_geometry() -> void:
-	var t_start := Time.get_ticks_msec()
-
-	var coordinates := get_all_hex_coordinates(MapManager.MAP_SIZE)
-	for hex_pos in coordinates:
-		MapManager.map.get_hex(hex_pos).generate()
-
-	var t := (Time.get_ticks_msec() - t_start) / 1000.0
-	print("Regenerated map tiles in %.3f sec" % [t])
 
 
 func determine_height(hex_pos: HexPos) -> int:
@@ -76,7 +84,10 @@ func determine_height(hex_pos: HexPos) -> int:
 
 
 func get_all_hex_coordinates(N: int) -> Array[HexPos]:
+	var num := compute_num_tiles_for_map_size(N)
 	var coordinates: Array[HexPos] = []
+	coordinates.resize(num)
+	var i := 0
 
 	for q in range(-N, N + 1):
 		var r1: int = max(-N, -q - N)
@@ -84,6 +95,26 @@ func get_all_hex_coordinates(N: int) -> Array[HexPos]:
 		for r in range(r1, r2 + 1):
 			var s := -q - r
 			var hex_pos := HexPos.new(q, r, s)
-			coordinates.push_back(hex_pos)
+
+			coordinates[i] = hex_pos
+			i+=1
 
 	return coordinates
+
+
+func compute_num_tiles_for_map_size(N: int) -> int:
+	if N == 0:
+		return 0
+
+	# per layer: 6 * (layer_size-1)
+	# except for N==1 -> 1
+	var num := 0
+
+	# Runs for [1, ..., N] 
+	for n in range(1, N+1):
+		if n == 1:
+			num += 1
+		else:
+			num += 6 * (n-1)
+	return num
+
