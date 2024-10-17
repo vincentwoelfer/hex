@@ -118,7 +118,7 @@ func draw_debug_sphere(location: Vector3, r: float) -> void:
 		var scene_root := get_tree().root
 		debugSphere = MeshInstance3D.new()
 		debugSphere.name = "DebugSphere"
-		scene_root.add_child(debugSphere)
+		scene_root.add_child.call_deferred(debugSphere)
 
 	debugSphere.mesh = DebugShapes3D.create_sphere(r, Color.RED)
 	debugSphere.global_transform.origin = location

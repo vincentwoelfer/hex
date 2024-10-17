@@ -17,7 +17,7 @@ func _ready() -> void:
 	timer.wait_time = duration_sec_per_hour
 	timer.one_shot = false
 	timer.timeout.connect(advance_world_time_one_step)
-	add_child(timer)
+	add_child.call_deferred(timer)
 
 	if auto_advance:
 		timer.start()

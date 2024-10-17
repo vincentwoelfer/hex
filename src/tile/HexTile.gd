@@ -52,19 +52,19 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 		self.tile_type = "Dry Meadow"
 
 	if height > 0:
-		add_child(label)
+		add_child.call_deferred(label)
 
 	# Signals
-	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
-	EventBus.Signal_WorldStep.connect(processWorldStep)
+	EventBus.Signal_TooglePerTileUi.connect.call_deferred(toogleTileUi)
+	EventBus.Signal_WorldStep.connect.call_deferred(processWorldStep)
 
 
 func generate() -> void:
 	# Delete old stuff
 	if geometry != null:
-		remove_child(geometry)
+		remove_child.call_deferred(geometry)
 	if plant != null:
-		remove_child(plant)
+		remove_child.call_deferred(plant)
 
 	# Get relevant parameters from Map (read-only)
 	var adjacent_hex: Array[HexGeometry.AdjacentHex] = []
@@ -82,13 +82,13 @@ func generate() -> void:
 	# Add geometry
 	geometry = HexGeometry.new(height, adjacent_hex)
 	geometry.generate()
-	add_child(geometry, true)
+	add_child.call_deferred(geometry, true)
 
 	# Add plants
 	if height > 0:
 		plant = SurfacePlant.new()
 		plant.populate_multimesh(geometry.samplerHorizontal)
-		add_child(self.plant, true)
+		add_child.call_deferred(self.plant, true)
 
 
 func processWorldStep() -> void:

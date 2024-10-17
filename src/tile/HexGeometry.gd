@@ -34,7 +34,7 @@ func _init(height_: int, adjacent_hex_: Array[AdjacentHex]) -> void:
 	terrainMesh.name = "TerrainMesh"
 	terrainMesh.material_override = DEFAULT_GEOM_MATERIAL
 	terrainMesh.material_overlay = HIGHLIGHT_MATERIAL
-	add_child(terrainMesh, true)
+	add_child.call_deferred(terrainMesh, true)
 
 	# Load Rocks - hardcoded numbers for now
 	for i in range(1, 10):
@@ -114,7 +114,7 @@ func addRocks(transform_: Transform3D) -> void:
 	var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
 	instance.set_mesh(mesh)
 	instance.name = 'rock'
-	add_child(instance, true)
+	add_child.call_deferred(instance, true)
 	instance.transform = transform_.rotated_local(Vector3.UP, randf_range(0.0, TAU))
 
 

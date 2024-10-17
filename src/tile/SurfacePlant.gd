@@ -32,7 +32,7 @@ func _init() -> void:
 	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mesh_instance.material_override = GRASS_MAT
 	mesh_instance.extra_cull_margin = 1.0
-	add_child(mesh_instance, true)
+	add_child.call_deferred(mesh_instance, true)
 
 	rand_color_offset = Colors.randColorNoExtreme(0.2)
 	#if randf() <= 0.25:
