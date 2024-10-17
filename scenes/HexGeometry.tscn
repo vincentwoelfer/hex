@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://kq7cen586axk"]
-
-[ext_resource type="Script" path="res://src/tile/HexGeometry.gd" id="1_8frar"]
-
-[node name="HexGeometry" type="Node3D"]
-script = ExtResource("1_8frar")

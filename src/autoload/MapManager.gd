@@ -3,7 +3,13 @@
 @tool
 extends Node
 
-# This is the radius of the hex-map
-#const map_size: int = 3
+const MIN_HEIGHT: int = 1
+const MAX_HEIGHT: int = 20
+
+const OCEAN_HEIGHT: int = 0
+const INVALID_HEIGHT: int = -1
+
+# Includes one circle of ocean
+const MAP_SIZE: int = 5
 
 var map: HexMap = HexMap.new()

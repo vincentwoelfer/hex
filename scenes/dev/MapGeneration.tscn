@@ -77,6 +77,16 @@ center_offset = Vector3(0, 1, 0)
 
 [node name="TestScene" type="Node3D"]
 
+[node name="HexConstModifier" parent="." instance=ExtResource("12_e2267")]
+outer_radius = 4.0
+inner_radius = 3.5
+height = 0.5
+transition_height_factor = 0.5
+core_circle_smooth_strength = 0.35
+extra_verts_per_side = 4
+extra_verts_per_center = 3
+grass_density = 0.8
+
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 unique_name_in_owner = true
 environment = ExtResource("2_2n06e")
@@ -139,16 +149,6 @@ offset_top = -231.0
 offset_right = 475.0
 offset_bottom = -25.0
 grow_vertical = 0
-
-[node name="HexConstModifier" parent="." instance=ExtResource("12_e2267")]
-outer_radius = 4.0
-inner_radius = 3.5
-height = 0.5
-transition_height_factor = 0.5
-core_circle_smooth_strength = 0.35
-extra_verts_per_side = 4
-extra_verts_per_center = 3
-grass_density = 0.8
 
 [node name="Ocean" type="MeshInstance3D" parent="."]
 visible = false

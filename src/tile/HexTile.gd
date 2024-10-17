@@ -29,6 +29,8 @@ var color_humidity: Color = Color.BLUE.lightened(0.2)
 var color_shade: Color = Color.BLACK.lightened(0.1)
 var color_nutrition: Color = Color.DARK_OLIVE_GREEN
 
+
+# Does not much, only actual constructor
 func _init(hexpos_: HexPos, height_: int) -> void:
 	self.hexpos = hexpos_
 	self.height = height_
@@ -54,22 +56,39 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 
 	# Signals
 	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
-	EventBus.Signal_HexConstChanged.connect(generate_visuals)
-	
 	EventBus.Signal_WorldStep.connect(processWorldStep)
 
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	generate_visuals()
-
-
-func generate_visuals() -> void:
+func generate() -> void:
+	# Delete old stuff
 	if geometry != null:
-		geometry.generate()
-
+		remove_child(geometry)
 	if plant != null:
+		remove_child(plant)
+
+	# Get relevant parameters from Map (read-only)
+	var adjacent_hex: Array[HexGeometry.AdjacentHex] = []
+	for dir in range(6):
+		var adjacent_height: int = MapManager.map.get_hex(self.hexpos.get_neighbor(dir)).height
+		var adjacent_descr := ""
+
+		# If neighbour does not exists set height to same as own tile and mark transition
+		if adjacent_height == MapManager.INVALID_HEIGHT:
+			adjacent_height = self.height
+			adjacent_descr = 'invalid'
+
+		adjacent_hex.push_back(HexGeometry.AdjacentHex.new(adjacent_height, adjacent_descr))
+
+	# Add geometry
+	geometry = HexGeometry.new(height, adjacent_hex)
+	geometry.generate()
+	add_child(geometry, true)
+
+	# Add plants
+	if height > 0:
+		plant = SurfacePlant.new()
 		plant.populate_multimesh(geometry.samplerHorizontal)
+		add_child(self.plant, true)
 
 
 func processWorldStep() -> void:
@@ -161,22 +180,6 @@ func update_label() -> void:
 
 	# Use size (including scale) to center position in 2d correctly
 	label.position -= Vector2(label.size * 0.5 * scale_factor)
-
-
-func assign_geometry(geom: HexGeometry) -> void:
-	# Geometry
-	if self.geometry != null:
-		remove_child(self.geometry)
-	self.geometry = geom
-	add_child(self.geometry, true)
-
-	# Plant
-	if self.plant != null:
-		remove_child(self.plant)
-
-	if self.height > 0:
-		self.plant = SurfacePlant.new()
-		add_child(self.plant, true)
 
 
 func is_valid() -> bool:

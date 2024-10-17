@@ -21,13 +21,15 @@ class AdjacentHex:
 		self.height = height_
 		self.type = type_
 
-
 # Input Variables. The height is absolute!
-var adjacent_hex: Array[AdjacentHex] = [AdjacentHex.new(3, ""), AdjacentHex.new(3, ""), AdjacentHex.new(1, ""), AdjacentHex.new(1, ""), AdjacentHex.new(0, ""), AdjacentHex.new(-1, "")]
-var height: int = 1
+var adjacent_hex: Array[AdjacentHex]
+var height: int
 
 
-func _init() -> void:
+func _init(height_: int, adjacent_hex_: Array[AdjacentHex]) -> void:
+	self.height = height_
+	self.adjacent_hex = adjacent_hex_
+
 	terrainMesh = MeshInstance3D.new()
 	terrainMesh.name = "TerrainMesh"
 	terrainMesh.material_override = DEFAULT_GEOM_MATERIAL
@@ -130,6 +132,7 @@ static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Arra
 		# Check for special case where one adjacent is not valid (map border).
 		# If two are not valid all are set to own height and this is handled by the default case
 		var num_invalid: int = adj.reduce(func(accum: int, elem: AdjacentHex, ) -> int: return accum + 1 if elem.type == 'invalid' else accum, 0)
+		
 		if num_invalid == 1:
 			var adj_height := 0
 			if adj[0].type != 'invalid':
