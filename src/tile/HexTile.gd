@@ -6,6 +6,25 @@ extends Node3D
 # Parent / Struct class holding everything a hex tile can be/posess
 ######################################################
 
+#######################
+####################### Feld:
+# klima-bedingungen
+# humidity
+# Schatten  (wie viele Bäume)
+# nutrition = wie gut wachsen sachen, erde vs sand/stein
+
+# Was da drauf ist.
+#
+
+# Derived
+# => aktuellen lichteinfall = Sonne - Schatten
+
+#######################
+####################### Allgemeint Wetter:
+# Temperatur
+# Aktueller Regenfall -> mehr wasser
+# Aktuelle Sonne -> weniger wasser, mehr licht
+
 # Core Variables
 var hexpos: HexPos
 var height: int
@@ -188,23 +207,3 @@ func is_valid() -> bool:
 
 func calculate_shadow(sun_intensity: float) -> float:
 	return sun_intensity * shade
-
-
-#######################
-####################### Feld:
-# klima-bedingungen
-# humidity
-# Schatten  (wie viele Bäume)
-# nutrition = wie gut wachsen sachen, erde vs sand/stein
-
-# Was da drauf ist.
-#
-
-# Derived
-# => aktuellen lichteinfall = Sonne - Schatten
-
-#######################
-####################### Allgemeint Wetter:
-# Temperatur
-# Aktueller Regenfall -> mehr wasser
-# Aktuelle Sonne -> weniger wasser, mehr licht

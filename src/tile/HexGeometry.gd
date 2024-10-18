@@ -37,7 +37,8 @@ func _init(height_: int, adjacent_hex_: Array[AdjacentHex]) -> void:
 	add_child(terrainMesh, true)
 
 	# Load Rocks - hardcoded numbers for now
-	for i in range(1, 10):
+	#for i in range(1, 10):
+	for i in range(1, 2):
 		allAvailRockMeshes.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as ArrayMesh)
 
 
@@ -96,12 +97,22 @@ func generate() -> void:
 	self.samplerVertical = PolygonSurfaceSampler.new(self.triangles)
 	self.samplerVertical.filter_min_incline(15)
 
+	# 10 different rock meshes:		
+	# 1350 draw calls, 5300 objects, 805k primitives -> 170-190 fps
+
+	# 1 rock mesh:
+	# 1350 draw calls, 5300 objects, 900k primitieves (most complex rock loaded) -> 160-170 fps
+
+	# 1 mesh, merged (10 instances):
+	# 1740 draw calls, 1740 objects, 560k primitives -> 180-190 fps
+
 	if self.height > 0:
-		# for i in range(randi_range(3, 8)):
+		# for i in range(10):
 		# 	addRocks(self.samplerHorizontal.get_random_point_transform())
+		addRocks(self.samplerHorizontal.get_random_point_transform())
 
 		# Regenerate collision shape
-		#terrainMesh.create_convex_collision(true, true)
+		terrainMesh.create_convex_collision(true, true)
 		pass
 
 	# Only for statistics output-
@@ -113,8 +124,16 @@ func generate() -> void:
 func addRocks(transform_: Transform3D) -> void:
 	var instance := MeshInstance3D.new()
 	var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
-	instance.set_mesh(mesh)
-	instance.name = 'rock'
+	# instance.set_mesh(mesh)
+	# instance.name = 'rock'
+	# add_child(instance, true)
+	# instance.transform = transform_.rotated_local(Vector3.UP, randf_range(0.0, TAU))
+
+	var st: SurfaceTool = SurfaceTool.new()
+	for i in range(0,10):
+		st.create_from(mesh, i)
+
+	instance.set_mesh(st.commit())
 	add_child(instance, true)
 	instance.transform = transform_.rotated_local(Vector3.UP, randf_range(0.0, TAU))
 
