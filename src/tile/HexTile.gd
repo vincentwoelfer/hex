@@ -51,8 +51,9 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 	if self.humidity <= 0.1:
 		self.tile_type = "Dry Meadow"
 
-	# if height > 0:
-	# 	add_child(label)
+	if height > 0:
+		add_child(label)
+		update_label_text()
 
 	# Signals
 	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
@@ -102,21 +103,23 @@ func toogleTileUi(_is_label_visible: bool) -> void:
 
 
 func _process(delta: float) -> void:
-	pass
-	#update_label()
+	update_label_position()
 
 
 func get_scale_from_3d_distance_to_cam(global_pos: Vector3) -> float:
 	const near_dist := 10.0
-	const far_dist := 30.0
-	const min_scale := 0.4
+	const far_dist := 50.0
+	const min_scale := 0.1
 	const max_scale := 1.0
 
 	var cam := get_viewport().get_camera_3d()
 	var dist: float = cam.global_position.distance_to(global_pos)
 	var factor: float = remap(dist, near_dist, far_dist, max_scale, min_scale)
-	return clampf(factor, min_scale, max_scale)
+	var s: float = clampf(factor, min_scale, max_scale)
 
+	if s == min_scale:
+		s = 0.0
+	return s
 
 func get_alpha_from_3d_distance_to_cam(global_pos: Vector3) -> float:
 	const near_dist := 30.0
@@ -130,22 +133,7 @@ func get_alpha_from_3d_distance_to_cam(global_pos: Vector3) -> float:
 	return clampf(factor, min_scale, max_scale)
 
 
-func update_label() -> void:
-	var label_pos: Vector3 = global_position + Vector3(0.0, 0.1, 0.0)
-	var scale_factor := get_scale_from_3d_distance_to_cam(label_pos)
-
-	# Colors
-	var alpha := get_alpha_from_3d_distance_to_cam(label_pos)
-	color_humidity.a = alpha
-	color_shade.a = alpha
-	color_nutrition.a = alpha
-
-	label.scale = Vector2.ONE * scale_factor
-
-	label.position = get_viewport().get_camera_3d().unproject_position(label_pos)
-
-	label.visible = is_label_visible and not get_viewport().get_camera_3d().is_position_behind(label_pos)
-
+func update_label_text() -> void:
 	label.bbcode_enabled = true
 	label.fit_content = true
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -157,9 +145,7 @@ func update_label() -> void:
 	label.append_text('[center]')
 	label.push_font_size(text_size)
 	label.push_outline_size(18)
-	label.push_outline_color(Color(1, 1, 1, alpha))
-	#label.append_text('[font bottom_spacing=-20]')
-	#label.push_bgcolor(Color(0,0,0,0.2))
+	label.push_outline_color(Color(1, 1, 1))
 
 	# Humidity
 	label.push_color(color_humidity)
@@ -176,11 +162,24 @@ func update_label() -> void:
 	label.append_text(str(snappedf(self.nutrition, 0.1)) + ' ')
 	label.append_text('[img height=' + str(text_size) + ' color=#' + color_nutrition.to_html() + ']res://assets/ui/icons/nutrition.png[/img]\n')
 
-
 	label.pop_all()
 
+
+func update_label_position() -> void:
+	var label_world_pos: Vector3 = global_position + Vector3(0.0, 0.1, 0.0)
+
+	var scale_factor := get_scale_from_3d_distance_to_cam(label_world_pos)
+	label.scale = Vector2.ONE * scale_factor
+
 	# Use size (including scale) to center position in 2d correctly
+	label.position = get_viewport().get_camera_3d().unproject_position(label_world_pos)
 	label.position -= Vector2(label.size * 0.5 * scale_factor)
+
+	# Check if visible
+	label.visible = is_label_visible and not get_viewport().get_camera_3d().is_position_behind(label_world_pos)
+
+	# Update alpha
+	# var alpha := get_alpha_from_3d_distance_to_cam(label_world_pos)
 
 
 func is_valid() -> bool:
