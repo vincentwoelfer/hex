@@ -40,6 +40,7 @@ var weather_properties: Dictionary[WeatherType, Dictionary] = {
 var tween: Tween
 var desired_tween_duration := 0.5
 
+
 func _ready() -> void:
 	EventBus.Signal_TriggerWeatherChange.connect(force_new_weather)
 	EventBus.Signal_DayTimeChanged.connect(_on_time_progression)
@@ -93,6 +94,7 @@ func update_rain(new_weather: WeatherType) -> void:
 func _on_time_progression(day_time: float) -> void:
 	if randf() < weather_profile.weather_change_probability:
 		change_weather(weather_profile.sample_weather_type())
+
 
 func force_new_weather() -> void:
 	var new_weather := current_weather

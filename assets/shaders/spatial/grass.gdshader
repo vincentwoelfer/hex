@@ -138,10 +138,6 @@ void fragment() {
 	// Blend grass normal with terrain normal based on distance (assumes up is 0,1,0!)
 	NORMAL = mix(vec3(0,1,0), NORMAL, fog_factor);
 
-	// float h = clamp(NODE_POSITION_WORLD.y / 5., 0, 1);
-	// vec3 base_color_ = mix(base_color, base_color_dry, h);
-	// vec3 tip_color_ = mix(tip_color, tip_color_dry, h);
-
 	float height_factor = 1.0 - UV.y;
 	ALBEDO = mix(base_color, tip_color, ease_in_quartic(height_factor));
 	ALBEDO *= mix(0.1, 1.0, height_factor*height_factor); // AO

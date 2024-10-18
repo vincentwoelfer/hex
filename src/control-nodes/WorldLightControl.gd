@@ -2,11 +2,13 @@
 class_name WorldLightControl
 extends Node
 
-var world_environment: WorldEnvironment
-var sun: DirectionalLight3D
-var sky: PanoramaSkyMaterial
-var world_time_manager: WorldTimeManager
-var weather_control: WeatherControl
+@onready var sky: PanoramaSkyMaterial
+# world_environment.environment.sky.sky_material as PanoramaSkyMaterial
+
+@onready var sun: DirectionalLight3D = %SunLight as DirectionalLight3D
+@onready var world_environment: WorldEnvironment = %WorldEnvironment as WorldEnvironment
+@onready var world_time_manager: WorldTimeManager = %WorldTimeManager as WorldTimeManager
+@onready var weather_control: WeatherControl = %WeatherControl as WeatherControl
 
 const HOURS_PER_DAY: float = 24.0
 const START_TIME: float = 8.0
@@ -60,12 +62,12 @@ var sun_rotation_y_start := 90.0
 var sun_rotation_y_finish := -90.0
 
 func _ready() -> void:
-	world_environment = get_node('%WorldEnvironment') as WorldEnvironment
-	sun = get_node('%SunLight') as DirectionalLight3D
-	sky = world_environment.environment.sky.sky_material as PanoramaSkyMaterial
-	world_time_manager = get_node('%WorldTimeManager') as WorldTimeManager
-	weather_control = get_node('%WeatherControl') as WeatherControl
-	
+	# world_environment = get_node('%WorldEnvironment') as WorldEnvironment
+	# sun = get_node('%SunLight') as DirectionalLight3D
+	# sky = world_environment.environment.sky.sky_material as PanoramaSkyMaterial
+	# world_time_manager = get_node('%WorldTimeManager') as WorldTimeManager
+	# weather_control = get_node('%WeatherControl') as WeatherControl
+
 	# Get actual starting time from world_time_manager
 	# Should be same as in world_time_manager but reading it here gives an error
 	if not Engine.is_editor_hint():
@@ -101,16 +103,17 @@ func jump_to_time(time: float) -> void:
 	var properties := interpolate_properties_for_time(time)
 
 	# Adapt with weather properties
-	var weather_properties := weather_control.weather_properties[weather_control.current_weather]
-	for weather_property: String in weather_properties:
-		# Lerp between time-of-day and weather value
-		if properties.has(weather_property):
-			properties[weather_property] = lerp(properties[weather_property], weather_properties[weather_property], weather_impact_factor)
+	if weather_control != null:
+		var weather_properties := weather_control.weather_properties[weather_control.current_weather]
+		for weather_property: String in weather_properties:
+			# Lerp between time-of-day and weather value
+			if properties.has(weather_property):
+				properties[weather_property] = lerp(properties[weather_property], weather_properties[weather_property], weather_impact_factor)
 
-		# Only use weather value if key is not existent in time-of-day properties
-		else:
-			push_warning("Setting weather property ", weather_property, " which is not presend in time-of-day properties")
-			properties[weather_property] = weather_properties[weather_property]
+			# Only use weather value if key is not existent in time-of-day properties
+			else:
+				push_warning("Setting weather property ", weather_property, " which is not presend in time-of-day properties")
+				properties[weather_property] = weather_properties[weather_property]
 
 	for property: String in properties.keys():
 		if property.begins_with('sun_'):
@@ -134,16 +137,17 @@ func tween_to_time(time: float) -> void:
 	var properties := interpolate_properties_for_time(time)
 
 	# Adapt with weather properties
-	var weather_properties := weather_control.weather_properties[weather_control.current_weather]
-	for weather_property: String in weather_properties:
-		# Lerp between time-of-day and weather value
-		if properties.has(weather_property):
-			properties[weather_property] = lerp(properties[weather_property], weather_properties[weather_property], weather_impact_factor)
+	if weather_control != null:
+		var weather_properties := weather_control.weather_properties[weather_control.current_weather]
+		for weather_property: String in weather_properties:
+			# Lerp between time-of-day and weather value
+			if properties.has(weather_property):
+				properties[weather_property] = lerp(properties[weather_property], weather_properties[weather_property], weather_impact_factor)
 
-		# Only use weather value if key is not existent in time-of-day properties
-		else:
-			push_warning("Setting weather property ", weather_property, " which is not presend in time-of-day properties")
-			properties[weather_property] = weather_properties[weather_property]
+			# Only use weather value if key is not existent in time-of-day properties
+			else:
+				push_warning("Setting weather property ", weather_property, " which is not presend in time-of-day properties")
+				properties[weather_property] = weather_properties[weather_property]
 
 	# Create Tween
 	tween = create_tween().set_parallel(true)

@@ -34,7 +34,7 @@ func _init(height_: int, adjacent_hex_: Array[AdjacentHex]) -> void:
 	terrainMesh.name = "TerrainMesh"
 	terrainMesh.material_override = DEFAULT_GEOM_MATERIAL
 	terrainMesh.material_overlay = HIGHLIGHT_MATERIAL
-	add_child.call_deferred(terrainMesh, true)
+	add_child(terrainMesh, true)
 
 	# Load Rocks - hardcoded numbers for now
 	for i in range(1, 10):
@@ -97,11 +97,12 @@ func generate() -> void:
 	self.samplerVertical.filter_min_incline(15)
 
 	if self.height > 0:
-		for i in range(randi_range(3, 8)):
-			addRocks(self.samplerHorizontal.get_random_point_transform())
+		# for i in range(randi_range(3, 8)):
+		# 	addRocks(self.samplerHorizontal.get_random_point_transform())
 
 		# Regenerate collision shape
-		terrainMesh.create_convex_collision(true, true)
+		#terrainMesh.create_convex_collision(true, true)
+		pass
 
 	# Only for statistics output-
 	#var mdt := MeshDataTool.new()
@@ -114,7 +115,7 @@ func addRocks(transform_: Transform3D) -> void:
 	var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
 	instance.set_mesh(mesh)
 	instance.name = 'rock'
-	add_child.call_deferred(instance, true)
+	add_child(instance, true)
 	instance.transform = transform_.rotated_local(Vector3.UP, randf_range(0.0, TAU))
 
 

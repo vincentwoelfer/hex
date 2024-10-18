@@ -20,7 +20,7 @@ func _ready() -> void:
 	
 	var mesh_instance := MeshInstance3D.new()
 	mesh_instance.mesh = immediate_mesh
-	add_child.call_deferred(mesh_instance)
+	add_child(mesh_instance)
 
 
 # Function to create an arrow geometry using ImmediateGeometry

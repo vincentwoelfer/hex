@@ -51,20 +51,20 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 	if self.humidity <= 0.1:
 		self.tile_type = "Dry Meadow"
 
-	if height > 0:
-		add_child.call_deferred(label)
+	# if height > 0:
+	# 	add_child(label)
 
 	# Signals
-	EventBus.Signal_TooglePerTileUi.connect.call_deferred(toogleTileUi)
-	EventBus.Signal_WorldStep.connect.call_deferred(processWorldStep)
+	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
+	EventBus.Signal_WorldStep.connect(processWorldStep)
 
 
 func generate() -> void:
 	# Delete old stuff
 	if geometry != null:
-		remove_child.call_deferred(geometry)
+		remove_child(geometry)
 	if plant != null:
-		remove_child.call_deferred(plant)
+		remove_child(plant)
 
 	# Get relevant parameters from Map (read-only)
 	var adjacent_hex: Array[HexGeometry.AdjacentHex] = []
@@ -82,13 +82,13 @@ func generate() -> void:
 	# Add geometry
 	geometry = HexGeometry.new(height, adjacent_hex)
 	geometry.generate()
-	add_child.call_deferred(geometry, true)
+	add_child(geometry, true)
 
 	# Add plants
 	if height > 0:
 		plant = SurfacePlant.new()
 		plant.populate_multimesh(geometry.samplerHorizontal)
-		add_child.call_deferred(self.plant, true)
+		add_child(self.plant, true)
 
 
 func processWorldStep() -> void:
@@ -102,7 +102,8 @@ func toogleTileUi(_is_label_visible: bool) -> void:
 
 
 func _process(delta: float) -> void:
-	update_label()
+	pass
+	#update_label()
 
 
 func get_scale_from_3d_distance_to_cam(global_pos: Vector3) -> float:

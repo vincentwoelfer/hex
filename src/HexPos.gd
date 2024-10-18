@@ -13,6 +13,7 @@ func _init(q_: int, r_: int, s_: int) -> void:
     if q + r + s != 0:
         push_error("q + r + s must be 0")
 
+
 func _to_string() -> String:
     return '(' + str(q) + ', ' + str(r) + ', ' + str(s) + ')'
 
@@ -119,6 +120,7 @@ static func hexpos_to_xy(hex_pos: HexPos) -> Vector2:
 
 static func xyz_to_hexpos_frac(world_pos: Vector3) -> HexPosFrac:
     return xy_to_hexpos_frac(Vector2(world_pos.x, world_pos.z))
+
 
 static func xy_to_hexpos_frac(world_pos: Vector2) -> HexPosFrac:
     var size: Vector2 = Vector2(HexConst.outer_radius, HexConst.outer_radius)

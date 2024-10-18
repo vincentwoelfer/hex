@@ -11,6 +11,6 @@ const INVALID_HEIGHT: int = -1
 
 # Includes one circle of ocean
 # Size = n means n circles around the map origin. So n=1 means 7 tiles (one origin tile and 6 additional tiles)
-const MAP_SIZE: int = 2
+const MAP_SIZE: int = 12
 
 var map: HexMap = HexMap.new()

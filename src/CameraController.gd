@@ -99,7 +99,7 @@ func _process(delta: float) -> void:
 	global_position = camPos
 	look_at(lookAtPoint)
 
-	#draw_debug_sphere(lookAtPoint, maxf(currcurrcurrcurrcurrZoomTarget * 0.1, 0.025))
+	#draw_debug_sphere(lookAtPoint, maxf(currZoomTarget * 0.1, 0.025))
 
 	self.check_for_selection()
 
@@ -118,7 +118,7 @@ func draw_debug_sphere(location: Vector3, r: float) -> void:
 		var scene_root := get_tree().root
 		debugSphere = MeshInstance3D.new()
 		debugSphere.name = "DebugSphere"
-		scene_root.add_child.call_deferred(debugSphere)
+		scene_root.add_child(debugSphere)
 
 	debugSphere.mesh = DebugShapes3D.create_sphere(r, Color.RED)
 	debugSphere.global_transform.origin = location
