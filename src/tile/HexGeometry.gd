@@ -37,8 +37,8 @@ func _init(height_: int, adjacent_hex_: Array[AdjacentHex]) -> void:
 	add_child(terrainMesh, true)
 
 	# Load Rocks - hardcoded numbers for now
-	#for i in range(1, 10):
-	for i in range(1, 2):
+	for i in range(1, 10):
+	#for i in range(1, 2):
 		allAvailRockMeshes.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as ArrayMesh)
 
 
@@ -103,8 +103,11 @@ func generate() -> void:
 	# 1 rock mesh:
 	# 1350 draw calls, 5300 objects, 900k primitieves (most complex rock loaded) -> 160-170 fps
 
-	# 1 mesh, merged (10 instances):
+	# 1 mesh, merged (10 instances, not translated):
 	# 1740 draw calls, 1740 objects, 560k primitives -> 180-190 fps
+
+	# 1 mesh, merged, translated no material:
+	# 1740 draw calls, 1740 objects, 900k primitives -> 175-190 fps
 
 	if self.height > 0:
 		# for i in range(10):
@@ -123,19 +126,30 @@ func generate() -> void:
 
 func addRocks(transform_: Transform3D) -> void:
 	var instance := MeshInstance3D.new()
-	var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
+	#var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
 	# instance.set_mesh(mesh)
 	# instance.name = 'rock'
 	# add_child(instance, true)
 	# instance.transform = transform_.rotated_local(Vector3.UP, randf_range(0.0, TAU))
 
-	var st: SurfaceTool = SurfaceTool.new()
-	for i in range(0,10):
-		st.create_from(mesh, i)
+	########################################################
+	########################################################
+	########################################################
 
-	instance.set_mesh(st.commit())
+	var st_combined: SurfaceTool = SurfaceTool.new()
+	
+	for i in range(0,10):
+		var t : Transform3D = transform_.rotated_local(Vector3.UP, randf_range(0.0, TAU))
+		t = t.translated_local(Vector3(randf_range(-2,2), 0, randf_range(-2,2)))
+		st_combined.append_from(self.allAvailRockMeshes.pick_random() as ArrayMesh, 0, t)
+
+	instance.set_mesh(st_combined.commit())
 	add_child(instance, true)
-	instance.transform = transform_.rotated_local(Vector3.UP, randf_range(0.0, TAU))
+	#instance.transform = transform_.rotated_local(Vector3.UP, randf_range(0.0, TAU))
+
+	########################################################
+	########################################################
+	########################################################
 
 
 static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Array[AdjacentHex], own_height: int) -> void:
