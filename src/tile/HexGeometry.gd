@@ -5,6 +5,8 @@ extends Node3D
 const HIGHLIGHT_MATERIAL: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
 const DEFAULT_GEOM_MATERIAL: Material = preload('res://assets/materials/default_geom_material.tres')
 
+const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.tres')
+
 # Class variables
 var terrainMesh: MeshInstance3D
 var triangles: Array[Triangle]
@@ -106,13 +108,19 @@ func generate() -> void:
 	# 1 mesh, merged (10 instances, not translated):
 	# 1740 draw calls, 1740 objects, 560k primitives -> 180-190 fps
 
-	# 1 mesh, merged, translated no material:
+	# 10 meshes, merged, translated no material:
 	# 1740 draw calls, 1740 objects, 900k primitives -> 175-190 fps
+
+	# 100 meshes, merged, translated no material:
+	# 1740 draw calls, 1740 objects, 3380k primitives -> 130-140 fps
+
+	# 10 rocks, all different, with material, with grass
+	# 1740 deaw calls / objects -> 800k prims -> 200fps
 
 	if self.height > 0:
 		# for i in range(10):
 		# 	addRocks(self.samplerHorizontal.get_random_point_transform())
-		addRocks(self.samplerHorizontal.get_random_point_transform())
+		addRocks(self.samplerHorizontal)
 
 		# Regenerate collision shape
 		terrainMesh.create_convex_collision(true, true)
@@ -124,7 +132,8 @@ func generate() -> void:
 	#print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
 
 
-func addRocks(transform_: Transform3D) -> void:
+#func addRocks(transform_: Transform3D) -> void:
+func addRocks(sampler: PolygonSurfaceSampler) -> void:
 	var instance := MeshInstance3D.new()
 	#var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
 	# instance.set_mesh(mesh)
@@ -138,12 +147,14 @@ func addRocks(transform_: Transform3D) -> void:
 
 	var st_combined: SurfaceTool = SurfaceTool.new()
 	
-	for i in range(0,10):
-		var t : Transform3D = transform_.rotated_local(Vector3.UP, randf_range(0.0, TAU))
-		t = t.translated_local(Vector3(randf_range(-2,2), 0, randf_range(-2,2)))
-		st_combined.append_from(self.allAvailRockMeshes.pick_random() as ArrayMesh, 0, t)
+	for i in range(0, 10):
+		var t: Transform3D = sampler.get_random_point_transform()
+		t = t.rotated_local(Vector3.UP, randf_range(0.0, TAU))
+		var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
+		st_combined.append_from(mesh, 0, t)
 
 	instance.set_mesh(st_combined.commit())
+	instance.material_override = ROCKS_MATERIAL
 	add_child(instance, true)
 	#instance.transform = transform_.rotated_local(Vector3.UP, randf_range(0.0, TAU))
 
