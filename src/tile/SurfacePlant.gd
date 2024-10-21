@@ -99,7 +99,7 @@ func processWorldStep(humidity: float, shade: float, nutrition: float) -> void:
 func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	var density_1d: int = ceil((HexConst.inner_radius + HexConst.outer_radius) / 2.0 * lerpf(0.0, 20.0, HexConst.grass_density));
 	num_blades_total = round(density_1d * density_1d)
-	var mesh_to_use: Mesh = GRASS_MESH_LOW
+	var mesh_to_use: Mesh = GRASS_MESH_HIGH
 
 	# Reduce in editor
 	if Engine.is_editor_hint():

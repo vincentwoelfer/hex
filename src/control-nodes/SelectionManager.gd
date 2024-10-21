@@ -40,6 +40,6 @@ func unhighlight_current() -> void:
 
 func randomize_selected_tile() -> void:
 	if current_selection != null:
-		current_selection.humidity = randf()
-		current_selection.shade = randf()
-		current_selection.nutrition = randf()
+		current_selection.params.humidity = randf()
+		current_selection.params.shade = randf()
+		current_selection.params.nutrition = randf()

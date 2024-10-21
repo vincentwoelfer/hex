@@ -42,7 +42,7 @@ func _ready() -> void:
 	Signal_WeatherChanged.connect(_on_Signal_WeatherChanged)
 
 
-# Reacht to keyboard inputs to directly trigger events
+# React to keyboard inputs to directly trigger events
 func _input(event: InputEvent) -> void:
 	# Only execute in game, check necessary because EventBus is @tool
 	if not Engine.is_editor_hint():

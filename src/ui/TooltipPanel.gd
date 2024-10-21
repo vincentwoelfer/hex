@@ -28,23 +28,24 @@ func on_selection_changed(new_selection: HexTile) -> void:
 
 func update_text() -> void:
 	var hex_tile := curr_selection
+	var params := hex_tile.params
 	if curr_selection == null:
 		return
 
-	header.text = hex_tile.tile_type
+	header.text = params.tile_type
 	tooltip.text = ""
 	#color_humidity.a = clampf(1, 0.8, 1)
 	#label.push_color(color_humidity)
 	#label.push_outline_color(Color(1, 1, 1, 1 * label_scale))
 	tooltip.append_text('[img color=#' + icon_color.to_html() + ' width=' + str(icon_width) + ']res://assets/ui/icons/raindrop.png[/img]')
-	tooltip.append_text(str(" ", snappedf(hex_tile.humidity, 0.1), "\t(Soil humidity)", '\n'))
+	tooltip.append_text(str(" ", snappedf(params.humidity, 0.1), "\t(Soil humidity)", '\n'))
 
 	# Shade
 	tooltip.append_text('[img color=#' + icon_color.to_html() + ' width=' + str(icon_width) + ']res://assets/ui/icons/shade_white.png[/img]')
-	tooltip.append_text(str(" ", snappedf(1.0 - hex_tile.shade, 0.1), "\t(Sun exposure)", '\n'))
+	tooltip.append_text(str(" ", snappedf(1.0 - params.shade, 0.1), "\t(Sun exposure)", '\n'))
 
 	tooltip.append_text('[img color=#' + icon_color.to_html() + ' width=' + str(icon_width) + ']res://assets/ui/icons/nutrition.png[/img]')
-	tooltip.append_text(str(" ", snappedf(hex_tile.nutrition, 0.1), "\t(Nutrition content)", '\n'))
+	tooltip.append_text(str(" ", snappedf(params.nutrition, 0.1), "\t(Nutrition content)", '\n'))
 
 	tooltip.append_text("\n\n-------------------------\n")
 	tooltip.push_italics()
@@ -53,7 +54,7 @@ func update_text() -> void:
 	tooltip.pop_all()
 
 
-func show_tooltip(hex_tile: HexTile) -> void:
+func show_tooltip(params: HexTile) -> void:
 	if tween:
 		tween.kill()
 
@@ -69,14 +70,16 @@ func compose_infotext(hex_tile: HexTile) -> String:
 	var event_text := ""
 	var plant_text := ""
 
-	if hex_tile.humidity < 0.2:
+	var params := hex_tile.params
+
+	if params.humidity < 0.2:
 		hazard_text += "\u26A0The ground is very dry.\n"
-	if hex_tile.shade > 0.6:
+	if params.shade > 0.6:
 		hazard_text += "\u26A0This spot receives little sun light.\n"
-	if hex_tile.nutrition < 0.3:
+	if params.nutrition < 0.3:
 		hazard_text += "\u26A0The soil contains hardly any nutrients.\n"
 
-	if hex_tile.is_secret_stash:
+	if params.is_secret_stash:
 		event_text += "\u2753It looks like there might be something burried here.\n"
 
 	if hazard_text != "":

@@ -24,7 +24,7 @@ height = 0.5
 transition_height_factor = 0.5
 core_circle_smooth_strength = 0.35
 extra_verts_per_side = 4
-extra_verts_per_center = 4
+extra_verts_per_center = 0
 grass_density = 0.8
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
