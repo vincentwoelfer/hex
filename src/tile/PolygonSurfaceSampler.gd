@@ -9,12 +9,18 @@ func _init(triangles_: Array[Triangle]) -> void:
 	self._calculate_area_weights()
 
 
+func is_valid() -> bool:
+	return !self.triangles.is_empty()
+
+
 func filter_max_incline(max_incline_deg: float) -> void:
 	self.triangles = triangles.filter(func(tri: Triangle) -> bool:
 		# Return true to keep triangle
 		return tri.calculateInclineDeg() <= max_incline_deg
 	)
 	self._calculate_area_weights()
+	if self.triangles.is_empty():
+		push_warning("Triangle list in PolygonSurfaceSampler is empty after filtering for max_incline <= %f" % [max_incline_deg])
 
 
 func filter_min_incline(min_incline_deg: float) -> void:
@@ -23,15 +29,17 @@ func filter_min_incline(min_incline_deg: float) -> void:
 		return tri.calculateInclineDeg() >= min_incline_deg
 	)
 	self._calculate_area_weights()
+	if self.triangles.is_empty():
+		push_warning("Triangle list in PolygonSurfaceSampler is empty after filtering for min_incline >= %f" % [min_incline_deg])
 
 
 func get_random_point() -> Vector3:
-	var tri_idx: int = _weighted_random_choice(self.area_weights)
+	var tri_idx: int = _weighted_random_choice()
 	return self.triangles[tri_idx].getRandPoint()
 
 
 func get_random_point_transform() -> Transform3D:
-	var tri_idx: int = _weighted_random_choice(self.area_weights)
+	var tri_idx: int = _weighted_random_choice()
 	var tri: Triangle = self.triangles[tri_idx]
 	return Util.transformFromPointAndNormal(tri.getRandPoint(), tri.getNormal())
 
@@ -49,16 +57,16 @@ func _calculate_area_weights() -> void:
 		area_weights.append(area / total_area)
 
 
-func _weighted_random_choice(weights: Array[float]) -> int:
+func _weighted_random_choice() -> int:
 	var total_weight: float = 0.0
-	for weight in weights:
+	for weight in area_weights:
 		total_weight += weight
-	
+
 	var rand: float = randf() * total_weight
-	for i in range(weights.size()):
-		if rand < weights[i]:
+	for i in range(area_weights.size()):
+		if rand < area_weights[i]:
 			return i
-		rand -= weights[i]
-	
+		rand -= area_weights[i]
+
 	# Fallback in case of rounding errors
-	return weights.size() - 1
+	return area_weights.size() - 1

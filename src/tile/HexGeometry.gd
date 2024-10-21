@@ -15,6 +15,7 @@ var samplerHorizontal: PolygonSurfaceSampler
 var samplerVertical: PolygonSurfaceSampler
 var allAvailRockMeshes: Array[ArrayMesh]
 
+
 class AdjacentHex:
 	var height: int
 	var type: String # unused for now
@@ -40,7 +41,6 @@ func _init(height_: int, adjacent_hex_: Array[AdjacentHex]) -> void:
 
 	# Load Rocks - hardcoded numbers for now
 	for i in range(1, 10):
-	#for i in range(1, 2):
 		allAvailRockMeshes.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as ArrayMesh)
 
 
@@ -52,20 +52,21 @@ func generate() -> void:
 	#########################################
 	# Adjust vertex heights
 	#########################################
-	# Adjust height of inner ring
-	for i in range(verts_inner.size()):
-		var h_var := 0.05
-		verts_inner[i] += Util.randCircularOffset(HexConst.inner_radius * 0.04)
-		verts_inner[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
-
-	# Adjust center vertices
-	for i in range(verts_center.size()):
-		var h_var := 0.07
-		verts_center[i] += Util.randCircularOffset(HexConst.inner_radius * 0.1)
-		verts_center[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
-
 	# Adjust outer/transitional vertex heights
 	modifyOuterVertexHeights(verts_outer, adjacent_hex, height)
+
+	# Get quick reference to the 6 corner vertices
+	var corners: Array[Vector3]
+	for i in range(6):
+		var corner_vertex_index := i * (3 + HexConst.extra_verts_per_side)
+		corners.push_back(verts_outer[corner_vertex_index])
+
+	modifyInnerAndCenterVertexHeights(verts_inner, verts_center, corners)
+
+	# TODO make pretty
+	# Modify outer verts aswell
+	for i in range(verts_outer.size()):
+		verts_outer[i].y = getInterpolatedHeight(verts_outer[i], corners)
 
 	#########################################
 	# Triangulate
@@ -94,11 +95,13 @@ func generate() -> void:
 	# Recreate triangle samplerAll
 	self.samplerAll = PolygonSurfaceSampler.new(self.triangles)
 	self.samplerHorizontal = PolygonSurfaceSampler.new(self.triangles)
-	self.samplerHorizontal.filter_max_incline(15)
+	self.samplerHorizontal.filter_max_incline(20)
 
 	self.samplerVertical = PolygonSurfaceSampler.new(self.triangles)
-	self.samplerVertical.filter_min_incline(15)
+	self.samplerVertical.filter_min_incline(20)
 
+
+	# PERFORMANCE TESTS:
 	# 10 different rock meshes:		
 	# 1350 draw calls, 5300 objects, 805k primitives -> 170-190 fps
 
@@ -118,13 +121,11 @@ func generate() -> void:
 	# 1740 deaw calls / objects -> 800k prims -> 200fps
 
 	if self.height > 0:
-		# for i in range(10):
-		# 	addRocks(self.samplerHorizontal.get_random_point_transform())
-		addRocks(self.samplerHorizontal)
+		if self.samplerHorizontal.is_valid():
+			addRocks(self.samplerHorizontal)
 
 		# Regenerate collision shape
 		terrainMesh.create_convex_collision(true, true)
-		pass
 
 	# Only for statistics output-
 	#var mdt := MeshDataTool.new()
@@ -134,6 +135,9 @@ func generate() -> void:
 
 #func addRocks(transform_: Transform3D) -> void:
 func addRocks(sampler: PolygonSurfaceSampler) -> void:
+	if not sampler.is_valid():
+		return
+
 	var instance := MeshInstance3D.new()
 	#var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
 	# instance.set_mesh(mesh)
@@ -161,6 +165,76 @@ func addRocks(sampler: PolygonSurfaceSampler) -> void:
 	########################################################
 	########################################################
 	########################################################
+
+static func modifyInnerAndCenterVertexHeights(verts_inner: Array[Vector3], verts_center: Array[Vector3], corners: Array[Vector3]) -> void:
+	# Modify randomly:
+	# # Adjust height of inner ring
+	# for i in range(verts_inner.size()):
+	# 	var h_var := 0.05
+	# 	verts_inner[i] += Util.randCircularOffset(HexConst.inner_radius * 0.04)
+	# 	verts_inner[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
+
+	# # Adjust center vertices
+	# for i in range(verts_center.size()):
+	# 	var h_var := 0.07
+	# 	verts_center[i] += Util.randCircularOffset(HexConst.inner_radius * 0.1)
+	# 	verts_center[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
+
+	# Set height according to weightes average of hex corners
+	for i in range(verts_center.size()):
+		verts_center[i].y = getInterpolatedHeight(verts_center[i], corners)
+
+	for i in range(verts_inner.size()):
+		verts_inner[i].y = getInterpolatedHeight(verts_inner[i], corners)
+
+
+static func getInterpolatedHeight(p: Vector3, corners: Array[Vector3]) -> float:
+	var weights := computeBarycentricWeights(p, corners)
+	var h: float = 0
+	for i in range(6):
+		h += weights[i] * corners[i].y
+
+	return h
+
+static func computeBarycentricWeights(p: Vector3, corners: Array[Vector3]) -> Array[float]:
+	# See http://www.geometry.caltech.edu/pubs/MHBD02.pdf
+	
+	var weights: Array[float]
+	var weight_sum: float = 0
+	for i in range(6):
+		var prev := (i - 1 + 6) % 6
+		var next := (i + 1) % 6
+		var tan1 := cotangent(Util.toVec2(p), Util.toVec2(corners[i]), Util.toVec2(corners[prev]))
+		var tan2 := cotangent(Util.toVec2(p), Util.toVec2(corners[i]), Util.toVec2(corners[next]))
+
+		var w: float
+
+		# Check if p is very close to hexagon border
+		if isPointCloseToEdge(Util.toVec2(p), Util.toVec2(corners[i]), Util.toVec2(corners[next])):
+			w = (Util.toVec2(p) - Util.toVec2(corners[i])).length_squared()
+		else:
+			w = (tan1 + tan2) / (Util.toVec2(p) - Util.toVec2(corners[i])).length_squared()
+
+		weights.push_back(w)
+		weight_sum += w
+
+	# Normalizte weights
+	for i in range(6):
+		weights[i] /= weight_sum
+	
+	return weights
+
+
+static func isPointCloseToEdge(p: Vector2, a: Vector2, b: Vector2) -> bool:
+	var cross_product: float = (b - a).cross(p - a)
+	var magnitude_condition: float = 0.001 * (b - a).length()
+	return cross_product <= magnitude_condition
+
+
+static func cotangent(a: Vector2, b: Vector2, c: Vector2) -> float:
+	var ba := a - b
+	var bc := c - b
+	return bc.dot(ba) / abs(bc.cross(ba))
 
 
 static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Array[AdjacentHex], own_height: int) -> void:
@@ -283,14 +357,12 @@ static func triangulateOuter(verts_inner: Array[Vector3], verts_outer: Array[Vec
 	for x in range(6):
 		var col := Colors.getDistincHexColor(x)
 
-		# start inner
+		# start inner & outer
 		var i := x * (1 + HexConst.extra_verts_per_side)
-		# start outer
 		var j := x * (3 + HexConst.extra_verts_per_side)
 
-		# end inner
+		# end inner & outer
 		var n1 := (x + 1) * (1 + HexConst.extra_verts_per_side)
-		# end outer
 		var n2 := (x + 1) * (3 + HexConst.extra_verts_per_side) - 1
 
 		# Triangulate start-corner manually here
@@ -363,9 +435,6 @@ static func generateFullHexagonNoCorners(r: float, extra_verts_per_side: int, sm
 
 # Compute the 3 Vector3 points for one hex corner
 static func getThreeHexCornerVertices(r_inner: float, r_outer: float, angle: float) -> Array[Vector3]:
-	#assert(is_zero_approx(fmod(angle, PI / 3.0)), "Angle must be a multiple of PI/3!")
-	#assert(r_outer > r_inner)
-
 	# No smooth strength since corner
 	var inner_corner := Util.getHexVertex(r_inner, angle)
 	var outer_corner := Util.getHexVertex(r_outer, angle)

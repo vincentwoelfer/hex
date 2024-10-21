@@ -1,3 +1,4 @@
+@tool
 class_name WorldTimeManager
 extends Node
 
@@ -11,6 +12,11 @@ var auto_advance: bool = false
 var day_time: float
 
 var timer: Timer
+
+
+@export_tool_button("Advance World Time", "Callable")
+var button_action := self.advance_world_time_one_step
+
 
 func _ready() -> void:
 	timer = Timer.new()
@@ -28,9 +34,9 @@ func _ready() -> void:
 	EventBus.Signal_ToggleSpeedUpTime.connect(_on_Signal_ToogleSpeedUpTime)
 
 
-
 func _on_Signal_ToogleWorldTimeAutoAdvance() -> void:
 	self.set_auto_advance_time(not auto_advance)
+
 
 func _on_Signal_ToogleSpeedUpTime() -> void:
 	if self.timer.wait_time == duration_sec_per_hour:

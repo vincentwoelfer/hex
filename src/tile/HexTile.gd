@@ -90,7 +90,7 @@ func generate() -> void:
 	add_child(geometry, true)
 
 	# Add plants
-	if height > 0:
+	if height > 0 and geometry.samplerHorizontal.is_valid():
 		plant = SurfacePlant.new()
 		plant.populate_multimesh(geometry.samplerHorizontal)
 		add_child(self.plant, true)

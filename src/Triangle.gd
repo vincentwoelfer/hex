@@ -18,7 +18,7 @@ func _init(a_: Vector3, b_: Vector3, c_: Vector3, color_: Color = Color()) -> vo
 	assert(a != b and a != c and b != c, "Triangle points must be different")
 
 	# For testing, set color based on incline
-	color = Colors.getColorForIncline(calculateInclineDeg())
+	# color = Colors.getColorForIncline(calculateInclineDeg())
 	
 
 func getArea() -> float:
