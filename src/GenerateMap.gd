@@ -33,6 +33,22 @@ func generate_complete_map() -> void:
 	# This allows this to be parallelized later on
 	generate_all_hex_tile_geometry()
 
+	########################################################
+	########################################################
+	########################################################
+	# TESTING - STEP 3 MERGE ALL TERAIN
+	# var instance := MeshInstance3D.new()
+	# var st_combined: SurfaceTool = SurfaceTool.new()
+
+	# for hex_pos in coordinates:
+	# 	var tile :HexTile = MapManager.map.get_hex(hex_pos)
+	# 	st_combined.append_from(tile.geometry.terrainMesh.mesh, 0, tile.global_transform)
+
+	# instance.set_mesh(st_combined.commit())
+	# const DEFAULT_GEOM_MATERIAL: Material = preload('res://assets/materials/default_geom_material.tres')
+	# instance.material_override = DEFAULT_GEOM_MATERIAL
+	# add_child(instance, true)
+
 
 # For STEP 1
 func create_empty_hex_tile(hex_pos: HexPos, height: int) -> void:
