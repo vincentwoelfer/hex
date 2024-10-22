@@ -20,7 +20,7 @@ func filter_max_incline(max_incline_deg: float) -> void:
 	)
 	self._calculate_area_weights()
 	if self.triangles.is_empty():
-		push_warning("Triangle list in PolygonSurfaceSampler is empty after filtering for max_incline <= %f" % [max_incline_deg])
+		print("Triangle list in PolygonSurfaceSampler is empty after filtering for max_incline <= %f" % [max_incline_deg])
 
 
 func filter_min_incline(min_incline_deg: float) -> void:
@@ -30,15 +30,23 @@ func filter_min_incline(min_incline_deg: float) -> void:
 	)
 	self._calculate_area_weights()
 	if self.triangles.is_empty():
-		push_warning("Triangle list in PolygonSurfaceSampler is empty after filtering for min_incline >= %f" % [min_incline_deg])
+		print("Triangle list in PolygonSurfaceSampler is empty after filtering for min_incline >= %f" % [min_incline_deg])
 
 
 func get_random_point() -> Vector3:
+	if not is_valid():
+		push_warning("Tried to get point from PolygonSurfaceSampler but triangle list is empty!")
+		return Vector3.ZERO
+
 	var tri_idx: int = _weighted_random_choice()
 	return self.triangles[tri_idx].getRandPoint()
 
 
 func get_random_point_transform() -> Transform3D:
+	if not is_valid():
+		push_warning("Tried to get transform from PolygonSurfaceSampler but triangle list is empty!")
+		return Transform3D.IDENTITY
+
 	var tri_idx: int = _weighted_random_choice()
 	var tri: Triangle = self.triangles[tri_idx]
 	return Util.transformFromPointAndNormal(tri.getRandPoint(), tri.getNormal())

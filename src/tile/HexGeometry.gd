@@ -63,10 +63,7 @@ func generate() -> void:
 
 	modifyInnerAndCenterVertexHeights(verts_inner, verts_center, corners)
 
-	# TODO make pretty
-	# Modify outer verts aswell
-	for i in range(verts_outer.size()):
-		verts_outer[i].y = getInterpolatedHeight(verts_outer[i], corners)
+	modifyOuterVertexHeightsAgain(verts_outer, corners)
 
 	#########################################
 	# Triangulate
@@ -81,7 +78,7 @@ func generate() -> void:
 	st.set_normal(Vector3.UP)
 
 	for tri in triangles:
-		# TODO improve based on tile type
+		# TODO improve based on tile type. THis is a super dirty way to color the ocean floor/map border tiles
 		if self.height == 0 and tri.calculateInclineDeg() <= 60:
 			tri.color = Color.BLACK
 
@@ -95,10 +92,10 @@ func generate() -> void:
 	# Recreate triangle samplerAll
 	self.samplerAll = PolygonSurfaceSampler.new(self.triangles)
 	self.samplerHorizontal = PolygonSurfaceSampler.new(self.triangles)
-	self.samplerHorizontal.filter_max_incline(20)
+	self.samplerHorizontal.filter_max_incline(45)
 
 	self.samplerVertical = PolygonSurfaceSampler.new(self.triangles)
-	self.samplerVertical.filter_min_incline(20)
+	self.samplerVertical.filter_min_incline(45)
 
 
 	# PERFORMANCE TESTS:
@@ -167,6 +164,7 @@ func addRocks(sampler: PolygonSurfaceSampler) -> void:
 	########################################################
 
 static func modifyInnerAndCenterVertexHeights(verts_inner: Array[Vector3], verts_center: Array[Vector3], corners: Array[Vector3]) -> void:
+	# PREVIOUS:
 	# Modify randomly:
 	# # Adjust height of inner ring
 	# for i in range(verts_inner.size()):
@@ -182,13 +180,23 @@ static func modifyInnerAndCenterVertexHeights(verts_inner: Array[Vector3], verts
 
 	# Set height according to weightes average of hex corners
 	for i in range(verts_center.size()):
-		verts_center[i].y = getInterpolatedHeight(verts_center[i], corners)
+		verts_center[i].y = getInterpolatedHeightInside(verts_center[i], corners)
 
 	for i in range(verts_inner.size()):
-		verts_inner[i].y = getInterpolatedHeight(verts_inner[i], corners)
+		verts_inner[i].y = getInterpolatedHeightInside(verts_inner[i], corners)
 
 
-static func getInterpolatedHeight(p: Vector3, corners: Array[Vector3]) -> float:
+static func modifyOuterVertexHeightsAgain(verts_outer: Array[Vector3], corners: Array[Vector3]) -> void:
+	for i in range(verts_outer.size()):
+		var is_corner: bool = i % (3 + HexConst.extra_verts_per_side) == 0
+
+		if not is_corner:
+			var prev_corner_idx := 
+			# Compute interpolated height between two corner vertices
+			#verts_outer[i].y = 
+
+
+static func getInterpolatedHeightInside(p: Vector3, corners: Array[Vector3]) -> float:
 	var weights := computeBarycentricWeights(p, corners)
 	var h: float = 0
 	for i in range(6):

@@ -134,6 +134,7 @@ func compute_num_tiles_for_map_size(N: int) -> int:
 
 
 # OLD ATTEMPT TO MULTITHREAD THIS - DOES NOT WORK
+# THERE IS A WORKER_POOL CLASS FOR THIS, USE IT INSTEAD
 # # STEP 2
 # func generate_all_hex_tile_geometry() -> void:
 # 	var t_start := Time.get_ticks_msec()
