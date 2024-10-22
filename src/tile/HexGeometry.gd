@@ -189,10 +189,14 @@ static func modifyInnerAndCenterVertexHeights(verts_inner: Array[Vector3], verts
 static func modifyOuterVertexHeightsAgain(verts_outer: Array[Vector3], corners: Array[Vector3]) -> void:
 	for i in range(verts_outer.size()):
 		var is_corner: bool = i % (3 + HexConst.extra_verts_per_side) == 0
-
+		
 		if not is_corner:
-			verts_outer[i].y = getInterpolatedHeightInside(verts_outer[i], corners)
-			# TODO 
+			var prev_corner: int = i - (i % (3 + HexConst.extra_verts_per_side))
+			var next_corner: int = (prev_corner + (3 + HexConst.extra_verts_per_side)) % verts_outer.size()
+
+			var t := compute_t_on_line_segment(Util.toVec2(verts_outer[i]), Util.toVec2(verts_outer[prev_corner]), Util.toVec2(verts_outer[next_corner]))
+			var h := (1.0 - t) * verts_outer[prev_corner].y + t * verts_outer[next_corner].y
+			verts_outer[i].y = h
 
 
 static func getInterpolatedHeightInside(p: Vector3, corners: Array[Vector3]) -> float:

@@ -17,8 +17,10 @@ func _init(a_: Vector3, b_: Vector3, c_: Vector3, color_: Color = Color()) -> vo
 	self.color = color_
 	assert(a != b and a != c and b != c, "Triangle points must be different")
 
+	# Color is set to distinc hex color in HexGeometry (unless overwritten here)
+
 	# For testing, set color based on incline
-	# color = Colors.getColorForIncline(calculateInclineDeg())
+	color = Colors.getColorForIncline(calculateInclineDeg())
 	
 
 func getArea() -> float:
