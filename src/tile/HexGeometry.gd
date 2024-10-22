@@ -191,58 +191,98 @@ static func modifyOuterVertexHeightsAgain(verts_outer: Array[Vector3], corners: 
 		var is_corner: bool = i % (3 + HexConst.extra_verts_per_side) == 0
 
 		if not is_corner:
-			var prev_corner_idx := 
-			# Compute interpolated height between two corner vertices
-			#verts_outer[i].y = 
+			verts_outer[i].y = getInterpolatedHeightInside(verts_outer[i], corners)
+			# TODO 
 
 
 static func getInterpolatedHeightInside(p: Vector3, corners: Array[Vector3]) -> float:
-	var weights := computeBarycentricWeights(p, corners)
+	var weights := computeBarycentricWeightsForInsidePoint(p, corners)
 	var h: float = 0
 	for i in range(6):
 		h += weights[i] * corners[i].y
 
 	return h
 
-static func computeBarycentricWeights(p: Vector3, corners: Array[Vector3]) -> Array[float]:
+
+static func computeBarycentricWeightsForInsidePoint(p_3d: Vector3, corners: Array[Vector3]) -> Array[float]:
 	# See http://www.geometry.caltech.edu/pubs/MHBD02.pdf
-	
+
+	var p := Util.toVec2(p_3d)
 	var weights: Array[float]
 	var weight_sum: float = 0
+	var on_border := false
+
 	for i in range(6):
+		var w: float
 		var prev := (i - 1 + 6) % 6
 		var next := (i + 1) % 6
-		var tan1 := cotangent(Util.toVec2(p), Util.toVec2(corners[i]), Util.toVec2(corners[prev]))
-		var tan2 := cotangent(Util.toVec2(p), Util.toVec2(corners[i]), Util.toVec2(corners[next]))
+		var corner_i := Util.toVec2(corners[i])
+		var corner_prev := Util.toVec2(corners[prev])
+		var corner_next := Util.toVec2(corners[next])
 
-		var w: float
+		# TODO maybe remove this code if its slow and not needed!
 
-		# Check if p is very close to hexagon border
-		if isPointCloseToEdge(Util.toVec2(p), Util.toVec2(corners[i]), Util.toVec2(corners[next])):
-			w = (Util.toVec2(p) - Util.toVec2(corners[i])).length_squared()
+		# Check if p is very close to one of the hexagon border segments for this corner i
+		if is_point_near_line_segment(p, corner_prev, corner_i):
+			var t := compute_t_on_line_segment(p, corner_prev, corner_i)
+			w = t * 100
+			on_border = true
+
+		elif is_point_near_line_segment(p, corner_i, corner_next):
+			var t := compute_t_on_line_segment(p, corner_next, corner_i)
+			w = t * 100
+			on_border = true
+
 		else:
-			w = (tan1 + tan2) / (Util.toVec2(p) - Util.toVec2(corners[i])).length_squared()
+			var tan1 := cotangent(p, corner_i, corner_prev)
+			var tan2 := cotangent(p, corner_i, corner_next)
+			w = (tan1 + tan2) / (p - corner_i).length_squared()
 
 		weights.push_back(w)
 		weight_sum += w
 
-	# Normalizte weights
+	# Normalize weights
 	for i in range(6):
+		if on_border and weights[i] < 0.5:
+			weight_sum -= weights[i]
+			weights[i] = 0.0
+
 		weights[i] /= weight_sum
 	
 	return weights
 
 
-static func isPointCloseToEdge(p: Vector2, a: Vector2, b: Vector2) -> bool:
-	var cross_product: float = (b - a).cross(p - a)
-	var magnitude_condition: float = 0.001 * (b - a).length()
-	return cross_product <= magnitude_condition
+# 0 = on a, 1 = on b
+static func compute_t_on_line_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
+	var ab: Vector2 = b - a
+	var ap: Vector2 = p - a
+	return ap.dot(ab) / ab.dot(ab)
+
+
+static func is_point_near_line_segment(p: Vector2, a: Vector2, b: Vector2) -> bool:
+	const epsilon: float = 0.001
+	var ab: Vector2 = b - a
+	var ap: Vector2 = p - a
+	var ab_len: float = ab.length()
+	var cross_product: float = ab.cross(ap)
+	var distance: float = abs(cross_product) / ab_len
+	return distance <= epsilon * ab_len
 
 
 static func cotangent(a: Vector2, b: Vector2, c: Vector2) -> float:
 	var ba := a - b
 	var bc := c - b
 	return bc.dot(ba) / abs(bc.cross(ba))
+
+
+##################################
+##################################
+##################################
+##################################
+##################################
+##################################
+##################################
+##################################
 
 
 static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Array[AdjacentHex], own_height: int) -> void:
