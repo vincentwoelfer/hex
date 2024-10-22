@@ -1,7 +1,7 @@
 [gd_resource type="NoiseTexture2D" load_steps=2 format=3 uid="uid://byeg5o8vgy14b"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_fh7hl"]
-frequency = 0.015
+frequency = 0.04
 
 [resource]
 width = 256

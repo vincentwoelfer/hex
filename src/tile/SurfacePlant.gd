@@ -1,4 +1,3 @@
-@tool
 class_name SurfacePlant
 extends Node3D
 
@@ -10,18 +9,17 @@ const GRASS_MESH_LOW := preload('res://assets/meshes/plants/grass_lres.obj')
 const GRASS_MAT: ShaderMaterial = preload('res://assets/materials/grass_material.tres')
 
 var min_height := 0.2
-var max_height := 4.0
+var max_height := 3.0
 
-var color_healthy := Color.GREEN
-var color_dry := Color(178, 80, 53)
+# Only tip colors
+var color_healthy := Color(0.16, 0.42, 0.14)
+var color_dry := Color(0.5, 0.4, 0.03)
 
 var rand_color_offset: Color
 var rand_color_lerp_t := 0.3
 
 var curr_height: float = min_height
 var curr_health: float = 1.0
-
-var speed := 0.5
 
 var tween: Tween
 
@@ -45,8 +43,10 @@ func _init() -> void:
 
 func get_curr_color() -> Color:
 	var curr_color: Color = color_dry.lerp(color_healthy, curr_health)
-	curr_color = curr_color.lerp(rand_color_offset, rand_color_lerp_t)
-	curr_color = curr_color.clamp(Color.BLACK, Color.WHITE)
+	
+	#curr_color = curr_color.lerp(rand_color_offset, rand_color_lerp_t)
+	#curr_color = curr_color.clamp(Color.BLACK, Color.WHITE)
+
 	return curr_color
 
 	# var color: Color
@@ -70,6 +70,7 @@ func processWorldStep(humidity: float, shade: float, nutrition: float) -> void:
 		tween.kill()
 
 	# Update own parameters
+	var speed := 0.5
 	var health_delta := (humidity - curr_health) * speed # lerp towards humidity value
 	health_delta += (humidity - 0.5) * 0.5 * speed # Favor extremes
 	health_delta += randf_range(-0.1, 0.1) * speed

@@ -61,13 +61,13 @@ func _input(event: InputEvent) -> void:
 
 		if event.is_action_pressed("hold_speed_up_time"):
 			Signal_ToggleSpeedUpTime.emit()
-			
+
 		if event.is_action_pressed("trigger_weather_change"):
 			Signal_TriggerWeatherChange.emit()
-		
+
 		if event.is_action_pressed("quit_game"):
 			get_tree().quit()
-			
+
 # Function to handle the signal
 func _on_Signal_HexConstChanged() -> void:
 	print("EventBus: Signal_HexConstChanged")

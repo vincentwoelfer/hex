@@ -136,32 +136,25 @@ func addRocks(sampler: PolygonSurfaceSampler) -> void:
 		return
 
 	var instance := MeshInstance3D.new()
-	#var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
-	# instance.set_mesh(mesh)
-	# instance.name = 'rock'
-	# add_child(instance, true)
-	# instance.transform = transform_.rotated_local(Vector3.UP, randf_range(0.0, TAU))
-
-	########################################################
-	########################################################
-	########################################################
-
 	var st_combined: SurfaceTool = SurfaceTool.new()
 	
-	for i in range(0, 10):
+	for i in range(0, 8):
 		var t: Transform3D = sampler.get_random_point_transform()
+
+		# Random large rocks
+		if randf() <= 0.05:
+			t = t.scaled_local(Vector3.ONE * randf_range(6.0, 8.0))
+			t = t.translated_local(Vector3.UP * -0.1) # Move down a bit
+
 		t = t.rotated_local(Vector3.UP, randf_range(0.0, TAU))
+
 		var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
 		st_combined.append_from(mesh, 0, t)
 
 	instance.set_mesh(st_combined.commit())
+	instance.name = 'rocks'
 	instance.material_override = ROCKS_MATERIAL
 	add_child(instance, true)
-	#instance.transform = transform_.rotated_local(Vector3.UP, randf_range(0.0, TAU))
-
-	########################################################
-	########################################################
-	########################################################
 
 static func modifyInnerAndCenterVertexHeights(verts_inner: Array[Vector3], verts_center: Array[Vector3], corners: Array[Vector3]) -> void:
 	# PREVIOUS:

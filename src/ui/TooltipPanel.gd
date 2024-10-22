@@ -28,9 +28,10 @@ func on_selection_changed(new_selection: HexTile) -> void:
 
 func update_text() -> void:
 	var hex_tile := curr_selection
-	var params := hex_tile.params
 	if curr_selection == null:
 		return
+
+	var params := hex_tile.params
 
 	header.text = params.tile_type
 	tooltip.text = ""

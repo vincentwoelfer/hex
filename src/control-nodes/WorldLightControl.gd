@@ -2,13 +2,11 @@
 class_name WorldLightControl
 extends Node
 
-@onready var sky: PanoramaSkyMaterial
-# world_environment.environment.sky.sky_material as PanoramaSkyMaterial
-
 @onready var sun: DirectionalLight3D = %SunLight as DirectionalLight3D
 @onready var world_environment: WorldEnvironment = %WorldEnvironment as WorldEnvironment
 @onready var world_time_manager: WorldTimeManager = %WorldTimeManager as WorldTimeManager
 @onready var weather_control: WeatherControl = %WeatherControl as WeatherControl
+@onready var sky: PanoramaSkyMaterial = (%WorldEnvironment as WorldEnvironment).environment.sky.sky_material
 
 const HOURS_PER_DAY: float = 24.0
 const START_TIME: float = 8.0
@@ -31,9 +29,9 @@ const START_TIME: float = 8.0
 
 # TODO interpolate energy differently. Color change needs to happen ~2-3 hours, light intensity change only within 30min
 @export var min_sun_light_energy: float = 0.0
-@export var max_sun_light_energy: float = 2.5
+@export var max_sun_light_energy: float = 2.0
 @export var min_sky_light_energy: float = 0.4
-@export var max_sky_light_energy: float = 1.8
+@export var max_sky_light_energy: float = 1.4
 
 @export var daytime_light_color: Color = Color8(255, 255, 205) # 205 is no mistake!
 @export var sunrise_light_color: Color = Color(1, 0.412, 0.235)

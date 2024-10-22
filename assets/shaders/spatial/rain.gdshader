@@ -14,7 +14,7 @@ void fragment() {
 
 void light() {
     vec3 lightN = NORMAL;
-    if (dot( lightN, LIGHT ) < 0.0)
+    if (dot( lightN, LIGHT ) <= 0.0)
     {
         // reverse the normal if it's facing away from the light
         lightN = -1.0 * lightN;

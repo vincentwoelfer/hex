@@ -19,8 +19,8 @@ func filter_max_incline(max_incline_deg: float) -> void:
 		return tri.calculateInclineDeg() <= max_incline_deg
 	)
 	self._calculate_area_weights()
-	if self.triangles.is_empty():
-		print("Triangle list in PolygonSurfaceSampler is empty after filtering for max_incline <= %f" % [max_incline_deg])
+	# if self.triangles.is_empty():
+	# 	print("Triangle list in PolygonSurfaceSampler is empty after filtering for max_incline <= %f" % [max_incline_deg])
 
 
 func filter_min_incline(min_incline_deg: float) -> void:
@@ -29,8 +29,8 @@ func filter_min_incline(min_incline_deg: float) -> void:
 		return tri.calculateInclineDeg() >= min_incline_deg
 	)
 	self._calculate_area_weights()
-	if self.triangles.is_empty():
-		print("Triangle list in PolygonSurfaceSampler is empty after filtering for min_incline >= %f" % [min_incline_deg])
+	# if self.triangles.is_empty():
+	# 	print("Triangle list in PolygonSurfaceSampler is empty after filtering for min_incline >= %f" % [min_incline_deg])
 
 
 func get_random_point() -> Vector3:
