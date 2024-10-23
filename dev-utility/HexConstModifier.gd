@@ -45,7 +45,7 @@ extends Node
 		HexConst.extra_verts_per_center = value
 		EventBus.emit_signal("Signal_HexConstChanged")
 
-@export_range(0, 1, 0.1) var grass_density: float = HexConst.grass_density:
+@export_range(0, 100.0, 1.0) var grass_density: float = HexConst.grass_density:
 	set(value):
 		grass_density = value
 		HexConst.grass_density = value

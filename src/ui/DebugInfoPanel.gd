@@ -21,4 +21,8 @@ func update_infotext() -> void:
 	if weather_control != null:
 		infotext.append_text(str("Weather: ", weather_control.WeatherType.keys()[weather_control.current_weather], "\n"))
 		infotext.append_text(str("Profile: ", weather_control.weather_profile.resource_name, " \n"))
+
+		var global_wind_strength := weather_control.current_wind_strength
+		infotext.append_text(str("Wind Strength: ", snappedf(global_wind_strength, 0.1), " \n"))
+
 	infotext.append_text(str("FPS: ", snappedf(Engine.get_frames_per_second(), 0.01)))

@@ -12,13 +12,10 @@ var min_height := 0.2
 var max_height := 3.0
 
 # Only tip colors
-var color_healthy := Color(0.16, 0.42, 0.14)
-var color_dry := Color(0.5, 0.4, 0.03)
+var color_healthy := Color(0.15, 0.4, 0.1)
+var color_dry := Color(0.55, 0.45, 0.03)
 
-var rand_color_offset: Color
-var rand_color_lerp_t := 0.3
-
-var curr_height: float = min_height
+var curr_height: float = max_height
 var curr_health: float = 1.0
 
 var tween: Tween
@@ -33,9 +30,6 @@ func _init() -> void:
 	mesh_instance.extra_cull_margin = 1.0
 	add_child(mesh_instance, true)
 
-	rand_color_offset = Colors.randColorNoExtreme(0.2)
-	rand_color_lerp_t = randf_range(0.0, 0.5)
-
 	# Only for testing
 	set_shader_value(get_curr_color(), 'tip_color')
 	set_shader_value(curr_height, 'height_mod')
@@ -43,10 +37,6 @@ func _init() -> void:
 
 func get_curr_color() -> Color:
 	var curr_color: Color = color_dry.lerp(color_healthy, curr_health)
-	
-	#curr_color = curr_color.lerp(rand_color_offset, rand_color_lerp_t)
-	#curr_color = curr_color.clamp(Color.BLACK, Color.WHITE)
-
 	return curr_color
 
 	# var color: Color
@@ -98,18 +88,22 @@ func processWorldStep(humidity: float, shade: float, nutrition: float) -> void:
 
 
 func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
-	var density_1d: int = ceil((HexConst.inner_radius + HexConst.outer_radius) / 2.0 * lerpf(0.0, 20.0, HexConst.grass_density));
-	num_blades_total = round(density_1d * density_1d)
+	# Density per 1d-meter (one line)
+	var density_1d: float = HexConst.grass_density;
+	var area := surface_sampler.get_total_area()
+	# Square density to get 2d -> weight by area
+	num_blades_total = round(density_1d * density_1d * area)
+
 	var mesh_to_use: Mesh = GRASS_MESH_HIGH
 
 	# Reduce in editor
 	if Engine.is_editor_hint():
-		var in_editor_density_reduction := 0.2
+		var in_editor_density_reduction := 0.5
 		num_blades_total = round(num_blades_total * in_editor_density_reduction)
 
 	# Reduce if gpu is bad
 	if RenderingServer.get_video_adapter_type() != RenderingDevice.DEVICE_TYPE_DISCRETE_GPU:
-		var bad_gpu_reduction := 0.4
+		var bad_gpu_reduction := 0.3
 		num_blades_total = round(num_blades_total * bad_gpu_reduction)
 		mesh_to_use = GRASS_MESH_LOW
 

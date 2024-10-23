@@ -40,6 +40,8 @@ var weather_properties: Dictionary[WeatherType, Dictionary] = {
 var tween: Tween
 var desired_tween_duration := 0.5
 
+var current_wind_strength := 1.0
+
 
 func _ready() -> void:
 	EventBus.Signal_TriggerWeatherChange.connect(force_new_weather)
@@ -89,6 +91,11 @@ func update_rain(new_weather: WeatherType) -> void:
 	var current_tween_duration := minf(desired_tween_duration, world_time_manager.get_max_tween_time())
 
 	tween.tween_property(rain_particles, "amount_ratio", rain_amount_ratio, current_tween_duration)
+
+	# Compute wind strength
+	#current_wind_strength = (0.4 + rain_amount_ratio * 1.3 + randf_range(-0.3, 0.5))
+	current_wind_strength = clampf(current_wind_strength, 0.0, 1.7)
+	RenderingServer.global_shader_parameter_set("global_wind_strength", current_wind_strength)
 
 
 func _on_time_progression(day_time: float) -> void:

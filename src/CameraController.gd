@@ -15,7 +15,7 @@ var lookAtPoint: Vector3
 var followPoint: Vector3 # = target, also used for movement
 var orientation: int = 4 # from north looking south (to see the sun moving best)
 # current rotation in angle
-var currRotation: float = 0
+var actual_curr_rotation: float = 0
 
 var speed: float = 14
 var rotationLerpSpeed: float = 7.0
@@ -24,9 +24,9 @@ var lerpSpeed: float = 8.0 # almost instant
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CONFINED
-	lookAtPoint = Vector3(0, 2, 0)
-	followPoint = Vector3(0, 2, 0)
-	currRotation = compute_forward_angle(orientation)
+	lookAtPoint = Vector3(0, 4, 0)
+	followPoint = Vector3(0, 4, 0)
+	actual_curr_rotation = compute_target_forward_angle(orientation)
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("rotate_cam_left"):
@@ -67,24 +67,24 @@ func raycast_into_world() -> Dictionary:
 	return result
 
 
-func compute_forward_angle(orientation_: float) -> float:
+func compute_target_forward_angle(orientation_: float) -> float:
 	# Default Orientation = 1 -> Forward = -Z , this is archived with 90° into sin/cos
 	# Thats why we subtract 90°
-	var forwardAngle := deg_to_rad((60.0 * orientation_ + 30.0) - 90.0) # Actually forward
-	return forwardAngle
+	var target_forward_angle := deg_to_rad((60.0 * orientation_ + 30.0) - 90.0) # Actually forward
+	return target_forward_angle
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	currZoom = lerpf(currZoom, zoomTarget, rotationLerpSpeed * delta)
 
-	var forwardAngle := compute_forward_angle(orientation)
+	var target_forward_angle := compute_target_forward_angle(orientation)
 
-	currRotation = lerp_angle(currRotation, forwardAngle, rotationLerpSpeed * delta)
-	var forwardDir := Vector3(0, 0, -1).rotated(Vector3.UP, currRotation) # not actually forward, lerps
+	actual_curr_rotation = lerp_angle(actual_curr_rotation, target_forward_angle, rotationLerpSpeed * delta)
+	var forwardDir := Vector3(0, 0, -1).rotated(Vector3.UP, actual_curr_rotation) # not actually forward, lerps
 
 	var inputDirRaw := getInputVec()
-	var inputDir := inputDirRaw.rotated(Vector3.UP, forwardAngle)
+	var inputDir := inputDirRaw.rotated(Vector3.UP, target_forward_angle)
 
 	# Move follow point, lookAtPoint follows this
 	followPoint += inputDir * (speed + currZoom / 3.0) * delta
@@ -98,10 +98,13 @@ func _process(delta: float) -> void:
 
 	global_position = camPos
 	look_at(lookAtPoint)
-
-	#draw_debug_sphere(lookAtPoint, maxf(currZoomTarget * 0.1, 0.025))
-
+	
 	self.check_for_selection()
+
+	RenderingServer.global_shader_parameter_set("global_camera_view_direction", actual_curr_rotation)
+
+	draw_debug_sphere(lookAtPoint, maxf(currZoom * 0.1, 0.025))
+	RenderingServer.global_shader_parameter_set("global_player_position", lookAtPoint)
 
 
 func check_for_selection() -> void:

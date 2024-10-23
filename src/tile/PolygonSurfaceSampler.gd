@@ -2,6 +2,7 @@ class_name PolygonSurfaceSampler
 
 var area_weights: Array[float]
 var triangles: Array[Triangle]
+var total_area: float
 
 
 func _init(triangles_: Array[Triangle]) -> void:
@@ -13,14 +14,18 @@ func is_valid() -> bool:
 	return !self.triangles.is_empty()
 
 
+func get_total_area() -> float:
+	return total_area
+
+
 func filter_max_incline(max_incline_deg: float) -> void:
 	self.triangles = triangles.filter(func(tri: Triangle) -> bool:
 		# Return true to keep triangle
 		return tri.calculateInclineDeg() <= max_incline_deg
 	)
-	self._calculate_area_weights()
 	# if self.triangles.is_empty():
 	# 	print("Triangle list in PolygonSurfaceSampler is empty after filtering for max_incline <= %f" % [max_incline_deg])
+	self._calculate_area_weights()
 
 
 func filter_min_incline(min_incline_deg: float) -> void:
@@ -28,11 +33,11 @@ func filter_min_incline(min_incline_deg: float) -> void:
 		# Return true to keep triangle
 		return tri.calculateInclineDeg() >= min_incline_deg
 	)
-	self._calculate_area_weights()
 	# if self.triangles.is_empty():
 	# 	print("Triangle list in PolygonSurfaceSampler is empty after filtering for min_incline >= %f" % [min_incline_deg])
+	self._calculate_area_weights()
 
-
+	
 func get_random_point() -> Vector3:
 	if not is_valid():
 		push_warning("Tried to get point from PolygonSurfaceSampler but triangle list is empty!")
@@ -54,7 +59,7 @@ func get_random_point_transform() -> Transform3D:
 
 func _calculate_area_weights() -> void:
 	var areas: Array[float] = []
-	var total_area: float = 0.0
+	total_area = 0.0
 	for tri in self.triangles:
 		var area: float = tri.getArea()
 		areas.append(area)

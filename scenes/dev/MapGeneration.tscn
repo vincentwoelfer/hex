@@ -25,7 +25,7 @@ transition_height_factor = 0.5
 core_circle_smooth_strength = 0.175
 extra_verts_per_side = 4
 extra_verts_per_center = 4
-grass_density = 0.8
+grass_density = 10.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 unique_name_in_owner = true
@@ -41,7 +41,7 @@ script = ExtResource("4_j2ckc")
 
 [node name="SunLight" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true
-transform = Transform3D(0.614212, -0.356323, 0.704114, 0, 0.892254, 0.451533, -0.78914, -0.277337, 0.548034, 0, 50, 0)
+transform = Transform3D(0.614212, -0.356323, 0.704112, 0, 0.892254, 0.451532, -0.78914, -0.277337, 0.548033, 0, 50, 0)
 light_color = Color(1, 1, 0.856078, 1)
 light_energy = 2.0
 light_angular_distance = 2.0

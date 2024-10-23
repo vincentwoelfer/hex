@@ -34,7 +34,7 @@ var extra_verts_per_center := 5
 
 
 # NOT HEX CONST - here for editing in edior and hex-geom regeneration triggering
-var grass_density := 0.8
+var grass_density := 10.0
 
 # ========================================================
 # ==================== Derived values ====================
