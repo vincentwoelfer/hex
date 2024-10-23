@@ -200,7 +200,8 @@ void fragment() {
 	ROUGHNESS = mix(1.0, 0.3, ease_out_quartic(height_factor));
 	ANISOTROPY = 0.85;
 
-	BACKLIGHT = vec3(1.0);
+	// TODO 
+	//https://github.com/godotengine/godot/issues/79859
 }
 
 void light() {
