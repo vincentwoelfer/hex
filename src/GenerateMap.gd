@@ -2,13 +2,24 @@
 extends Node3D
 
 var height_noise: Noise = preload("res://assets/noise/TerrainHeightNoiseGenerator.tres")
+var generate: bool = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	generate_complete_map()
 
 	# Signals
-	EventBus.Signal_HexConstChanged.connect(generate_complete_map)
+	EventBus.Signal_HexConstChanged.connect(set_generate)
+
+
+func set_generate() -> void:
+	self.generate = true
+
+
+func _process(delta: float) -> void:
+	if self.generate:
+		self.generate = false
+		generate_complete_map()
 
 
 func generate_complete_map() -> void:
@@ -36,7 +47,7 @@ func generate_complete_map() -> void:
 	########################################################
 	########################################################
 	########################################################
-	# TESTING - STEP 3 MERGE ALL TERAIN
+	# TESTING - STEP 3 MERGE ALL TERRAIN
 	# var instance := MeshInstance3D.new()
 	# var st_combined: SurfaceTool = SurfaceTool.new()
 
@@ -57,7 +68,7 @@ func create_empty_hex_tile(hex_pos: HexPos, height: int) -> void:
 
 	var hex_tile := MapManager.map.add_hex(hex_pos, height)
 
-	# Add to Screne tree at correct position
+	# Add to Scene tree at correct position
 	var world_pos: Vector2 = HexPos.hexpos_to_xy(hex_pos)
 	hex_tile.position = Vector3(world_pos.x, height * HexConst.height, world_pos.y)
 

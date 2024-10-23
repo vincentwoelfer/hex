@@ -70,7 +70,8 @@ func _input(event: InputEvent) -> void:
 
 # Function to handle the signal
 func _on_Signal_HexConstChanged() -> void:
-	print("EventBus: Signal_HexConstChanged")
+	pass
+	#print("EventBus: Signal_HexConstChanged")
 
 # Function to handle the signal
 func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:

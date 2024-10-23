@@ -12,3 +12,4 @@ shader_parameter/clump_noise = ExtResource("2_di1jo")
 shader_parameter/wind_speed = 2.0
 shader_parameter/wind_noise = ExtResource("2_dl7us")
 shader_parameter/subsurface_scattering_color = Color(1, 0.75, 0.1, 1)
+shader_parameter/rand_color_variation_target = Color(0.7, 0.45, 0.1, 1)

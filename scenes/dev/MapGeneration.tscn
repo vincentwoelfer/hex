@@ -60,13 +60,13 @@ script = ExtResource("6_x1kdg")
 unique_name_in_owner = true
 script = ExtResource("8_4pj04")
 
-[node name="WorldTimeManager" type="Node" parent="."]
-unique_name_in_owner = true
-script = ExtResource("9_pfdia")
-
 [node name="WeatherControl" parent="." instance=ExtResource("9_ukl4i")]
 unique_name_in_owner = true
 weather_profile = ExtResource("9_mn0qr")
+
+[node name="WorldTimeManager" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("9_pfdia")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 

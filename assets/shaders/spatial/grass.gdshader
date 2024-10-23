@@ -93,11 +93,11 @@ void vertex() {
 
 	// Offset width by random factor
 	float rand_width_factor = mix(0.5, 1.2, hash1);
-	
+
 	// The further the distance from the camera, the thicker the grass blade will
 	// appear to account for decreasing density with LOD
 	const float max_dist_thicken_factor = 8.0;
-	VERTEX.x *= 1.0 + min(ease_in_quartic(0.0225*camera_distance), max_dist_thicken_factor); 
+	VERTEX.x *= 1.0 + min(ease_in_quartic(0.0225*camera_distance), max_dist_thicken_factor);
 
 	// Apply offsets and scale everything down by 0.5
 	VERTEX.y *= 0.5 * height_mod * rand_height_factor;
@@ -166,7 +166,7 @@ void vertex() {
 	// sign of the vertex position in model space. We multiply by a large factor
 	// and round to correct for precision errors from positions at x=0.
 	float thicken_direction = sign(round((grass_rotate * vertex_model).x * 1e6));
-	
+
 	// TODO Use thicken-direction to thicken when grass is bending towards view aswell
 	//  TOOD -> Maybe use for bending aswell???
 	// 1  = Looking directly at it            -> 0
@@ -174,10 +174,10 @@ void vertex() {
 	// -1 = Face is facing away from camera   -> 0.75
 	float dot_nv_fac = 1.0 - abs(dot_nv);
 	float thicken_factor = ease_in_quartic(dot_nv_fac) * abs(vertex_model.x) * 1.5;	// Custom factor to make it even thicker
-	//float thicken_factor = ease_in_quartic(1.0 - abs(dot_nv)) * abs(vertex_model.x) * 1.75; 
-	
+	//float thicken_factor = ease_in_quartic(1.0 - abs(dot_nv)) * abs(vertex_model.x) * 1.75;
+
 	vertex_view.x += thicken_factor * thicken_direction;
-	VERTEX = (modelview_inverse(MODELVIEW_MATRIX) * vec4(vertex_view, 1.0)).xyz;	
+	VERTEX = (modelview_inverse(MODELVIEW_MATRIX) * vec4(vertex_view, 1.0)).xyz;
 }
 
 void fragment() {
@@ -199,6 +199,8 @@ void fragment() {
 	//AO = mix(0.1, 1.0, height_factor*height_factor); // Note: This looks better but is only visible when shadows are enabled!
 	ROUGHNESS = mix(1.0, 0.3, ease_out_quartic(height_factor));
 	ANISOTROPY = 0.85;
+
+	BACKLIGHT = vec3(1.0);
 }
 
 void light() {
@@ -208,10 +210,12 @@ void light() {
 		// reverse the normal if it's facing away from the light
 		sgn = -1.0;
     }
-	
+
 	float diffuse_factor = pow(4.0, dot(sgn*NORMAL, LIGHT)) / 4.0; // Diffuse never drops to 0 to simulate ambient bounces
 	float sss_factor = max(-dot(VIEW, LIGHT), 0.0) * 0.5;
 
 	DIFFUSE_LIGHT += (diffuse_factor + sss_factor*subsurface_scattering_color) * ATTENUATION * LIGHT_COLOR;
 	SPECULAR_LIGHT *= diffuse_factor;
+
+
 }

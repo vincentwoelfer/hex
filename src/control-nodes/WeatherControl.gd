@@ -47,6 +47,10 @@ func _ready() -> void:
 	EventBus.Signal_TriggerWeatherChange.connect(force_new_weather)
 	EventBus.Signal_DayTimeChanged.connect(_on_time_progression)
 
+	if weather_profile == null:
+		push_warning("No weather profile assigned, using default 'mixed'!")
+		weather_profile = load("res://config/weather/MixedWeatherProfile.tres") as WeatherProfile
+
 	current_weather = starting_weather
 	rain_particles.amount_ratio = compute_rain_amount_ratio(current_weather)
 
