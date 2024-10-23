@@ -119,9 +119,9 @@ void vertex() {
     angle_diff = mod(angle_diff + PI, TAU) - PI; // Normalize the angle between -π and π
 	const float threshold = PI / 6.0;
 	if (abs(angle_diff) < threshold) {
-		//float force = (threshold - abs(angle_diff)) * sign(angle_diff);
 		float force = (threshold - abs(angle_diff)) * sign(hash1);
 		turn_angle_base += force;
+		crushed_factor = 0.25;
 	}
 
 	// --- WIND ---

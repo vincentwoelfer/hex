@@ -41,7 +41,7 @@ script = ExtResource("4_j2ckc")
 
 [node name="SunLight" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true
-transform = Transform3D(0.614212, -0.356323, 0.704112, 0, 0.892254, 0.451532, -0.78914, -0.277337, 0.548033, 0, 50, 0)
+transform = Transform3D(0.614212, -0.356323, 0.704112, 0, 0.892254, 0.451532, -0.78914, -0.277337, 0.548032, 0, 50, 0)
 light_color = Color(1, 1, 0.856078, 1)
 light_energy = 2.0
 light_angular_distance = 2.0
@@ -60,13 +60,13 @@ script = ExtResource("6_x1kdg")
 unique_name_in_owner = true
 script = ExtResource("8_4pj04")
 
-[node name="WeatherControl" parent="." instance=ExtResource("9_ukl4i")]
-unique_name_in_owner = true
-weather_profile = ExtResource("9_mn0qr")
-
 [node name="WorldTimeManager" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("9_pfdia")
+
+[node name="WeatherControl" parent="." instance=ExtResource("9_ukl4i")]
+unique_name_in_owner = true
+weather_profile = ExtResource("9_mn0qr")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 

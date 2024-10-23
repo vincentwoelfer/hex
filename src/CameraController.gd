@@ -103,8 +103,8 @@ func _process(delta: float) -> void:
 
 	RenderingServer.global_shader_parameter_set("global_camera_view_direction", actual_curr_rotation)
 
-	draw_debug_sphere(lookAtPoint, maxf(currZoom * 0.1, 0.025))
-	RenderingServer.global_shader_parameter_set("global_player_position", lookAtPoint)
+	# draw_debug_sphere(lookAtPoint, maxf(currZoom * 0.1, 0.025))
+	# RenderingServer.global_shader_parameter_set("global_player_position", lookAtPoint)
 
 
 func check_for_selection() -> void:
