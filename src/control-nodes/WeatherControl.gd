@@ -12,27 +12,34 @@ var current_weather: WeatherControl.WeatherType
 
 var weather_properties: Dictionary[WeatherType, Dictionary] = {
 	WeatherType.SUNSHINE: {
-		"sun_light_color": Color.LIGHT_YELLOW,
-		"env_volumetric_fog_density": 0.003
+		"sun_light_color": Color(1, 0.9, 0.9),
+		"sun_light_energy": 4.0,
+		"env_volumetric_fog_density": 0.002
 	},
 	WeatherType.CLOUDY: {
-		"sun_light_color": Color.SNOW,
+		"sun_light_energy": 2.25,		
+		"env_volumetric_fog_density": 0.003
+		# "sun_light_color": Color.SNOW,
 	},
 	WeatherType.DRIZZLE: {
-		"sun_light_color": Color.GRAY,
-		"env_volumetric_fog_density": 0.01
+		# "sun_light_color": Color.GRAY,
+		"sun_light_energy": 2.0,
+		"env_volumetric_fog_density": 0.005
 	},
 	WeatherType.RAIN: {
-		"sun_light_color": Color.GRAY,
-		"env_volumetric_fog_density": 0.01
+		# "sun_light_color": Color.GRAY,
+		"sun_light_energy": 1.8,
+		"env_volumetric_fog_density": 0.007
 	},
 	WeatherType.HEAVY_RAIN: {
-		"sun_light_color": Color.GRAY,
-		"env_volumetric_fog_density": 0.01
+		# "sun_light_color": Color.GRAY,
+		"sun_light_energy": 1.7,
+		"env_volumetric_fog_density": 0.008
 	},
 	WeatherType.FOG: {
-		"sun_light_color": Color.GRAY,
-		"env_volumetric_fog_density": 0.03
+		# "sun_light_color": Color.GRAY,
+		"sun_light_energy": 2.0,
+		"env_volumetric_fog_density": 0.025
 	}
 }
 

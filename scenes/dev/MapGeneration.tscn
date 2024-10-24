@@ -40,9 +40,9 @@ script = ExtResource("4_j2ckc")
 
 [node name="SunLight" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true
-transform = Transform3D(0.735723, -0.349359, 0.580221, 0, 0.856693, 0.515824, -0.677281, -0.379505, 0.630288, 0, 50, 0)
-light_color = Color(1, 1, 0.856078, 1)
-light_energy = 2.0
+transform = Transform3D(-4.37113e-08, 0.173648, -0.984805, 0, 0.984807, 0.173648, 0.999999, 7.5904e-09, -4.30472e-08, 0, 50, 0)
+light_color = Color(1, 0.93, 0.871177, 1)
+light_energy = 2.8
 light_angular_distance = 2.0
 shadow_enabled = true
 directional_shadow_blend_splits = true
@@ -58,7 +58,16 @@ script = ExtResource("6_x1kdg")
 [node name="WorldLightControl" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("8_4pj04")
-current_time = 9.0
+current_time = 24.0
+max_sun_light_energy = 2.0
+min_sky_light_energy = 0.4
+max_sky_light_energy = 1.4
+daytime_light_color = Color(1, 1, 0.803922, 1)
+daytime_fog_density = 0.006
+sunrise_fog_density = 0.012
+sunset_fog_density = 0.01
+nighttime_fog_density = 0.015
+weather_impact_factor = 0.7
 
 [node name="WeatherControl" parent="." instance=ExtResource("9_ukl4i")]
 unique_name_in_owner = true

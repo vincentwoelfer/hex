@@ -11,7 +11,7 @@ const time_step := 1.0
 var speed_up_factor: float = 2.5
 
 var auto_advance: bool = false
-var day_time: float
+var current_time_of_day: float = fmod(current_world_time, HOURS_PER_DAY)
 
 var timer: Timer
 
@@ -72,7 +72,7 @@ func advance_world_time_one_step() -> void:
 	# Advance one hour
 	current_world_time += time_step
 
-	day_time = fmod(current_world_time, HOURS_PER_DAY)
-	EventBus.Signal_SetVisualLightTime.emit(day_time)
+	current_time_of_day = fmod(current_world_time, HOURS_PER_DAY)
+	EventBus.Signal_SetVisualLightTime.emit(current_time_of_day)
 	EventBus.Signal_WorldStep.emit()
-	EventBus.Signal_DayTimeChanged.emit(day_time)
+	EventBus.Signal_DayTimeChanged.emit(current_time_of_day)

@@ -7,7 +7,7 @@
 [resource]
 render_priority = 0
 shader = ExtResource("1_a5h3b")
-shader_parameter/clumping_factor = 0.6
+shader_parameter/clumping_factor = 0.5
 shader_parameter/clump_noise = ExtResource("2_di1jo")
 shader_parameter/wind_speed = 2.0
 shader_parameter/wind_noise = ExtResource("2_dl7us")
