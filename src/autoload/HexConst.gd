@@ -13,7 +13,7 @@ var outer_radius: float = 4.0
 
 # Radius of the workable Regular area.
 # Must be smaller than outer_radius * 0.86 (size of largest circle in outer hex)
-var inner_radius: float = 3.5
+var inner_radius: float = 3.3
 
 # Height of one hex cell
 var height: float = 0.5
@@ -30,7 +30,10 @@ var core_circle_smooth_strength := 0.35
 var extra_verts_per_side := 4
 
 # Extra vertices per hexagon center
-var extra_verts_per_center := 5
+var extra_verts_per_center := 7
+
+# Interpolation for vertex height between 0 / border height and Barycentric Coords
+var smooth_height_factor := 1.0
 
 
 # NOT HEX CONST - here for editing in edior and hex-geom regeneration triggering

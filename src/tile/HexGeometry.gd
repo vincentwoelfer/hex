@@ -9,6 +9,7 @@ const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.
 
 # Class variables
 var terrainMesh: MeshInstance3D
+var rocksMesh: MeshInstance3D
 var triangles: Array[Triangle]
 var samplerAll: PolygonSurfaceSampler
 var samplerHorizontal: PolygonSurfaceSampler
@@ -39,6 +40,11 @@ func _init(height_: int, adjacent_hex_: Array[AdjacentHex]) -> void:
 	terrainMesh.material_overlay = HIGHLIGHT_MATERIAL
 	add_child(terrainMesh, true)
 
+	rocksMesh = MeshInstance3D.new()
+	rocksMesh.name = "RocksMesh"
+	rocksMesh.material_override = ROCKS_MATERIAL
+	add_child(rocksMesh, true)
+
 	# Load Rocks - hardcoded numbers for now
 	for i in range(1, 10):
 		allAvailRockMeshes.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as ArrayMesh)
@@ -62,7 +68,6 @@ func generate() -> void:
 		corners.push_back(verts_outer[corner_vertex_index])
 
 	modifyInnerAndCenterVertexHeights(verts_inner, verts_center, corners)
-
 	modifyOuterVertexHeightsAgain(verts_outer, corners)
 
 	#########################################
@@ -97,29 +102,9 @@ func generate() -> void:
 	self.samplerVertical = PolygonSurfaceSampler.new(self.triangles)
 	self.samplerVertical.filter_min_incline(45)
 
-
-	# PERFORMANCE TESTS:
-	# 10 different rock meshes:		
-	# 1350 draw calls, 5300 objects, 805k primitives -> 170-190 fps
-
-	# 1 rock mesh:
-	# 1350 draw calls, 5300 objects, 900k primitieves (most complex rock loaded) -> 160-170 fps
-
-	# 1 mesh, merged (10 instances, not translated):
-	# 1740 draw calls, 1740 objects, 560k primitives -> 180-190 fps
-
-	# 10 meshes, merged, translated no material:
-	# 1740 draw calls, 1740 objects, 900k primitives -> 175-190 fps
-
-	# 100 meshes, merged, translated no material:
-	# 1740 draw calls, 1740 objects, 3380k primitives -> 130-140 fps
-
-	# 10 rocks, all different, with material, with grass
-	# 1740 deaw calls / objects -> 800k prims -> 200fps
-
+	# Not an ocean/border tile
 	if self.height > 0:
-		if self.samplerHorizontal.is_valid():
-			addRocks(self.samplerHorizontal)
+		addRocks(self.samplerHorizontal)
 
 		# Regenerate collision shape
 		terrainMesh.create_convex_collision(true, true)
@@ -130,15 +115,12 @@ func generate() -> void:
 	#print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
 
 
-#func addRocks(transform_: Transform3D) -> void:
 func addRocks(sampler: PolygonSurfaceSampler) -> void:
 	if not sampler.is_valid():
 		return
 
-	var instance := MeshInstance3D.new()
 	var st_combined: SurfaceTool = SurfaceTool.new()
-	
-	for i in range(0, 8):
+	for i in range(1, 8):
 		var t: Transform3D = sampler.get_random_point_transform()
 
 		# Random large rocks
@@ -151,32 +133,16 @@ func addRocks(sampler: PolygonSurfaceSampler) -> void:
 		var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
 		st_combined.append_from(mesh, 0, t)
 
-	instance.set_mesh(st_combined.commit())
-	instance.name = 'rocks'
-	instance.material_override = ROCKS_MATERIAL
-	add_child(instance, true)
+	rocksMesh.mesh = st_combined.commit()
+
 
 static func modifyInnerAndCenterVertexHeights(verts_inner: Array[Vector3], verts_center: Array[Vector3], corners: Array[Vector3]) -> void:
-	# PREVIOUS:
-	# Modify randomly:
-	# # Adjust height of inner ring
-	# for i in range(verts_inner.size()):
-	# 	var h_var := 0.05
-	# 	verts_inner[i] += Util.randCircularOffset(HexConst.inner_radius * 0.04)
-	# 	verts_inner[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
-
-	# # Adjust center vertices
-	# for i in range(verts_center.size()):
-	# 	var h_var := 0.07
-	# 	verts_center[i] += Util.randCircularOffset(HexConst.inner_radius * 0.1)
-	# 	verts_center[i].y += clamp(randfn(0.0, h_var), -h_var, h_var)
-
 	# Set height according to weightes average of hex corners
 	for i in range(verts_center.size()):
-		verts_center[i].y = getInterpolatedHeightInside(verts_center[i], corners)
+		verts_center[i].y = lerpf(verts_center[i].y, getInterpolatedHeightInside(verts_center[i], corners), HexConst.smooth_height_factor)
 
 	for i in range(verts_inner.size()):
-		verts_inner[i].y = getInterpolatedHeightInside(verts_inner[i], corners)
+		verts_inner[i].y = lerpf(verts_inner[i].y, getInterpolatedHeightInside(verts_inner[i], corners), HexConst.smooth_height_factor)
 
 
 static func modifyOuterVertexHeightsAgain(verts_outer: Array[Vector3], corners: Array[Vector3]) -> void:
@@ -189,7 +155,8 @@ static func modifyOuterVertexHeightsAgain(verts_outer: Array[Vector3], corners: 
 
 			var t := compute_t_on_line_segment(Util.toVec2(verts_outer[i]), Util.toVec2(verts_outer[prev_corner]), Util.toVec2(verts_outer[next_corner]))
 			var h := (1.0 - t) * verts_outer[prev_corner].y + t * verts_outer[next_corner].y
-			verts_outer[i].y = h
+
+			verts_outer[i].y = lerpf(verts_outer[i].y, h, HexConst.smooth_height_factor)
 
 
 static func getInterpolatedHeightInside(p: Vector3, corners: Array[Vector3]) -> float:
@@ -270,16 +237,6 @@ static func cotangent(a: Vector2, b: Vector2, c: Vector2) -> float:
 	var ba := a - b
 	var bc := c - b
 	return bc.dot(ba) / abs(bc.cross(ba))
-
-
-##################################
-##################################
-##################################
-##################################
-##################################
-##################################
-##################################
-##################################
 
 
 static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Array[AdjacentHex], own_height: int) -> void:
@@ -434,6 +391,10 @@ static func triangulateOuter(verts_inner: Array[Vector3], verts_outer: Array[Vec
 
 static func generateCenterPoints(num: int) -> Array[Vector3]:
 	var points: Array[Vector3] = []
+
+	# Generate first point in center
+	points.append(Vector3.ZERO)
+	num -= 1
 
 	# Adjust to ensure points stay within the hexagon
 	var ring_radius := HexConst.inner_radius * 0.6

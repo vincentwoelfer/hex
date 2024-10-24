@@ -18,12 +18,13 @@
 
 [node name="HexConstModifier" parent="." instance=ExtResource("12_e2267")]
 outer_radius = 4.0
-inner_radius = 3.5
+inner_radius = 3.3
 height = 0.5
 transition_height_factor = 0.5
-core_circle_smooth_strength = 0.175
+core_circle_smooth_strength = 0.35
 extra_verts_per_side = 4
-extra_verts_per_center = 4
+extra_verts_per_center = 7
+smooth_height_factor = 1.0
 grass_density = 10.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -40,9 +41,9 @@ script = ExtResource("4_j2ckc")
 
 [node name="SunLight" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true
-transform = Transform3D(0.642787, -0.35701, 0.677765, 0, 0.884761, 0.466042, -0.766044, -0.299567, 0.568712, 0, 50, 0)
-light_color = Color(1, 0.93, 0.871177, 1)
-light_energy = 3.4
+transform = Transform3D(0.650104, -0.356983, 0.670764, 0, 0.882767, 0.469809, -0.759845, -0.305425, 0.573889, 0, 50, 0)
+light_color = Color(1, 0.94, 0.88, 1)
+light_energy = 3.6
 light_angular_distance = 2.0
 shadow_enabled = true
 directional_shadow_blend_splits = true

@@ -68,8 +68,10 @@ func generate() -> void:
 	# Delete old stuff
 	if geometry != null:
 		remove_child(geometry)
+		geometry.free()
 	if plant != null:
 		remove_child(plant)
+		plant.free()
 
 	# Get relevant parameters from Map (read-only)
 	var adjacent_hex: Array[HexGeometry.AdjacentHex] = []
@@ -93,7 +95,7 @@ func generate() -> void:
 	if height > 0 and geometry.samplerHorizontal.is_valid():
 		plant = SurfacePlant.new()
 		plant.populate_multimesh(geometry.samplerHorizontal)
-		add_child(self.plant, true)
+		add_child(plant, true)
 
 
 func processWorldStep() -> void:

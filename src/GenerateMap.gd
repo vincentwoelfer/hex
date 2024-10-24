@@ -19,7 +19,9 @@ func set_generate() -> void:
 func _process(delta: float) -> void:
 	if self.generate:
 		self.generate = false
+		#generate_all_hex_tile_geometry()
 		generate_complete_map()
+
 
 
 func generate_complete_map() -> void:
@@ -28,10 +30,14 @@ func generate_complete_map() -> void:
 	# Only done ONCE and expects map to be empty
 	var t_start := Time.get_ticks_msec()
 
-	# Delete from hexmap
-	MapManager.map.clear_all()
-
 	var coordinates := get_all_hex_coordinates(MapManager.MAP_SIZE)
+
+	# Delete from hexmap
+	for hex_pos in coordinates:
+		MapManager.map.get_hex(hex_pos).free()
+
+	MapManager.map.clear_all()
+	
 	for hex_pos in coordinates:
 		var height: int = determine_height(hex_pos)
 		create_empty_hex_tile(hex_pos, height)
