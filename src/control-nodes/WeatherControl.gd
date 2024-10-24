@@ -38,10 +38,17 @@ var weather_properties: Dictionary[WeatherType, Dictionary] = {
 
 # Actual tween duration may be limited further if time is auto-advancing
 var tween: Tween
-var desired_tween_duration := 0.5
+var desired_tween_duration := 0.25
 
+# Wind strength and wetness shader parameters
 var current_wind_strength := 1.0
+var target_wind_strength := current_wind_strength
+var max_wind_strength := 1.7
 
+var current_wetness := 0.0
+var target_wetness := current_wetness
+
+var current_rain_amount_ratio := 0.0
 
 func _ready() -> void:
 	EventBus.Signal_TriggerWeatherChange.connect(force_new_weather)
@@ -63,24 +70,22 @@ func change_weather(new_weather: WeatherType) -> void:
 
 
 func compute_rain_amount_ratio(weather: WeatherType) -> float:
-	var rain_amount_ratio := 0.0
-	
-	var rainy_weather_types := [WeatherType.DRIZZLE, WeatherType.RAIN, WeatherType.HEAVY_RAIN]
-	if weather in rainy_weather_types:
+	var rain_ratio := 0.0
+	if weather in [WeatherType.DRIZZLE, WeatherType.RAIN, WeatherType.HEAVY_RAIN]:
 		match weather:
 			WeatherType.DRIZZLE:
-				rain_amount_ratio = 0.2
+				rain_ratio = 0.2
 			WeatherType.RAIN:
-				rain_amount_ratio = 0.5
+				rain_ratio = 0.5
 			WeatherType.HEAVY_RAIN:
-				rain_amount_ratio = 1.0
+				rain_ratio = 1.0
 	else:
-		rain_amount_ratio = 0.0
-	return rain_amount_ratio
+		rain_ratio = 0.0
+	return rain_ratio
 
 
 func update_rain(new_weather: WeatherType) -> void:
-	var rain_amount_ratio := compute_rain_amount_ratio(new_weather)
+	current_rain_amount_ratio = compute_rain_amount_ratio(new_weather)
 
 	# Tween to value
 	# Delete previous tween if still existing
@@ -93,14 +98,50 @@ func update_rain(new_weather: WeatherType) -> void:
 	# Dont tween for longer than one hour lasts when auto-forwarding time
 	var world_time_manager := get_node('%WorldTimeManager') as WorldTimeManager
 	var current_tween_duration := minf(desired_tween_duration, world_time_manager.get_max_tween_time())
+	tween.tween_property(rain_particles, "amount_ratio", current_rain_amount_ratio, current_tween_duration)
 
-	tween.tween_property(rain_particles, "amount_ratio", rain_amount_ratio, current_tween_duration)
+	# Compute target wind strength - rain+random for now
+	target_wind_strength = (0.5 + current_rain_amount_ratio * 1.3 + randf_range(-0.3, 0.5))
+	target_wind_strength = clampf(target_wind_strength, 0.0, max_wind_strength)
 
-	# Compute wind strength
-	current_wind_strength = (0.4 + rain_amount_ratio * 1.3 + randf_range(-0.3, 0.5))
-	current_wind_strength = clampf(current_wind_strength, 0.0, 1.7)
+	if current_rain_amount_ratio > 0.0:
+		target_wetness = 1.0
+	else:
+		target_wetness = 0.0
+
+
+func change_towards_linear(curr: float, target: float, speed: float) -> float:
+	var sgn := signf(target - curr)
+	var result := curr + sgn * speed
+
+	# Prevent overshooting
+	if sgn > 0:
+		result = min(result, target)
+	else:
+		result = max(result, target)
+	return result
+
+
+func _process(delta: float) -> void:
+	# Update wind strength and wetness
+	const wind_change_speed := 0.6
+	current_wind_strength = change_towards_linear(current_wind_strength, target_wind_strength, wind_change_speed * delta)
+	current_wind_strength = clampf(current_wind_strength, 0.0, max_wind_strength)
+
+	const wetness_change_speed_saturating := 0.6
+	const wetness_change_speed_drying := 0.1
+	var wetness_change_speed: float
+	if target_wetness > current_wetness:
+		wetness_change_speed = wetness_change_speed_saturating * current_rain_amount_ratio
+	else:
+		wetness_change_speed = wetness_change_speed_drying
+	
+	current_wetness = change_towards_linear(current_wetness, target_wetness, wetness_change_speed * delta)
+	current_wetness = clampf(current_wetness, 0.0, 1.0)
+
+	# Set on rendering server
 	RenderingServer.global_shader_parameter_set("global_wind_strength", current_wind_strength)
-
+	RenderingServer.global_shader_parameter_set("global_world_wetness", current_wetness)
 
 func _on_time_progression(day_time: float) -> void:
 	if randf() < weather_profile.weather_change_probability:

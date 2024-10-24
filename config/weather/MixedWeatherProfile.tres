@@ -6,12 +6,12 @@
 resource_name = "Mixed"
 script = ExtResource("1_psh1i")
 temperature_change = 0
-weather_change_probability = 0.4
+weather_change_probability = 0.5
 weather_distribution = Dictionary[String, float]({
 "CLOUDY": 0.2,
 "DRIZZLE": 0.1,
 "FOG": 0.1,
-"HEAVY_RAIN": 0.05,
-"RAIN": 0.1,
-"SUNSHINE": 0.8
+"HEAVY_RAIN": 0.1,
+"RAIN": 0.2,
+"SUNSHINE": 0.6
 })

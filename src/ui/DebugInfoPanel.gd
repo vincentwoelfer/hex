@@ -25,4 +25,7 @@ func update_infotext() -> void:
 		var global_wind_strength := weather_control.current_wind_strength
 		infotext.append_text(str("Wind Strength: ", snappedf(global_wind_strength, 0.1), " \n"))
 
+		var wetness := weather_control.current_wetness
+		infotext.append_text(str("Wetness: ", snappedf(wetness, 0.01), " \n"))
+
 	infotext.append_text(str("FPS: ", snappedf(Engine.get_frames_per_second(), 0.01)))
