@@ -2,16 +2,15 @@
 class_name WorldLightControl
 extends Node
 
+const HOURS_PER_DAY := 24.0
+
 @onready var sun: DirectionalLight3D = %SunLight as DirectionalLight3D
 @onready var world_environment: WorldEnvironment = %WorldEnvironment as WorldEnvironment
 @onready var world_time_manager: WorldTimeManager = %WorldTimeManager as WorldTimeManager
 @onready var weather_control: WeatherControl = %WeatherControl as WeatherControl
 @onready var sky: PanoramaSkyMaterial = (%WorldEnvironment as WorldEnvironment).environment.sky.sky_material
 
-const HOURS_PER_DAY: float = 24.0
-const START_TIME: float = 8.0
-
-@export_range(0.0, HOURS_PER_DAY, 0.2) var current_time: float = START_TIME:
+@export_range(0.0, HOURS_PER_DAY, 0.2) var current_time: float = WorldTimeManager.get_start_time():
 	set(value):
 		current_time = value
 		if Engine.is_editor_hint():
@@ -24,8 +23,8 @@ const START_TIME: float = 8.0
 
 @export_category("Light parameters")
 # Hours after sunrise / before sunset where the light is beeing interpolated
-@export var sunrise_effect_hours: float = 3.0
-@export var sunset_effect_hours: float = 3.0
+@export var sunrise_effect_hours: float = 3.1
+@export var sunset_effect_hours: float = 3.1
 
 # TODO interpolate energy differently. Color change needs to happen ~2-3 hours, light intensity change only within 30min
 @export var min_sun_light_energy: float = 0.0
@@ -71,7 +70,7 @@ func _ready() -> void:
 	if not Engine.is_editor_hint():
 		current_time = fmod(world_time_manager.current_world_time, HOURS_PER_DAY)
 	else:
-		current_time = START_TIME
+		current_time = WorldTimeManager.get_start_time()
 
 	EventBus.Signal_SetVisualLightTime.connect(change_time)
 	EventBus.Signal_WeatherChanged.connect(_on_weather_change)

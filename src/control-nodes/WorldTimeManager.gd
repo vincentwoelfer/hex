@@ -2,8 +2,10 @@
 class_name WorldTimeManager
 extends Node
 
-const start_time: float = 8.0
-var current_world_time: float = start_time
+const HOURS_PER_DAY: float = 24.0
+const START_TIME: float = 9.0
+
+var current_world_time: float = START_TIME
 var duration_sec_per_hour: float = 1.0
 const time_step := 1.0
 var speed_up_factor: float = 2.5
@@ -54,10 +56,14 @@ func set_auto_advance_time(auto_advance_new: bool) -> void:
 			timer.stop()
 
 
+static func get_start_time() -> float:
+	return START_TIME
+
+
 func get_max_tween_time() -> float:
 	# Only limit tween time if auto advancing
 	if auto_advance:
-		return duration_sec_per_hour * 0.99
+		return duration_sec_per_hour * 0.95
 	else:
 		return 999.0
 
@@ -66,7 +72,7 @@ func advance_world_time_one_step() -> void:
 	# Advance one hour
 	current_world_time += time_step
 
-	day_time = fmod(current_world_time, 24.0)
+	day_time = fmod(current_world_time, HOURS_PER_DAY)
 	EventBus.Signal_SetVisualLightTime.emit(day_time)
 	EventBus.Signal_WorldStep.emit()
 	EventBus.Signal_DayTimeChanged.emit(day_time)

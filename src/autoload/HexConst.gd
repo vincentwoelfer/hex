@@ -34,6 +34,7 @@ var extra_verts_per_center := 5
 
 
 # NOT HEX CONST - here for editing in edior and hex-geom regeneration triggering
+# 1D-Density. Instances per meter
 var grass_density := 10.0
 
 # ========================================================
