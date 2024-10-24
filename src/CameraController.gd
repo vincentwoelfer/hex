@@ -5,6 +5,8 @@ var debugSphere: MeshInstance3D
 # Export parameters
 var horizontalDistance: float = 6.0
 var height: float = 5.0
+var height_min: float = 1.5
+var height_max: float = 13.0
 var currZoom: float = 5.0
 var zoomTarget: float = currZoom
 # higher value = further away
@@ -19,7 +21,7 @@ var actual_curr_rotation: float = 0
 
 var speed: float = 14
 var rotationLerpSpeed: float = 7.0
-var lerpSpeed: float = 8.0 # almost instant
+var lerpSpeed: float = 8.5 # almost instant, otherwise camera control feels sluggish
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -29,17 +31,29 @@ func _ready() -> void:
 	actual_curr_rotation = compute_target_forward_angle(orientation)
 
 func _input(event: InputEvent) -> void:
+	# Rotate
 	if event.is_action_pressed("rotate_cam_left"):
 		orientation = (orientation + 6 - 1) % 6
 	if event.is_action_pressed("rotate_cam_right"):
-		orientation = (orientation + 6 + 1) % 6
+		orientation = (orientation + 6 + 1) % 6	
 
 	# Zoom
+	var zoom_speed := 0.3
 	if Input.is_action_pressed("zoom_cam_forward"):
-		zoomTarget -= 0.25
+		zoomTarget -= zoom_speed
 	if Input.is_action_pressed("zoom_cam_backward"):
-		zoomTarget += 0.25
+		zoomTarget += zoom_speed
 	zoomTarget = clampf(zoomTarget, zoom_min, zoom_max)
+
+func updateContinuousInputs(delta: float) -> void:
+	# Up / Down
+	var height_speed := 9.0
+	if Input.is_action_pressed("rotate_cam_up"):
+		height += height_speed * delta
+	if Input.is_action_pressed("rotate_cam_down"):
+		height -= height_speed * delta
+	height = clampf(height, height_min, height_max)
+	
 
 func getInputVec() -> Vector3:
 	var inputDir := Vector3.ZERO
@@ -54,28 +68,10 @@ func getInputVec() -> Vector3:
 	return inputDir.normalized()
 
 
-func raycast_into_world() -> Dictionary:
-	var mouse_pos := get_viewport().get_mouse_position()
-	var ray_origin: Vector3 = self.project_ray_origin(mouse_pos)
-	var ray_direction: Vector3 = self.project_ray_normal(mouse_pos)
-
-	var ray_query := PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + ray_direction * 1000.0)
-	ray_query.collide_with_areas = true
-
-	var space_state := get_world_3d().direct_space_state
-	var result := space_state.intersect_ray(ray_query)
-	return result
-
-
-func compute_target_forward_angle(orientation_: float) -> float:
-	# Default Orientation = 1 -> Forward = -Z , this is archived with 90° into sin/cos
-	# Thats why we subtract 90°
-	var target_forward_angle := deg_to_rad((60.0 * orientation_ + 30.0) - 90.0) # Actually forward
-	return target_forward_angle
-
-
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
+	updateContinuousInputs(delta)
+
 	currZoom = lerpf(currZoom, zoomTarget, rotationLerpSpeed * delta)
 
 	var target_forward_angle := compute_target_forward_angle(orientation)
@@ -125,3 +121,23 @@ func draw_debug_sphere(location: Vector3, r: float) -> void:
 
 	debugSphere.mesh = DebugShapes3D.create_sphere(r, Color.RED)
 	debugSphere.global_transform.origin = location
+
+
+func raycast_into_world() -> Dictionary:
+	var mouse_pos := get_viewport().get_mouse_position()
+	var ray_origin: Vector3 = self.project_ray_origin(mouse_pos)
+	var ray_direction: Vector3 = self.project_ray_normal(mouse_pos)
+
+	var ray_query := PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + ray_direction * 1000.0)
+	ray_query.collide_with_areas = true
+
+	var space_state := get_world_3d().direct_space_state
+	var result := space_state.intersect_ray(ray_query)
+	return result
+
+
+func compute_target_forward_angle(orientation_: float) -> float:
+	# Default Orientation = 1 -> Forward = -Z , this is archived with 90° into sin/cos
+	# Thats why we subtract 90°
+	var target_forward_angle := deg_to_rad((60.0 * orientation_ + 30.0) - 90.0) # Actually forward
+	return target_forward_angle

@@ -29,6 +29,8 @@ signal Signal_DayTimeChanged(new_time: float)
 signal Signal_TriggerWeatherChange() # Manual trigger for debugging, not intended for broadcasting
 signal Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) # For broadcasting
 
+var wet := 0.0
+
 func _ready() -> void:
 	# Connect signals here to enable logging functions below.
 	# Actual signal connection is done in the code catching the signal like this:
@@ -58,6 +60,11 @@ func _input(event: InputEvent) -> void:
 
 		if event.is_action_pressed("randomize_selected_tile"):
 			Signal_randomizeSelectedTile.emit()
+			if wet == 0.0:
+				wet = 1.0
+			else:
+				wet = 0.0
+			RenderingServer.global_shader_parameter_set("global_world_wetness", wet)
 
 		if event.is_action_pressed("hold_speed_up_time"):
 			Signal_ToggleSpeedUpTime.emit()

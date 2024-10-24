@@ -105,7 +105,7 @@ void vertex() {
 	// Z should have no effect since grass is flat
 	vec3 vertex_model = VERTEX; // Vertex in model space before any rotations are applied
 
-	// --- Player crushing grass ---
+	// --- Player crushing grass --- -> DISABLED For now
 	// crushed_factor = 1 -> on player, max crushed
 	// float player_distance = length(global_player_position.xz - NODE_POSITION_WORLD.xz);
 	// float crushed_factor = clamp(1.0 - player_distance*player_distance*0.5, 0.0, 1.0);
@@ -195,12 +195,23 @@ void fragment() {
 
 	// Color becomes more uniform as distance increases
 	ALBEDO = mix(mix(base_color, tip_color, 0.5)*0.5, ALBEDO, fog_factor);
+	// wetness
+	ALBEDO = mix(ALBEDO, ALBEDO * vec3(0.8), global_world_wetness);
 
 	//AO = mix(0.1, 1.0, height_factor*height_factor); // Note: This looks better but is only visible when shadows are enabled!
-	ROUGHNESS = mix(1.0, 0.3, ease_out_quartic(height_factor));
+
+	// --- ROUGHNESS ---
+	// float roughness_dry = mix(1.0, 0.5, ease_out_quartic(height_factor));
+	// float roughness_wet = mix(0.5, 0.5, ease_out_quartic(height_factor));
+	// ROUGHNESS = mix(roughness_dry, roughness_wet, global_world_wetness);
+	ROUGHNESS = mix(1.0, 0.5, ease_out_quartic(height_factor));
+
+	// --- SPECULAR --- 
+	SPECULAR = mix (0.6, 0.9, global_world_wetness);
+
 	ANISOTROPY = 0.85;
 
-	// TODO 
+	// TODO
 	//https://github.com/godotengine/godot/issues/79859
 }
 
