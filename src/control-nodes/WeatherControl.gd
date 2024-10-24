@@ -97,7 +97,7 @@ func update_rain(new_weather: WeatherType) -> void:
 	tween.tween_property(rain_particles, "amount_ratio", rain_amount_ratio, current_tween_duration)
 
 	# Compute wind strength
-	#current_wind_strength = (0.4 + rain_amount_ratio * 1.3 + randf_range(-0.3, 0.5))
+	current_wind_strength = (0.4 + rain_amount_ratio * 1.3 + randf_range(-0.3, 0.5))
 	current_wind_strength = clampf(current_wind_strength, 0.0, 1.7)
 	RenderingServer.global_shader_parameter_set("global_wind_strength", current_wind_strength)
 
