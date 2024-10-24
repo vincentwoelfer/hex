@@ -20,8 +20,8 @@ enum PhaseOfDay {Night, Sunrise, Day, Sunset}
 
 
 @export_category("Sunshine hours")
-@export var sunrise: float = 5.0
-@export var sunset: float = 23.0
+@export var sunrise: float = 4.9
+@export var sunset: float = 23.1
 
 @export_category("Light parameters")
 # Hours after sunrise / before sunset where the light is beeing interpolated
@@ -168,8 +168,6 @@ func tween_to_time(time: float) -> void:
 func interpolate_properties_for_time(time: float) -> Dictionary[String, Variant]:
 	var time_from_sunrise := time - sunrise
 	var time_to_sunset := sunset - time
-	var sun_hours_per_day := HOURS_PER_DAY - sunrise - (HOURS_PER_DAY - sunset)
-	var day_time_frac := clampf(time_from_sunrise / sun_hours_per_day, 0.0, 1.0)
 
 	# Determine interpolation factor. 1 = full day, 0 = full night
 	var interpolation_factor: float
@@ -212,22 +210,29 @@ func interpolate_properties_for_time(time: float) -> Dictionary[String, Variant]
 	# Fog
 	var fog_density: float = lerpf(fog_density_lerp_from, daytime_fog_density, interpolation_factor)
 
-	# Lerp sun altitude from 0 -> zenith -> 0
+	# ---- SUN ANGLE ----
 	var sun_x: float
+	var sun_y: float
+
+	# Ping-Pong lerp sun altitude from 0 to zenith(max) back to 0
+	var sun_hours_per_day := HOURS_PER_DAY - sunrise - (HOURS_PER_DAY - sunset)
+	var day_time_frac := clampf(time_from_sunrise / sun_hours_per_day, 0.0, 1.0) # 0 at sunrise -> 1 at sunset
+
+	# Dirty hack to keep sun from fliping to "morning" at end of night
+	if time_from_sunrise <= -2:
+		day_time_frac = 1.0
+	
 	if day_time_frac <= 0.5:
 		sun_x = deg_to_rad(lerpf(sun_rotation_x_down, sun_rotation_x_zenith, day_time_frac * 2.0))
 	else:
 		sun_x = deg_to_rad(lerpf(sun_rotation_x_zenith, sun_rotation_x_down, (day_time_frac - 0.5) * 2.0))
+	sun_y = deg_to_rad(lerpf(sun_rotation_y_start, sun_rotation_y_finish, day_time_frac))
 
-	var sun_rotation: Vector3 = Vector3(
-			sun_x,
-			deg_to_rad(lerpf(sun_rotation_y_start, sun_rotation_y_finish, day_time_frac)),
-			0.0)
-
+	# ---- Put everything together ----
 	var properties: Dictionary[String, Variant] = {
 		"sun_light_energy": sun_light_energy,
 		"sun_light_color": light_color,
-		"sun_rotation": sun_rotation,
+		"sun_rotation": Vector3(sun_x, sun_y, 0.0),
 		"sky_energy_multiplier": sky_light_energy,
 		"env_volumetric_fog_density": fog_density,
 		}
