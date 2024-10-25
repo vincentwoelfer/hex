@@ -40,6 +40,16 @@ func unhighlight_current() -> void:
 
 func randomize_selected_tile() -> void:
 	if current_selection != null:
+		print("Randomizing tile ", current_selection)
 		current_selection.params.humidity = randf()
 		current_selection.params.shade = randf()
 		current_selection.params.nutrition = randf()
+
+		# For testing
+		current_selection.height += 1
+		current_selection.generate()
+
+		for dir in range(6):
+			var n := MapManager.map.get_hex(current_selection.hexpos.get_neighbor(dir))
+			if n != null:
+				n.generate()

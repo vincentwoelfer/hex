@@ -23,7 +23,6 @@ func _process(delta: float) -> void:
 		generate_complete_map()
 
 
-
 func generate_complete_map() -> void:
 	# MAP GENERATION STEP 1
 	# Create and instantiate empty hex-tiles, add as child and set world position
