@@ -90,33 +90,38 @@ func generate() -> void:
 	geometry.generate()
 	add_child(geometry, true)
 
-	# if height > 0 and geometry.samplerHorizontal.is_valid():
+	if height > 0 and geometry.samplerHorizontal.is_valid():
 		# Add plants
-		# if DebugSettings.enable_grass:
-		# 	plant = SurfacePlant.new()
-		# 	plant.name = "Grass"
-		# 	plant.populate_multimesh(geometry.samplerHorizontal)
-		# 	add_child(plant, true)
+		if DebugSettings.enable_grass:
+			plant = SurfacePlant.new()
+			plant.name = "Grass"
+			plant.populate_multimesh(geometry.samplerHorizontal)
+			add_child(plant, true)
 
 		# Add rocks
-		# if DebugSettings.enable_rocks:
-		# 	var rocksMesh := addRocks(geometry.samplerHorizontal)
-		# 	if rocksMesh != null:
-		# 		rocks = MeshInstance3D.new()
-		# 		rocks.name = "Rocks"
-		# 		rocks.material_override = ROCKS_MATERIAL
-		# 		rocks.mesh = rocksMesh
-		# 		add_child(rocks, true)
+		if DebugSettings.enable_rocks:
+			var rocksMesh := addRocks(geometry.samplerHorizontal)
+			if rocksMesh != null:
+				rocks = MeshInstance3D.new()
+				rocks.name = "Rocks"
+				rocks.material_override = ROCKS_MATERIAL
+				rocks.mesh = rocksMesh
+				add_child(rocks, true)
 
 
 func get_adjacent_hex() -> Array[HexGeometry.AdjacentHex]:
 	var adjacent_hex: Array[HexGeometry.AdjacentHex] = []
 	for dir in range(6):
-		var adjacent_height: int = MapManager.map.get_hex(self.hexpos.get_neighbor(dir)).height
+		var adjacent_tile := MapManager.map.get_hex(self.hexpos.get_neighbor(dir))
+		var adjacent_height: int
 		var adjacent_descr := ""
 
-		# If neighbour does not exists set height to same as own tile and mark transition
-		if adjacent_height == MapManager.INVALID_HEIGHT:
+		if adjacent_tile != null:
+			adjacent_height = adjacent_tile.height
+			adjacent_descr = ""
+
+		else:
+			# If neighbour does not exists set height to same as own tile and mark transition
 			adjacent_height = self.height
 			adjacent_descr = 'invalid'
 
