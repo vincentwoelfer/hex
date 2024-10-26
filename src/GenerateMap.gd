@@ -34,7 +34,6 @@ func generate_complete_map() -> void:
 	# Delete from hexmap
 	for hex_pos in coordinates:
 		MapManager.map.get_hex(hex_pos).free()
-
 	MapManager.map.clear_all()
 	
 	for hex_pos in coordinates:
@@ -107,7 +106,7 @@ func determine_height(hex_pos: HexPos) -> int:
 	height = clampi(height, MapManager.MIN_HEIGHT + 4, MapManager.MAX_HEIGHT) + 1
 
 	if height > MapManager.MAX_HEIGHT * 0.85:
-		height += 5
+		height += 6
 
 	# Border
 	if hex_pos.magnitude() == MapManager.MAP_SIZE:

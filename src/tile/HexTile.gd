@@ -87,7 +87,7 @@ func generate() -> void:
 		adjacent_hex.push_back(HexGeometry.AdjacentHex.new(adjacent_height, adjacent_descr))
 
 	# Add geometry
-	geometry = HexGeometry.new(height, adjacent_hex)
+	geometry = HexGeometry.new(self.height, adjacent_hex)
 	geometry.generate()
 	add_child(geometry, true)
 

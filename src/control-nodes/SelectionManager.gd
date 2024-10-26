@@ -39,17 +39,38 @@ func unhighlight_current() -> void:
 
 
 func randomize_selected_tile() -> void:
-	if current_selection != null:
-		print("Randomizing tile ", current_selection)
+	if current_selection != null and current_selection.is_valid() and current_selection.hexpos != null:
+		var t_start := Time.get_ticks_msec()
+		print("============\nRandomizing tile ", current_selection)
+
 		current_selection.params.humidity = randf()
 		current_selection.params.shade = randf()
 		current_selection.params.nutrition = randf()
 
 		# For testing
-		current_selection.height += 1
-		current_selection.generate()
+		var step := 2
+		current_selection.height = current_selection.height + step
+		current_selection.position = current_selection.position + Vector3(0, step * HexConst.height, 0)
 
+		current_selection.generate()
 		for dir in range(6):
 			var n := MapManager.map.get_hex(current_selection.hexpos.get_neighbor(dir))
 			if n != null:
 				n.generate()
+
+		# Report
+		# var affected: Array[HexTile] = []
+		# affected.push_back(current_selection)
+		# for dir in range(6):
+		# 	var n := MapManager.map.get_hex(current_selection.hexpos.get_neighbor(dir))
+		# 	if n != null:
+		# 		affected.push_back(n)
+
+		# var s: String = ""
+		# for h in affected:
+		# 	s += str(h) + " | "
+		# print(s)
+
+		# Finish
+		var t := (Time.get_ticks_msec() - t_start) / 1000.0
+		print("Populated %d hex tiles in %.3f sec" % [7, t])

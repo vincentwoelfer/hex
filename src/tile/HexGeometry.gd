@@ -58,6 +58,8 @@ func generate() -> void:
 	#########################################
 	# Adjust vertex heights
 	#########################################
+	# TODO compute "map-level" heights for corners "again". I dont know why here sometimes wrong/old values are used :/
+
 	# Adjust outer/transitional vertex heights
 	modifyOuterVertexHeights(verts_outer, adjacent_hex, height)
 
