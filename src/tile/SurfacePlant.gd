@@ -1,12 +1,11 @@
 class_name SurfacePlant
 extends Node3D
 
-# TODO make this extend ressource ????
-var mesh_instance: MultiMeshInstance3D = MultiMeshInstance3D.new()
-
 const GRASS_MESH_HIGH := preload('res://assets/meshes/plants/grass_hres.obj')
 const GRASS_MESH_LOW := preload('res://assets/meshes/plants/grass_lres.obj')
 const GRASS_MAT: ShaderMaterial = preload('res://assets/materials/grass_material.tres')
+
+var mesh_instance: MultiMeshInstance3D
 
 var min_height := 0.2
 var max_height := 3.0
@@ -24,7 +23,6 @@ var num_blades_total: int
 
 func _init() -> void:
 	mesh_instance = MultiMeshInstance3D.new()
-	mesh_instance.name = 'GrassMultiMesh'
 	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mesh_instance.material_override = GRASS_MAT
 	mesh_instance.extra_cull_margin = 1.0

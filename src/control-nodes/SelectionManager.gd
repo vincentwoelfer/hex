@@ -3,7 +3,6 @@ extends Node
 
 var current_selection: HexTile = null
 
-
 func _init() -> void:
 	EventBus.Signal_SelectedWorldPosition.connect(parse_selection_position)
 	EventBus.Signal_randomizeSelectedTile.connect(randomize_selected_tile)
@@ -39,38 +38,26 @@ func unhighlight_current() -> void:
 
 
 func randomize_selected_tile() -> void:
-	if current_selection != null and current_selection.is_valid() and current_selection.hexpos != null:
-		var t_start := Time.get_ticks_msec()
-		print("============\nRandomizing tile ", current_selection)
+	pass
+	# if current_selection != null and current_selection.is_valid() and current_selection.hexpos != null:
+	# 	var t_start := Time.get_ticks_msec()
+	# 	print("============\nRandomizing tile ", current_selection.hexpos)
 
-		current_selection.params.humidity = randf()
-		current_selection.params.shade = randf()
-		current_selection.params.nutrition = randf()
+	# 	current_selection.params.humidity = randf()
+	# 	current_selection.params.shade = randf()
+	# 	current_selection.params.nutrition = randf()
 
-		# For testing
-		var step := 2
-		current_selection.height = current_selection.height + step
-		current_selection.position = current_selection.position + Vector3(0, step * HexConst.height, 0)
+	# 	# For testing
+	# 	var step := 5
+	# 	current_selection.height += step
+	# 	current_selection.position += Vector3(0, step * HexConst.height, 0)
+		
+	# 	for dir in range(6):
+	# 		var n := MapManager.map.get_hex(current_selection.hexpos.get_neighbor(dir))
+	# 		if n != null:
+	# 			n.generate()
+	# 	current_selection.generate()
 
-		current_selection.generate()
-		for dir in range(6):
-			var n := MapManager.map.get_hex(current_selection.hexpos.get_neighbor(dir))
-			if n != null:
-				n.generate()
-
-		# Report
-		# var affected: Array[HexTile] = []
-		# affected.push_back(current_selection)
-		# for dir in range(6):
-		# 	var n := MapManager.map.get_hex(current_selection.hexpos.get_neighbor(dir))
-		# 	if n != null:
-		# 		affected.push_back(n)
-
-		# var s: String = ""
-		# for h in affected:
-		# 	s += str(h) + " | "
-		# print(s)
-
-		# Finish
-		var t := (Time.get_ticks_msec() - t_start) / 1000.0
-		print("Populated %d hex tiles in %.3f sec" % [7, t])
+	# 	# Finish
+	# 	var t := (Time.get_ticks_msec() - t_start) / 1000.0
+	# 	print("Populated %d hex tiles in %.3f sec" % [7, t])

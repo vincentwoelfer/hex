@@ -5,17 +5,12 @@ extends Node3D
 const HIGHLIGHT_MATERIAL: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
 const DEFAULT_GEOM_MATERIAL: Material = preload('res://assets/materials/default_geom_material.tres')
 
-const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.tres')
-
 # Class variables
 var terrainMesh: MeshInstance3D
-var rocksMesh: MeshInstance3D
 var triangles: Array[Triangle]
 var samplerAll: PolygonSurfaceSampler
 var samplerHorizontal: PolygonSurfaceSampler
 var samplerVertical: PolygonSurfaceSampler
-var allAvailRockMeshes: Array[ArrayMesh]
-
 
 class AdjacentHex:
 	var height: int
@@ -39,15 +34,6 @@ func _init(height_: int, adjacent_hex_: Array[AdjacentHex]) -> void:
 	terrainMesh.material_override = DEFAULT_GEOM_MATERIAL
 	terrainMesh.material_overlay = HIGHLIGHT_MATERIAL
 	add_child(terrainMesh, true)
-
-	rocksMesh = MeshInstance3D.new()
-	rocksMesh.name = "RocksMesh"
-	rocksMesh.material_override = ROCKS_MATERIAL
-	add_child(rocksMesh, true)
-
-	# Load Rocks - hardcoded numbers for now
-	for i in range(1, 10):
-		allAvailRockMeshes.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as ArrayMesh)
 
 
 func generate() -> void:
@@ -85,10 +71,6 @@ func generate() -> void:
 	st.set_normal(Vector3.UP)
 
 	for tri in triangles:
-		# TODO improve based on tile type. THis is a super dirty way to color the ocean floor/map border tiles
-		if self.height == 0 and tri.calculateInclineDeg() <= 60:
-			tri.color = Color.BLACK
-
 		tri.addToSurfaceTool(st)
 
 	# Removes duplicates and actually create mesh
@@ -106,36 +88,8 @@ func generate() -> void:
 
 	# Not an ocean/border tile
 	if self.height > 0:
-		addRocks(self.samplerHorizontal)
-
 		# Regenerate collision shape
 		terrainMesh.create_convex_collision(true, true)
-
-	# Only for statistics output-
-	#var mdt := MeshDataTool.new()
-	#mdt.create_from_surface(terrainMesh.mesh as ArrayMesh, 0)
-	#print("Generated HexGeometry: ", mdt.get_vertex_count(), " vertices, ", mdt.get_face_count(), " faces")
-
-
-func addRocks(sampler: PolygonSurfaceSampler) -> void:
-	if not sampler.is_valid():
-		return
-
-	var st_combined: SurfaceTool = SurfaceTool.new()
-	for i in range(1, 8):
-		var t: Transform3D = sampler.get_random_point_transform()
-
-		# Random large rocks
-		if randf() <= 0.05:
-			t = t.scaled_local(Vector3.ONE * randf_range(6.0, 8.0))
-			t = t.translated_local(Vector3.UP * -0.1) # Move down a bit
-
-		t = t.rotated_local(Vector3.UP, randf_range(0.0, TAU))
-
-		var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
-		st_combined.append_from(mesh, 0, t)
-
-	rocksMesh.mesh = st_combined.commit()
 
 
 static func modifyInnerAndCenterVertexHeights(verts_inner: Array[Vector3], verts_center: Array[Vector3], corners: Array[Vector3]) -> void:
