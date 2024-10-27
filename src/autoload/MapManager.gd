@@ -17,6 +17,33 @@ const MAP_SIZE: int = 4
 var map: HexMap = HexMap.new()
 	
 
+func get_hex_transitions(hex_pos: HexPos) -> Array[HexTileTransition]:
+	assert(map.get_hex(hex_pos) != null)
+
+	var own_height := map.get_hex(hex_pos).height
+
+	var transitions: Array[HexTileTransition] = []
+	for dir in range(6):
+		var adj: HexTile = map.get_hex(hex_pos.get_neighbor(dir))
+		var height_other: int
+		var type : HexTileTransition.Type
+
+		if adj != null:
+			height_other = adj.height
+			if abs(height_other - own_height) >= HexConst.trans_type_max_height_diff:
+				type = HexTileTransition.Type.SHARP
+			else:
+				type = HexTileTransition.Type.SMOOTH
+
+		else:
+			# If neighbour does not exists set height to same as own tile and mark transition
+			height_other = own_height
+			type = HexTileTransition.Type.INVALID
+
+		transitions.push_back(HexTileTransition.new(height_other, type))
+	return transitions
+
+
 func get_all_hex_coordinates(N: int) -> Array[HexPos]:
 	var num := compute_total_num_tiles_for_map_size(N)
 	var coordinates: Array[HexPos] = []

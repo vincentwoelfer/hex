@@ -18,13 +18,14 @@
 
 [node name="HexConstModifier" parent="." instance=ExtResource("12_e2267")]
 outer_radius = 4.0
-inner_radius = 3.0
+inner_radius = 3.4
 height = 0.5
-transition_height_factor = 1.0
+transition_height_factor = 0.5
 core_circle_smooth_strength = 0.35
 extra_verts_per_side = 4
 extra_verts_per_center = 11
-smooth_height_factor = 1.0
+smooth_height_factor = 0.0
+trans_type_max_height_diff = 12
 grass_density = 10.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]

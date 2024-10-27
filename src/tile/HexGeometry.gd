@@ -24,9 +24,11 @@ func _init(height_: int, transitions_: Array[HexTileTransition]) -> void:
 	self.transitions = transitions_
 
 
-func get_corner(i: int) -> Vector3:
-	var corner_vertex_index := i * HexConst.total_verts_per_side()
-	return verts_outer[corner_vertex_index]
+func get_corner_vertex(i: int) -> Vector3:
+	return verts_outer[get_corner_index(i)]
+
+func get_corner_index(i: int) -> int:
+	return i * HexConst.total_verts_per_side()
 
 
 func generate() -> void:
@@ -96,126 +98,51 @@ func modifyOuterVertexHeightsAgain() -> void:
 
 func getInterpolatedHeightInside(p: Vector3) -> float:
 	var weights := computeBarycentricWeightsForInsidePoint(p)
-	var h: float = 0
+	var h: float = 0.0
 	for i in range(6):
-		h += weights[i] * get_corner(i).y
+		h += weights[i] * get_corner_vertex(i).y * getCornerWeightsAccordingToTransitionTypes(i)
 
 	return h
 
 
-func computeBarycentricWeightsForInsidePoint(p_3d: Vector3) -> Array[float]:
-	# See http://www.geometry.caltech.edu/pubs/MHBD02.pdf
+func getCornerWeightsAccordingToTransitionTypes(corner_index: int) -> float:
+	# Get both transitions
+	var trans: Array[HexTileTransition] = [transitions[(corner_index - 1 + 6) % 6], transitions[corner_index]]
 
-	var p := Util.toVec2(p_3d)
-	var weights: Array[float]
-	var weight_sum: float = 0
-	var on_border := false
+	# Average transition types
+	return (trans[0].get_weight() + trans[1].get_weight()) / 2.0
 
-	for i in range(6):
-		var w: float
-		var prev := (i - 1 + 6) % 6
-		var next := (i + 1) % 6
-		var corner_i := Util.toVec2(get_corner(i))
-		var corner_prev := Util.toVec2(get_corner(prev))
-		var corner_next := Util.toVec2(get_corner(next))
 
-		# TODO maybe remove this code if its slow and not needed!
+# Computes the height of the corner vertex bordering these two transitions.
+# Relative = already as float and minus own height -> as vertex coordinates
+func getCornerVertexHeight(trans: Array[HexTileTransition]) -> float:
+	# Add transitions to array
+	var heights: Array[int] = [self.height]
+	for t in trans:
+		if t.type != HexTileTransition.Type.INVALID:
+			heights.append(t.height_other)
 
-		# Check if p is very close to one of the hexagon border segments for this corner i
-		if is_point_near_line_segment(p, corner_prev, corner_i):
-			var t := compute_t_on_line_segment(p, corner_prev, corner_i)
-			w = t * 100
-			on_border = true
+	var accum := 0.0
 
-		elif is_point_near_line_segment(p, corner_i, corner_next):
-			var t := compute_t_on_line_segment(p, corner_next, corner_i)
-			w = t * 100
-			on_border = true
+	for h in heights:
+		accum += h
+	var avg := accum / heights.size()
 
-		else:
-			var tan1 := cotangent(p, corner_i, corner_prev)
-			var tan2 := cotangent(p, corner_i, corner_next)
-			w = (tan1 + tan2) / (p - corner_i).length_squared()
-
-		weights.push_back(w)
-		weight_sum += w
-
-	# Normalize weights
-	for i in range(6):
-		if on_border and weights[i] < 0.5:
-			weight_sum -= weights[i]
-			weights[i] = 0.0
-
-		weights[i] /= weight_sum
+	var final_height := (avg - self.height) * HexConst.height
 	
-	return weights
+	#var final_height := HexConst.transition_height(avg - self.height)
 
-
-func getCornerHeight(trans: Array[HexTileTransition]) -> float:
-	var corner_height: int = 0
-
-	# Create sorted heights array
-	var h: Array[int] = [self.height, trans[0].height_other, trans[1].height_other]
-	h.sort()
-
-	# Check for special case where one adjacent is not valid (map border).
-	# If two are not valid all are set to own height and this is handled by the default case
-	var num_invalid: int = trans.reduce(func(accum: int, elem: HexTileTransition, ) -> int: return accum + 1 if elem.type == 'invalid' else accum, 0)
-	
-	if num_invalid == 1:
-		var trans_height := 0
-		if trans[0].type != 'invalid':
-			trans_height = trans[0].height_other
-		else:
-			trans_height = trans[1].height_other
-
-		var y: float = HexConst.transition_height(trans_height - self.height)
-		return y
-	else:
-		var y: float
-		# All three same
-		if h[0] == h[1] and h[1] == h[2]:
-			corner_height = h[0]
-			# Dont use transition_height here, directly compute height of the neighbouring cell (or own if h=0)
-			# Normalize relative to own height
-			y = (corner_height - self.height) * HexConst.height
-
-		# Two are same -> use the two
-		elif h[0] == h[1] or h[0] == h[2] or h[1] == h[2]:
-			# Use transition height here but compute between own and "the other".
-			# It doesnt matter if this cell and one other cell are the same or if both others are the same and this is the odd one
-			# We want the height which is not equal to our own height!
-			var other_height: float
-			if self.height != h[0]:
-				other_height = h[0]
-			elif self.height != h[1]:
-				other_height = h[1]
-			else:
-				other_height = h[2]
-
-			# Normalize relative to own height
-			y = HexConst.transition_height(other_height - self.height)
-
-		# All different -> use middle one
-		else:
-			corner_height = h[1]
-			# Normalize relative to own height
-			# Dont use transition_height here, directly compute height of the neighbouring cell (or own if h=0)
-			y = (corner_height - self.height) * HexConst.height
-
-		return y
+	return final_height
 
 
 func modifyOuterVertexHeights() -> void:
 	# For each CORNER: Adjust vertices according to both adjacent tiles
 	for i in range(6):
-		var corner_vertex_index := i * HexConst.total_verts_per_side()
-
-		# Get both transitions  and create sorted heights array
+		# Get both transitions and create sorted heights array
 		var trans: Array[HexTileTransition] = [transitions[(i - 1 + 6) % 6], transitions[i]]
 
 		# Actually set height
-		verts_outer[corner_vertex_index].y = getCornerHeight(trans)
+		verts_outer[get_corner_index(i)].y = getCornerVertexHeight(trans)
 
 
 	# For each DIRECTION: Adjust height of outer vertices according do adjacent tiles.
@@ -225,8 +152,8 @@ func modifyOuterVertexHeights() -> void:
 		var y: float = HexConst.transition_height(transitions[i].height_other - self.height)
 
 		# +1 to ommit corners
-		var start := i * HexConst.total_verts_per_side() + 1
-		var end := (i + 1) * HexConst.total_verts_per_side()
+		var start := get_corner_index(i) + 1
+		var end := get_corner_index(i + 1)
 
 		for x in range(start, end):
 			verts_outer[x].y = y
@@ -306,6 +233,53 @@ func triangulateOuter() -> Array[Triangle]:
 		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], Colors.randColorVariation(col)))
 
 	return tris
+
+
+func computeBarycentricWeightsForInsidePoint(p_3d: Vector3) -> Array[float]:
+	# See http://www.geometry.caltech.edu/pubs/MHBD02.pdf
+
+	var p := Util.toVec2(p_3d)
+	var weights: Array[float]
+	var weight_sum: float = 0
+	var on_border := false
+
+	for i in range(6):
+		var w: float
+		var prev := (i - 1 + 6) % 6
+		var next := (i + 1) % 6
+		var corner_i := Util.toVec2(get_corner_vertex(i))
+		var corner_prev := Util.toVec2(get_corner_vertex(prev))
+		var corner_next := Util.toVec2(get_corner_vertex(next))
+
+		# TODO maybe remove this code if its slow and not needed!
+		# Check if p is very close to one of the hexagon border segments for this corner i
+		if is_point_near_line_segment(p, corner_prev, corner_i):
+			var t := compute_t_on_line_segment(p, corner_prev, corner_i)
+			w = t * 100
+			on_border = true
+
+		elif is_point_near_line_segment(p, corner_i, corner_next):
+			var t := compute_t_on_line_segment(p, corner_next, corner_i)
+			w = t * 100
+			on_border = true
+
+		else:
+			var tan1 := cotangent(p, corner_i, corner_prev)
+			var tan2 := cotangent(p, corner_i, corner_next)
+			w = (tan1 + tan2) / (p - corner_i).length_squared()
+
+		weights.push_back(w)
+		weight_sum += w
+
+	# Normalize weights
+	for i in range(6):
+		if on_border and weights[i] < 0.5:
+			weight_sum -= weights[i]
+			weights[i] = 0.0
+
+		weights[i] /= weight_sum
+	
+	return weights
 
 
 func doesVertsInnerTrianglePointsInwards(i1: int, i2: int, i3: int) -> bool:

@@ -71,7 +71,7 @@ func generate() -> void:
 		rocks.free()
 
 	# Add geometry - Get relevant parameters from Map (read-only)
-	geometry = HexGeometry.new(self.height, get_hex_transitions())
+	geometry = HexGeometry.new(self.height, MapManager.get_hex_transitions(self.hexpos))
 	geometry.generate()
 	terrainMesh = MeshInstance3D.new()
 	terrainMesh.name = "terrain"
@@ -101,26 +101,6 @@ func generate() -> void:
 				rocks.mesh = rocksMesh
 				add_child(rocks, true)
 
-
-func get_hex_transitions() -> Array[HexTileTransition]:
-	var transitions: Array[HexTileTransition] = []
-	for dir in range(6):
-		var tile: HexTile = MapManager.map.get_hex(self.hexpos.get_neighbor(dir))
-		var height_other: int
-		var descr := ""
-
-		if tile != null:
-			height_other = tile.height
-			descr = ""
-
-		else:
-			# If neighbour does not exists set height to same as own tile and mark transition
-			height_other = self.height
-			descr = 'invalid'
-
-		transitions.push_back(HexTileTransition.new(height_other, descr))
-	return transitions
-		
 
 func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 	if not sampler.is_valid():

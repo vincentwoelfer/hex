@@ -36,6 +36,9 @@ var extra_verts_per_center := 7
 var smooth_height_factor := 1.0
 
 
+var trans_type_max_height_diff := 4
+
+
 # NOT HEX CONST - here for editing in edior and hex-geom regeneration triggering
 # 1D-Density. Instances per meter
 var grass_density := 10.0

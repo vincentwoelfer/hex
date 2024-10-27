@@ -51,6 +51,14 @@ extends Node
 		HexConst.smooth_height_factor = value
 		EventBus.emit_signal("Signal_HexConstChanged")
 
+
+@export_range(0, 20, 1) var trans_type_max_height_diff: int = HexConst.trans_type_max_height_diff:
+	set(value):
+		trans_type_max_height_diff = value
+		HexConst.trans_type_max_height_diff = value
+		EventBus.emit_signal("Signal_HexConstChanged")
+
+
 @export_range(0, 100.0, 1.0) var grass_density: float = HexConst.grass_density:
 	set(value):
 		grass_density = value
