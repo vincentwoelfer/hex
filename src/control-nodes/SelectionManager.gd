@@ -59,4 +59,4 @@ func randomize_selected_tile() -> void:
 
 		# Finish
 		var t := (Time.get_ticks_msec() - t_start) / 1000.0
-		print("Populated %d hex tiles in %.3f sec" % [7, t])
+		print("Generated %d hex tiles in %.3f sec" % [7, t])

@@ -7,35 +7,37 @@ signal Signal_HexConstChanged()
 signal Signal_SelectedWorldPosition(selection_position: Vector3)
 signal Signal_SelectedHexTile(new_hex: HexTile)
 
-# Debug Signals
-signal Signal_TooglePerTileUi(is_visible: bool)
-# TODO this should not be saved here!
-var is_per_tile_ui_on: bool = false
-
-signal Signal_randomizeSelectedTile()
-
 # TIME
 # Only for visual purposes
 signal Signal_SetVisualLightTime(new_time: float)
-
-#
-signal Signal_AdvanceWorldTimeOneStep() # Is input signal
-signal Signal_ToogleWorldTimeAutoAdvance()
-
 signal Signal_WorldStep()
-signal Signal_ToggleSpeedUpTime()
 signal Signal_DayTimeChanged(new_time: float)
+signal Signal_WeatherChanged(new_weather: WeatherControl.WeatherType)
 
-signal Signal_TriggerWeatherChange() # Manual trigger for debugging, not intended for broadcasting
-signal Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) # For broadcasting
+###################################
+# DIRECTLY FROM INPUT KEYS
+###################################
+signal Signal_TooglePerTileUi() # 1
+signal Signal_ToogleWorldTimeAutoAdvance() # 2
+signal Signal_randomizeSelectedTile() # 3
+signal Signal_TriggerWeatherChange() # 4
+signal Signal_AdvanceWorldTimeOneStep() # Space
+signal Signal_ToggleSpeedUpTime() # Shift
+
 
 func _ready() -> void:
-	# Connect signals here to enable logging functions below.
+	# Print Input Mappings
+	pretty_print_actions(get_input_mapping())
+
 	# Actual signal connection is done in the code catching the signal like this:
 	# EventBus.Signal_HexConstChanged.connect(generate_geometry)
 
-	# Signal emittion:
+	# Signal emitting is done like this:
 	# EventBus.emit_signal("Signal_HexConstChanged", ...)
+
+	##################
+	# Connect signals here to enable logging functions below.
+	##################
 
 	# Connect to events to print debug info
 	Signal_HexConstChanged.connect(_on_Signal_HexConstChanged)
@@ -46,9 +48,9 @@ func _ready() -> void:
 func _input(event: InputEvent) -> void:
 	# Only execute in game, check necessary because EventBus is @tool
 	if not Engine.is_editor_hint():
+
 		if event.is_action_pressed("toogle_per_tile_ui"):
-			is_per_tile_ui_on = !is_per_tile_ui_on
-			Signal_TooglePerTileUi.emit(is_per_tile_ui_on)
+			Signal_TooglePerTileUi.emit()
 
 		if event.is_action_pressed("toogle_world_time_auto_advance"):
 			Signal_ToogleWorldTimeAutoAdvance.emit()
@@ -69,12 +71,52 @@ func _input(event: InputEvent) -> void:
 			get_tree().quit()
 
 
-# Function to handle the signal
 func _on_Signal_HexConstChanged() -> void:
 	#print("EventBus: Signal_HexConstChanged")
 	pass
 	
 
-# Function to handle the signal
 func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:
 	print("EventBus: Weather Changed to ", WeatherControl.WeatherType.keys()[new_weather])
+
+
+# Helper functions
+func get_input_mapping() -> Dictionary[String, String]:
+	var mapping: Dictionary[String, String] = {}
+	for action in InputMap.get_actions():
+		if action.begins_with("ui_") or action.contains("_cam_"):
+			continue
+
+		mapping[action] = get_keys_for_action(action)
+	return mapping
+
+func get_keys_for_action(action: String) -> String:
+	var key_list := []
+	var events := InputMap.action_get_events(action)
+	for event in events:
+		if event is InputEventKey:
+			key_list.append((event as InputEventKey).as_text_physical_keycode())
+	return ", ".join(key_list)
+
+
+func pretty_print_actions(actions_dict: Dictionary[String, String]) -> void:
+	var max_action_length: int = 0
+	for action: String in actions_dict.keys():
+		max_action_length = max(max_action_length, action.length())
+	
+	# Sort the dictionary by values (hotkeys) alphabetically
+	var sorted_hotkeys: Array[String] = actions_dict.values()
+	sorted_hotkeys.sort_custom(func(a: String, b: String) -> bool: return a < b)
+	
+	for hotkey: String in sorted_hotkeys:
+		var action := get_key_by_value(actions_dict, hotkey)
+		var padding: String = " ".repeat(max_action_length - action.length())
+		print("%s:%s\t%s" % [action, padding, actions_dict[action]])
+
+
+func get_key_by_value(dict: Dictionary[String, String], value: String) -> String:
+	for key: String in dict:
+		if dict[key] == value:
+			return key
+	# Return an empty string if no matching value is found
+	return ""

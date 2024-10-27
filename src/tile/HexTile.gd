@@ -154,9 +154,9 @@ func processWorldStep() -> void:
 		plant.processWorldStep(params.humidity, params.shade, params.nutrition)
 
 
-func toogleTileUi(is_label_visible: bool) -> void:
+func toogleTileUi() -> void:
 	if label != null:
-		label.is_label_visible = is_label_visible
+		label.is_label_visible = !label.is_label_visible
 
 
 func _process(delta: float) -> void:

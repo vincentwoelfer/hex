@@ -8,7 +8,7 @@ const START_TIME: float = 9.0
 var current_world_time: float = START_TIME
 var duration_sec_per_hour: float = 1.0
 const time_step := 1.0
-var speed_up_factor: float = 2.5
+var speed_up_factor: float = 3.0
 
 var auto_advance: bool = false
 var current_time_of_day: float = fmod(current_world_time, HOURS_PER_DAY)

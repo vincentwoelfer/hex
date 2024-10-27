@@ -88,7 +88,7 @@ func generate_all_hex_tile_geometry() -> void:
 
 	# Finish
 	var t := (Time.get_ticks_msec() - t_start) / 1000.0
-	print("Populated %d hex tiles in %.3f sec" % [coordinates.size(), t])
+	print("Generated %d hex tiles in %.3f sec" % [coordinates.size(), t])
 
 
 func determine_height(hex_pos: HexPos) -> int:
@@ -110,48 +110,3 @@ func determine_height(hex_pos: HexPos) -> int:
 		height = MapManager.OCEAN_HEIGHT
 
 	return height
-
-
-
-# OLD ATTEMPT TO MULTITHREAD THIS - DOES NOT WORK
-# THERE IS A WORKER_POOL CLASS FOR THIS, USE IT INSTEAD
-# # STEP 2
-# func generate_all_hex_tile_geometry() -> void:
-# 	var t_start := Time.get_ticks_msec()
-
-# 	# Get coordinates
-# 	var coordinates := get_all_hex_coordinates(MapManager.MAP_SIZE)
-
-# 	# Create and run threads
-# 	var num_threads := 1
-# 	var threads: Array[Thread] = []
-# 	for i in range(num_threads):
-# 		threads.append(Thread.new())
-
-# 	# Split coordinates
-# 	var part_size: int = ceil(float(coordinates.size()) / float(num_threads))
-
-# 	# Start threads
-# 	for i in range(num_threads):
-# 		var start_index: int = i * part_size
-# 		var end_index: int = min((i + 1) * part_size, coordinates.size() - 1)
-# 		var slice := coordinates.slice(start_index, end_index)
-# 		print("Starting thread %d with slice [%d, %d]" % [i, start_index, end_index])
-# 		print(slice)
-# 		threads[i].start(thread_function.bind(slice))
-
-# 	print('Waiting for threads to finish...')
-# 	# Join threads
-# 	for i in range(num_threads):
-# 		threads[i].wait_to_finish()
-
-# 	# Finish
-# 	var t := (Time.get_ticks_msec() - t_start) / 1000.0
-# 	print("Populated %d hex tiles in %.3f sec (%d threads)" % [coordinates.size(), t, num_threads])
-
-
-# # STEP 2 Thread function
-# func thread_function(hex_poses: Array[HexPos]) -> void:
-# 	for hex_pos in hex_poses:
-# 		print('Processing: ', hex_pos)
-# 		MapManager.map.get_hex(hex_pos).generate()

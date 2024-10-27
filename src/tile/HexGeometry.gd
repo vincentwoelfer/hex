@@ -12,22 +12,14 @@ var samplerAll: PolygonSurfaceSampler
 var samplerHorizontal: PolygonSurfaceSampler
 var samplerVertical: PolygonSurfaceSampler
 
-class AdjacentHex:
-	var height: int
-	var type: String # unused for now
-
-	func _init(height_: int, type_: String) -> void:
-		self.height = height_
-		self.type = type_
-
 # Input Variables. The height is absolute!
-var adjacent_hex: Array[AdjacentHex]
+var transitions: Array[HexTileTransition]
 var height: int
 
 
-func _init(height_: int, adjacent_hex_: Array[AdjacentHex]) -> void:
+func _init(height_: int, transitions_: Array[HexTileTransition]) -> void:
 	self.height = height_
-	self.adjacent_hex = adjacent_hex_
+	self.transitions = transitions_
 
 	terrainMesh = MeshInstance3D.new()
 	terrainMesh.name = "TerrainMesh"
@@ -47,7 +39,7 @@ func generate() -> void:
 	# TODO compute "map-level" heights for corners "again". I dont know why here sometimes wrong/old values are used :/
 
 	# Adjust outer/transitional vertex heights
-	modifyOuterVertexHeights(verts_outer, adjacent_hex, height)
+	modifyOuterVertexHeights(verts_outer, transitions, height)
 
 	# Get quick reference to the 6 corner vertices
 	var corners: Array[Vector3]
@@ -195,7 +187,7 @@ static func cotangent(a: Vector2, b: Vector2, c: Vector2) -> float:
 	return bc.dot(ba) / abs(bc.cross(ba))
 
 
-static func modifyOuterVertexHeights(verts_outer: Array[Vector3], adjacent: Array[AdjacentHex], own_height: int) -> void:
+static func modifyOuterVertexHeights(verts_outer: Array[Vector3], transitions: Array[HexTileTransition], own_height: int) -> void:
 	# Adjust CORNER vertices according to both adjacent tiles
 	for i in range(6):
 		var corner_height: int = 0
