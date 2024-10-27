@@ -18,20 +18,21 @@ var verts_center: Array[Vector3]
 var verts_inner: Array[Vector3]
 var verts_outer: Array[Vector3]
 
+
 func _init(height_: int, transitions_: Array[HexTileTransition]) -> void:
 	self.height = height_
 	self.transitions = transitions_
 
 
 func get_corner(i: int) -> Vector3:
-	var corner_vertex_index := i * (3 + HexConst.extra_verts_per_side)
+	var corner_vertex_index := i * HexConst.total_verts_per_side()
 	return verts_outer[corner_vertex_index]
 
 
 func generate() -> void:
+	verts_center = generateCenterPoints(HexConst.extra_verts_per_center)
 	verts_inner = generateInnerHexagonNoCorners(HexConst.inner_radius, HexConst.extra_verts_per_side, HexConst.core_circle_smooth_strength)
 	verts_outer = generateOuterHexagonWithCorners(HexConst.inner_radius, HexConst.outer_radius, HexConst.extra_verts_per_side)
-	verts_center = generateCenterPoints(HexConst.extra_verts_per_center)
 
 	#########################################
 	# Adjust vertex heights
@@ -81,11 +82,11 @@ func modifyInnerAndCenterVertexHeights() -> void:
 
 func modifyOuterVertexHeightsAgain() -> void:
 	for i in range(verts_outer.size()):
-		var is_corner: bool = i % (3 + HexConst.extra_verts_per_side) == 0
+		var is_corner: bool = i % HexConst.total_verts_per_side() == 0
 		
 		if not is_corner:
-			var prev_corner: int = i - (i % (3 + HexConst.extra_verts_per_side))
-			var next_corner: int = (prev_corner + (3 + HexConst.extra_verts_per_side)) % verts_outer.size()
+			var prev_corner: int = i - (i % HexConst.total_verts_per_side())
+			var next_corner: int = (prev_corner + HexConst.total_verts_per_side()) % verts_outer.size()
 
 			var t := compute_t_on_line_segment(Util.toVec2(verts_outer[i]), Util.toVec2(verts_outer[prev_corner]), Util.toVec2(verts_outer[next_corner]))
 			var h := (1.0 - t) * verts_outer[prev_corner].y + t * verts_outer[next_corner].y
@@ -154,7 +155,7 @@ func modifyOuterVertexHeights() -> void:
 	# Adjust CORNER vertices according to both adjacent tiles
 	for i in range(6):
 		var corner_height: int = 0
-		var corner_vertex_index := i * (3 + HexConst.extra_verts_per_side)
+		var corner_vertex_index := i * HexConst.total_verts_per_side()
 
 		# Get adjacent and create sorted heights array
 		var trans: Array[HexTileTransition] = [transitions[(i - 1 + 6) % 6], transitions[i]]
@@ -217,8 +218,8 @@ func modifyOuterVertexHeights() -> void:
 		var y: float = HexConst.transition_height(transitions[i].height_other - self.height)
 
 		# +1 to ommit corners
-		var start := i * (3 + HexConst.extra_verts_per_side) + 1
-		var end := (i + 1) * (3 + HexConst.extra_verts_per_side)
+		var start := i * HexConst.total_verts_per_side() + 1
+		var end := (i + 1) * HexConst.total_verts_per_side()
 
 		for x in range(start, end):
 			verts_outer[x].y = y
@@ -272,11 +273,11 @@ func triangulateOuter() -> Array[Triangle]:
 
 		# start inner & outer
 		var i := x * (1 + HexConst.extra_verts_per_side)
-		var j := x * (3 + HexConst.extra_verts_per_side)
+		var j := x * HexConst.total_verts_per_side()
 
 		# end inner & outer
 		var n1 := (x + 1) * (1 + HexConst.extra_verts_per_side)
-		var n2 := (x + 1) * (3 + HexConst.extra_verts_per_side) - 1
+		var n2 := (x + 1) * HexConst.total_verts_per_side() - 1
 
 		# Triangulate start-corner manually here
 		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], Colors.randColorVariation(col)))

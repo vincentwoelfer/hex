@@ -84,7 +84,7 @@ func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:
 func get_input_mapping() -> Dictionary[String, String]:
 	var mapping: Dictionary[String, String] = {}
 	for action in InputMap.get_actions():
-		if action.begins_with("ui_") or action.contains("_cam_"):
+		if action.begins_with("ui_") or action.contains("_cam_") or action.begins_with("spatial_"):
 			continue
 
 		mapping[action] = get_keys_for_action(action)

@@ -8,27 +8,8 @@ extends Node3D
 
 const DEFAULT_TERRAIN_MAT: Material = preload('res://assets/materials/default_geom_material.tres')
 const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
-
-#######################
-####################### Feld:
-# klima-bedingungen
-# humidity
-# Schatten  (wie viele Bäume)
-# nutrition = wie gut wachsen sachen, erde vs sand/stein
-
-# Was da drauf ist.
-#
-
-# Derived
-# => aktuellen lichteinfall = Sonne - Schatten
-
-#######################
-####################### Allgemeint Wetter:
-# Temperatur
-# Aktueller Regenfall -> mehr wasser
-# Aktuelle Sonne -> weniger wasser, mehr licht
-
 const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.tres')
+
 var allAvailRockMeshes: Array[ArrayMesh]
 
 # Core Variables
@@ -60,7 +41,7 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 
 	# Load Rocks - hardcoded numbers for now
 	for i in range(1, 10):
-		allAvailRockMeshes.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as ArrayMesh)
+		allAvailRockMeshes.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as Mesh)
 
 	self.params = HexTileParams.new() # Randomizes everything
 

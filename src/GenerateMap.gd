@@ -26,16 +26,9 @@ func generate_complete_map() -> void:
 	# MAP GENERATION STEP 1
 	# Create and instantiate empty hex-tiles, add as child and set world position
 	# Only done ONCE and expects map to be empty
-	var coordinates := MapManager.get_all_hex_coordinates(MapManager.MAP_SIZE)
-
-	if not MapManager.map.is_empty():
-		# Delete from hexmap
-		for hex_pos in coordinates:
-			var tile : HexTile = MapManager.map.get_hex(hex_pos)
-			if tile != null:
-				tile.free()
-		MapManager.map.clear_all()
+	MapManager.map.free_all()
 	
+	var coordinates := MapManager.get_all_hex_coordinates(MapManager.MAP_SIZE)
 	for hex_pos in coordinates:
 		var height: int = determine_height(hex_pos)
 		create_empty_hex_tile(hex_pos, height)

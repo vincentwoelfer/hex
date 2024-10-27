@@ -15,22 +15,10 @@ const MAP_SIZE: int = 4
 # 12 for most performance tests in the past
 
 var map: HexMap = HexMap.new()
-
-
-func free_all() -> void:
-	if not map.is_empty():
-		# Delete from hexmap
-		var coordinates := get_all_hex_coordinates(MAP_SIZE)
-
-		for hex_pos in coordinates:
-			var tile : HexTile = map.get_hex(hex_pos)
-			if tile != null:
-				tile.free()
-		map.clear_all()
 	
 
 func get_all_hex_coordinates(N: int) -> Array[HexPos]:
-	var num := compute_num_tiles_for_map_size(N)
+	var num := compute_total_num_tiles_for_map_size(N)
 	var coordinates: Array[HexPos] = []
 	coordinates.resize(num)
 	var i := 0
@@ -46,7 +34,7 @@ func get_all_hex_coordinates(N: int) -> Array[HexPos]:
 	return coordinates
 
 
-func compute_num_tiles_for_map_size(N: int) -> int:
+func compute_total_num_tiles_for_map_size(N: int) -> int:
 	# Only origin tile	
 	if N == 0:
 		return 1

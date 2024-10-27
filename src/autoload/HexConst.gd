@@ -69,3 +69,8 @@ func transition_height(adjacent: float) -> float:
         return height * transition_height_factor * adjacent
     else:
         return 0.0
+
+# +3 because each corner hast 2 extra verts but we only want
+# the first 2 from the starting corner and the one missing from the enxt corner
+func total_verts_per_side() -> int:
+    return 3 + HexConst.extra_verts_per_side

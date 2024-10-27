@@ -3,6 +3,7 @@ class_name HexMap
 # Hash-Map of Hexes. Key = int (HexPos.has()), Value = HexTile
 var tiles: Dictionary[int, HexTile] = {}
 
+
 func add_hex(hex: HexPos, height: int) -> HexTile:
 	var key: int = hex.hash()
 	if tiles.has(key):
@@ -25,11 +26,13 @@ func is_empty() -> bool:
 
 
 # TODO warning does not remove from scene tree, do that beforehand!
-func remove_hex(hex: HexPos) -> void:
-	var key: int = hex.hash()
-	tiles.erase(key)
+# func remove_hex(hex: HexPos) -> void:
+# 	var key: int = hex.hash()
+# 	tiles.erase(key)
 
 
-# TODO warning does not remove from scene tree, do that beforehand!
-func clear_all() -> void:
+func free_all() -> void:
+	for i: int in tiles:
+		if tiles[i] != null:
+			tiles[i].free()
 	tiles.clear()
