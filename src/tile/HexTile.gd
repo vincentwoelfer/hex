@@ -6,6 +6,9 @@ extends Node3D
 # Parent / Struct class holding everything a hex tile can be/posess
 ######################################################
 
+const DEFAULT_TERRAIN_MAT: Material = preload('res://assets/materials/default_geom_material.tres')
+const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
+
 #######################
 ####################### Feld:
 # klima-bedingungen
@@ -37,6 +40,7 @@ var label: HexTileLabel
 
 # Visual Representation
 var geometry: HexGeometry
+var terrainMesh: MeshInstance3D
 var plant: SurfacePlant
 var rocks: MeshInstance3D
 
@@ -52,6 +56,7 @@ func _init(hexpos_: HexPos, height_: int) -> void:
 	self.geometry = null
 	self.plant = null
 	self.rocks = null
+	self.terrainMesh = null
 
 	# Load Rocks - hardcoded numbers for now
 	for i in range(1, 10):
@@ -76,19 +81,26 @@ func _ready() -> void:
 func generate() -> void:
 	# Delete old stuff
 	if geometry != null:
-		#remove_child(geometry)
 		geometry.free()
+	if terrainMesh != null:
+		terrainMesh.free()
 	if plant != null:
-		#remove_child(plant)
 		plant.free()
 	if rocks != null:
-		#remove_child(rocks)
 		rocks.free()
 
 	# Add geometry - Get relevant parameters from Map (read-only)
-	geometry = HexGeometry.new(self.height, get_adjacent_hex())
+	geometry = HexGeometry.new(self.height, get_hex_transitions())
 	geometry.generate()
-	add_child(geometry, true)
+	terrainMesh = MeshInstance3D.new()
+	terrainMesh.name = "terrain"
+	terrainMesh.mesh = geometry.mesh
+	terrainMesh.material_override = DEFAULT_TERRAIN_MAT
+	terrainMesh.material_overlay = HIGHLIGHT_MAT
+	if self.height > 0:
+		terrainMesh.create_convex_collision(true, true)
+	
+	add_child(terrainMesh, true)
 
 	if height > 0 and geometry.samplerHorizontal.is_valid():
 		# Add plants
@@ -109,24 +121,24 @@ func generate() -> void:
 				add_child(rocks, true)
 
 
-func get_adjacent_hex() -> Array[HexGeometry.AdjacentHex]:
-	var adjacent_hex: Array[HexGeometry.AdjacentHex] = []
+func get_hex_transitions() -> Array[HexTileTransition]:
+	var transitions: Array[HexTileTransition] = []
 	for dir in range(6):
-		var adjacent_tile := MapManager.map.get_hex(self.hexpos.get_neighbor(dir))
-		var adjacent_height: int
-		var adjacent_descr := ""
+		var tile: HexTile = MapManager.map.get_hex(self.hexpos.get_neighbor(dir))
+		var height_other: int
+		var descr := ""
 
-		if adjacent_tile != null:
-			adjacent_height = adjacent_tile.height
-			adjacent_descr = ""
+		if tile != null:
+			height_other = tile.height
+			descr = ""
 
 		else:
 			# If neighbour does not exists set height to same as own tile and mark transition
-			adjacent_height = self.height
-			adjacent_descr = 'invalid'
+			height_other = self.height
+			descr = 'invalid'
 
-		adjacent_hex.push_back(HexGeometry.AdjacentHex.new(adjacent_height, adjacent_descr))
-	return adjacent_hex
+		transitions.push_back(HexTileTransition.new(height_other, descr))
+	return transitions
 		
 
 func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:

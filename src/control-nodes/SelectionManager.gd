@@ -29,12 +29,12 @@ func update_selected_hex_tile(new_selection: HexTile) -> void:
 
 func highlight_current() -> void:
 	if current_selection != null:
-		current_selection.geometry.terrainMesh.set_instance_shader_parameter("enabled", 1.0)
+		current_selection.terrainMesh.set_instance_shader_parameter("enabled", 1.0)
 
 
 func unhighlight_current() -> void:
 	if current_selection != null:
-		current_selection.geometry.terrainMesh.set_instance_shader_parameter("enabled", 0.0)
+		current_selection.terrainMesh.set_instance_shader_parameter("enabled", 0.0)
 
 
 func randomize_selected_tile() -> void:
@@ -50,7 +50,7 @@ func randomize_selected_tile() -> void:
 		var step := 5
 		current_selection.height += step
 		current_selection.position += Vector3(0, step * HexConst.height, 0)
-		
+
 		for dir in range(6):
 			var n := MapManager.map.get_hex(current_selection.hexpos.get_neighbor(dir))
 			if n != null:
