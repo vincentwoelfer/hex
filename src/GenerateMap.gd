@@ -47,7 +47,7 @@ func generate_complete_map() -> void:
 
 	# for hex_pos in coordinates:
 	# 	var tile :HexTile = MapManager.map.get_hex(hex_pos)
-	# 	st_combined.append_from(tile.geometry.terrainMesh.mesh, 0, tile.global_transform)
+	# 	st_combined.append_from(tile.geometry.mesh, 0, tile.global_transform)
 
 	# instance.set_mesh(st_combined.commit())
 	# const DEFAULT_GEOM_MATERIAL: Material = preload('res://assets/materials/default_geom_material.tres')
