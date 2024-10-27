@@ -151,64 +151,71 @@ func computeBarycentricWeightsForInsidePoint(p_3d: Vector3) -> Array[float]:
 	return weights
 
 
+func getCornerHeight(trans: Array[HexTileTransition]) -> float:
+	var corner_height: int = 0
+
+	# Create sorted heights array
+	var h: Array[int] = [self.height, trans[0].height_other, trans[1].height_other]
+	h.sort()
+
+	# Check for special case where one adjacent is not valid (map border).
+	# If two are not valid all are set to own height and this is handled by the default case
+	var num_invalid: int = trans.reduce(func(accum: int, elem: HexTileTransition, ) -> int: return accum + 1 if elem.type == 'invalid' else accum, 0)
+	
+	if num_invalid == 1:
+		var trans_height := 0
+		if trans[0].type != 'invalid':
+			trans_height = trans[0].height_other
+		else:
+			trans_height = trans[1].height_other
+
+		var y: float = HexConst.transition_height(trans_height - self.height)
+		return y
+	else:
+		var y: float
+		# All three same
+		if h[0] == h[1] and h[1] == h[2]:
+			corner_height = h[0]
+			# Dont use transition_height here, directly compute height of the neighbouring cell (or own if h=0)
+			# Normalize relative to own height
+			y = (corner_height - self.height) * HexConst.height
+
+		# Two are same -> use the two
+		elif h[0] == h[1] or h[0] == h[2] or h[1] == h[2]:
+			# Use transition height here but compute between own and "the other".
+			# It doesnt matter if this cell and one other cell are the same or if both others are the same and this is the odd one
+			# We want the height which is not equal to our own height!
+			var other_height: float
+			if self.height != h[0]:
+				other_height = h[0]
+			elif self.height != h[1]:
+				other_height = h[1]
+			else:
+				other_height = h[2]
+
+			# Normalize relative to own height
+			y = HexConst.transition_height(other_height - self.height)
+
+		# All different -> use middle one
+		else:
+			corner_height = h[1]
+			# Normalize relative to own height
+			# Dont use transition_height here, directly compute height of the neighbouring cell (or own if h=0)
+			y = (corner_height - self.height) * HexConst.height
+
+		return y
+
+
 func modifyOuterVertexHeights() -> void:
-	# Adjust CORNER vertices according to both adjacent tiles
+	# For each CORNER: Adjust vertices according to both adjacent tiles
 	for i in range(6):
-		var corner_height: int = 0
 		var corner_vertex_index := i * HexConst.total_verts_per_side()
 
-		# Get adjacent and create sorted heights array
+		# Get both transitions  and create sorted heights array
 		var trans: Array[HexTileTransition] = [transitions[(i - 1 + 6) % 6], transitions[i]]
-		var h: Array[int] = [self.height, trans[0].height_other, trans[1].height_other]
-		h.sort()
 
-		# Check for special case where one adjacent is not valid (map border).
-		# If two are not valid all are set to own height and this is handled by the default case
-		var num_invalid: int = trans.reduce(func(accum: int, elem: HexTileTransition, ) -> int: return accum + 1 if elem.type == 'invalid' else accum, 0)
-		
-		if num_invalid == 1:
-			var trans_height := 0
-			if trans[0].type != 'invalid':
-				trans_height = trans[0].height_other
-			else:
-				trans_height = trans[1].height_other
-
-			var y: float = HexConst.transition_height(trans_height - self.height)
-			verts_outer[corner_vertex_index].y = y
-		else:
-			var y: float
-			# All three same
-			if h[0] == h[1] and h[1] == h[2]:
-				corner_height = h[0]
-				# Dont use transition_height here, directly compute height of the neighbouring cell (or own if h=0)
-				# Normalize relative to own height
-				y = (corner_height - self.height) * HexConst.height
-
-			# Two are same -> use the two
-			elif h[0] == h[1] or h[0] == h[2] or h[1] == h[2]:
-				# Use transition height here but compute between own and "the other".
-				# It doesnt matter if this cell and one other cell are the same or if both others are the same and this is the odd one
-				# We want the height which is not equal to our own height!
-				var other_height: float
-				if self.height != h[0]:
-					other_height = h[0]
-				elif self.height != h[1]:
-					other_height = h[1]
-				else:
-					other_height = h[2]
-
-				# Normalize relative to own height
-				y = HexConst.transition_height(other_height - self.height)
-
-			# All different -> use middle one
-			else:
-				corner_height = h[1]
-				# Normalize relative to own height
-				# Dont use transition_height here, directly compute height of the neighbouring cell (or own if h=0)
-				y = (corner_height - self.height) * HexConst.height
-
-			# Actually set height
-			verts_outer[corner_vertex_index].y = y
+		# Actually set height
+		verts_outer[corner_vertex_index].y = getCornerHeight(trans)
 
 
 	# For each DIRECTION: Adjust height of outer vertices according do adjacent tiles.
@@ -403,7 +410,7 @@ static func generateCenterPoints(num: int) -> Array[Vector3]:
 	num -= 1
 
 	# Adjust to ensure points stay within the hexagon
-	var ring_radius := HexConst.inner_radius * 0.6
+	var ring_radius := HexConst.inner_radius * 0.5
 
 	# Distribute along the first ring
 	for i in range(num):
