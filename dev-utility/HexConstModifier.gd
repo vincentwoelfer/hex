@@ -45,19 +45,23 @@ extends Node
 		HexConst.extra_verts_per_center = value
 		EventBus.emit_signal("Signal_HexConstChanged")
 
-@export_range(0.0, 1.0, 0.05) var smooth_height_factor: float = HexConst.smooth_height_factor:
+@export_range(0.0, 1.0, 0.1) var smooth_height_factor_inner: float = HexConst.smooth_height_factor_inner:
 	set(value):
-		smooth_height_factor = value
-		HexConst.smooth_height_factor = value
+		smooth_height_factor_inner = value
+		HexConst.smooth_height_factor_inner = value
 		EventBus.emit_signal("Signal_HexConstChanged")
 
+@export_range(0.0, 1.0, 0.1) var smooth_height_factor_outer: float = HexConst.smooth_height_factor_outer:
+	set(value):
+		smooth_height_factor_outer = value
+		HexConst.smooth_height_factor_outer = value
+		EventBus.emit_signal("Signal_HexConstChanged")
 
-@export_range(0, 20, 1) var trans_type_max_height_diff: int = HexConst.trans_type_max_height_diff:
+@export_range(0, 40, 1) var trans_type_max_height_diff: int = HexConst.trans_type_max_height_diff:
 	set(value):
 		trans_type_max_height_diff = value
 		HexConst.trans_type_max_height_diff = value
 		EventBus.emit_signal("Signal_HexConstChanged")
-
 
 @export_range(0, 100.0, 1.0) var grass_density: float = HexConst.grass_density:
 	set(value):

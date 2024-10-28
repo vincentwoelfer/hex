@@ -33,10 +33,14 @@ var extra_verts_per_side := 4
 var extra_verts_per_center := 7
 
 # Interpolation for vertex height between 0 / border height and Barycentric Coords
-var smooth_height_factor := 1.0
+var smooth_height_factor_inner := 1.0
+var smooth_height_factor_outer := 1.0
 
 
 var trans_type_max_height_diff := 4
+
+# Use smooth groups
+var smooth_vertex_normals: bool = false
 
 
 # NOT HEX CONST - here for editing in edior and hex-geom regeneration triggering

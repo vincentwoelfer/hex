@@ -80,9 +80,9 @@ func generate() -> void:
 	terrainMesh.material_overlay = HIGHLIGHT_MAT
 	add_child(terrainMesh, true)
 
-	if self.height > 0:
+	if DebugSettings.generate_collision and self.height > 0:
 		terrainMesh.create_convex_collision(true, true)
-	
+
 
 	if height > 0 and geometry.samplerHorizontal.is_valid():
 		# Add plants

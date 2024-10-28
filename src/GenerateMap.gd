@@ -3,6 +3,7 @@ extends Node3D
 
 var height_noise: Noise = preload("res://assets/noise/TerrainHeightNoiseGenerator.tres")
 var generate: bool = false
+var last_generate_timestamp := 0.0
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -17,7 +18,8 @@ func set_generate() -> void:
 
 
 func _process(delta: float) -> void:
-	if self.generate:
+	if self.generate and (Time.get_unix_time_from_system() - last_generate_timestamp) > 1.0:
+		last_generate_timestamp = Time.get_unix_time_from_system()
 		self.generate = false
 		generate_complete_map()
 

@@ -39,12 +39,13 @@ func getRandPoint() -> Vector3:
 
 
 func addToSurfaceTool(st: SurfaceTool) -> void:
+	var smooth_group: int = 0 if HexConst.smooth_vertex_normals else -1
 	st.set_color(color)
-	st.set_smooth_group(-1)
+	st.set_smooth_group(smooth_group)
 	st.add_vertex(a)
-	st.set_smooth_group(-1)
+	st.set_smooth_group(smooth_group)
 	st.add_vertex(b)
-	st.set_smooth_group(-1)
+	st.set_smooth_group(smooth_group)
 	st.add_vertex(c)
 
 

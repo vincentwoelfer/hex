@@ -40,7 +40,6 @@ func _ready() -> void:
 	##################
 
 	# Connect to events to print debug info
-	Signal_HexConstChanged.connect(_on_Signal_HexConstChanged)
 	Signal_WeatherChanged.connect(_on_Signal_WeatherChanged)
 
 
@@ -71,10 +70,6 @@ func _input(event: InputEvent) -> void:
 			get_tree().quit()
 
 
-func _on_Signal_HexConstChanged() -> void:
-	#print("EventBus: Signal_HexConstChanged")
-	pass
-	
 
 func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:
 	print("EventBus: Weather Changed to ", WeatherControl.WeatherType.keys()[new_weather])
