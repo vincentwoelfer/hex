@@ -7,6 +7,9 @@ var corner_vertices: Array[Vector3]
 var corner_vertices_smoothing: Array[Vector3]
 var transitions: Array[Transition]
 
+var hex_pos: HexPos
+
+# Track progess
 var generation_stage: GenerationStage
 
 # Transitions
@@ -23,7 +26,8 @@ class Transition:
 enum GenerationStage {NEW = 0, BASIC = 1, COMPLETE = 2}
 
 
-func _init(height_: int) -> void:
+func _init(hex_pos_: HexPos, height_: int) -> void:
+	self.hex_pos = hex_pos_
 	self.height = height_
 
 	self.transitions.resize(6)
@@ -42,7 +46,7 @@ func generate_basic(neighbours_height: Array[int]) -> void:
 	
 	# Transitions
 	for dir in range(6):
-		transitions[dir] = create_transition_between_tiles(height, neighbours_height[dir])
+		transitions[dir] = create_transition_between_tiles(height, neighbours_height[dir], dir)
 		
 	# Corner vertices
 	for dir in range(6):
@@ -68,28 +72,45 @@ func generate_complete(neighbour_input: Array[HexGeometryInput]) -> void:
 	self.generation_stage = GenerationStage.COMPLETE
 
 	for dir in range(6):
-		var n: HexGeometryInput = neighbour_input[dir]
-		assert(n.generation_stage >= GenerationStage.BASIC)
+		compute_smoothed_transition_vertices(dir, neighbour_input[dir])
 
-		var type := transitions[dir].type
-		# SHARP or INVALID
-		# Just use sharp corner vertex height for SHARP transitions
-		if type == TransitionType.SHARP or type == TransitionType.INVALID:
-			transitions[dir].smoothing_start_height = corner_vertices[dir].y
-			transitions[dir].smoothing_end_height = corner_vertices[Util.as_dir(dir + 1)].y
+		
+func compute_smoothed_transition_vertices(dir: int, n: HexGeometryInput) -> void:
+	assert(n.generation_stage >= GenerationStage.BASIC)
 
-		# SMOOTH
-		# Use average of own smoothed corner vertex height and that of the neighbour
-		elif type == TransitionType.SMOOTH:
-			var n_start_height: float = n.corner_vertices_smoothing[get_neighbour_corner_idx(dir, true)].y
-			var n_end_height: float = n.corner_vertices_smoothing[get_neighbour_corner_idx(dir, false)].y
+	# Shortcuts	
+	var type := transitions[dir].type
+	var start: float
+	var end: float
 
-			# Neighbour heights are relative to their own HexTile height. Make them relative to ours:
-			n_start_height = n_start_height + (n.height * HexConst.height) - height * HexConst.height
-			n_end_height = n_end_height + (n.height * HexConst.height) - height * HexConst.height
+	# Get neighbour corner_vertices_smoothing heights and make them relative to ours:
+	var n_start_height: float = n.corner_vertices_smoothing[get_neighbour_corner_idx(dir, true)].y
+	var n_end_height: float = n.corner_vertices_smoothing[get_neighbour_corner_idx(dir, false)].y
+	n_start_height = relativize_height(n_start_height, n.height)
+	n_end_height = relativize_height(n_end_height, n.height)
 
-			transitions[dir].smoothing_start_height = (corner_vertices_smoothing[dir].y + n_start_height) / 2.0
-			transitions[dir].smoothing_end_height = (corner_vertices_smoothing[Util.as_dir(dir + 1)].y + n_end_height) / 2.0
+	# SHARP or INVALID
+	# Use strict corner vertex height for SHARP transitions, clamp prevent breaks in geometry
+	if type == TransitionType.SHARP or type == TransitionType.INVALID:
+		start = corner_vertices[dir].y
+		end = corner_vertices[Util.as_dir(dir + 1)].y
+		
+		# Clamp height between smoothed vertex corners heights
+		start = Util.clampf(start, corner_vertices_smoothing[dir].y, n_start_height)
+		end = Util.clampf(end, corner_vertices_smoothing[Util.as_dir(dir + 1)].y, n_end_height)
+
+	# SMOOTH
+	# Use average of own smoothed corner vertex height and that of the neighbour
+	elif type == TransitionType.SMOOTH:
+		start = (corner_vertices_smoothing[dir].y + n_start_height) / 2.0
+		end = (corner_vertices_smoothing[Util.as_dir(dir + 1)].y + n_end_height) / 2.0
+
+	transitions[dir].smoothing_start_height = start
+	transitions[dir].smoothing_end_height = end
+
+
+func relativize_height(value: float, n_height: int) -> float:
+	return value + (n_height * HexConst.height) - height * HexConst.height
 
 
 func determine_corner_vertex_smoothing_height(own_height: int, own_strict_corner_height: float, trans: Array[Transition]) -> float:
@@ -160,13 +181,13 @@ func determine_corner_vertex_height(own_height: int, neighbours_height: Array[in
 		return (median - own_height) * HexConst.height
 
 
-func create_transition_between_tiles(from_height: int, to_height: int) -> Transition:
+func create_transition_between_tiles(from_height: int, to_height: int, dir: int) -> Transition:
 	assert(from_height != HexConst.MAP_INVALID_HEIGHT)
 	var t := Transition.new()
 
 	if to_height != HexConst.MAP_INVALID_HEIGHT:
 		t.height_other = to_height
-		t.type = MapGenerationData.determine_transition_type(from_height, to_height)
+		t.type = MapGenerationData.determine_transition_type(hex_pos, from_height, hex_pos.get_neighbour(dir), to_height)
 	else:
 		# If neighbour does not exists set height to same as from tile and mark transition invalid
 		t.height_other = from_height
@@ -184,17 +205,21 @@ static func get_neighbour_corner_idx(dir: int, start: bool) -> int:
 
 ########################################################################
 func create_debug_visualization(parent: Node3D) -> void:
+	# Corner vertices
 	for i in range(6):
 		var instance := MeshInstance3D.new()
-		var color := Colors.getDistincHexColor(i).darkened(0.6)
-		instance.mesh = DebugShapes3D.create_sphere(0.15 - i * 0.01, color)
+		var color := Colors.getDistincHexColor(i).darkened(0.5)
+		instance.mesh = DebugShapes3D.create_sphere(0.15 - i * 0.005, color)
+		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		instance.position = corner_vertices[i]
 		parent.add_child(instance)
 
+	# Smoothed corner vertices
 	for i in range(6):
 		var instance := MeshInstance3D.new()
 		var color := Colors.getDistincHexColor(i).lightened(0.3)
-		instance.mesh = DebugShapes3D.create_sphere(0.15 - i * 0.01, color)
+		instance.mesh = DebugShapes3D.create_sphere(0.15 - i * 0.005, color)
+		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var pos: Vector3 = corner_vertices_smoothing[i]
 		var inwards_factor := HexConst.inner_radius / HexConst.outer_radius
 		pos.x *= inwards_factor
@@ -202,3 +227,18 @@ func create_debug_visualization(parent: Node3D) -> void:
 		pos.y *= inwards_factor
 		instance.position = pos
 		parent.add_child(instance)
+
+	# transition vertices
+	# for i in range(6):
+	# 	var trans := transitions[i].sta
+
+	# 	var instance := MeshInstance3D.new()
+	# 	var color := Colors.getDistincHexColor(i).lightened(0.3)
+	# 	instance.mesh = DebugShapes3D.create_sphere(0.15 - i * 0.01, color)
+	# 	var pos: Vector3 = corner_vertices_smoothing[i]
+	# 	var inwards_factor := HexConst.inner_radius / HexConst.outer_radius
+	# 	pos.x *= inwards_factor
+	# 	pos.z *= inwards_factor
+	# 	#pos.y *= inwards_factor
+	# 	instance.position = pos
+	# 	parent.add_child(instance)

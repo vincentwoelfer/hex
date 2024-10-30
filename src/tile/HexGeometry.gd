@@ -118,10 +118,12 @@ func setOuterVertexHeights() -> void:
 			var t := compute_t_on_line_segment(Util.toVec2(verts_outer[x]), start_corner, end_corner)
 			var smoothed_height: float = (1.0 - t) * input.transitions[dir].smoothing_start_height + t * input.transitions[dir].smoothing_end_height
 				
-			var fac := HexConst.smooth_height_factor_outer
-			if input.transitions[dir].type == HexGeometryInput.TransitionType.SHARP:
-				fac = 0.0
-			verts_outer[x].y = lerpf(base_height, smoothed_height, fac)
+			# var fac := HexConst.smooth_height_factor_outer
+			# if input.transitions[dir].type == HexGeometryInput.TransitionType.SHARP:
+			# 	fac = 0.0
+			# verts_outer[x].y = lerpf(base_height, smoothed_height, fac)
+
+			verts_outer[x].y = lerpf(base_height, smoothed_height, HexConst.smooth_height_factor_outer)
 
 			# Increment with wrap-around
 			x = (x + 1) % verts_outer.size()
@@ -159,7 +161,7 @@ func triangulateCenter() -> Array[Triangle]:
 		if all_vertices_on_circle and Util.isTriangleOutsideOfPolygon([p1, p2, p3], verts_polygon_packed):
 			continue
 
-		tris.append(Triangle.new(p1, p2, p3, Colors.colorVariation(col, 0.05)))
+		tris.append(Triangle.new(p1, p2, p3, Colors.colorVariation(col)))
 
 	return tris
 
@@ -172,6 +174,7 @@ func triangulateOuter() -> Array[Triangle]:
 	# Per Side
 	for dir in range(6):
 		var sideColor := Colors.getDistincHexColor(dir)
+		var corner_color := Colors.modifyColorForCornerArea(sideColor)
 		sideColor = Colors.modifyColorForTransitionType(sideColor, input.transitions[dir].type)
 
 		# start inner & outer
@@ -182,8 +185,7 @@ func triangulateOuter() -> Array[Triangle]:
 		var n1 := (dir + 1) * (1 + HexConst.extra_verts_per_side)
 		var n2 := (dir + 1) * HexConst.total_verts_per_side() - 1
 
-		# Triangulate start-corner manually here
-		var corner_color := Colors.modifyColorForCornerArea(sideColor)
+		# Triangulate start-corner manually here		
 		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], corner_color))
 		j += 1
 
@@ -200,7 +202,6 @@ func triangulateOuter() -> Array[Triangle]:
 				j += 1
 
 		# Triangulate end-corner manually here
-		corner_color = Colors.modifyColorForCornerArea(sideColor)
 		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], corner_color))
 
 	return tris

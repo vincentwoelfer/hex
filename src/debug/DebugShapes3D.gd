@@ -7,8 +7,9 @@ static func create_sphere(r: float, color: Color = Color.RED) -> PrimitiveMesh:
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 
 	var sphere := SphereMesh.new()
-	sphere.radial_segments = 6
-	sphere.rings = 6
+	var quality: int = clampi(roundi(r * 40.0), 4, 16)
+	sphere.radial_segments = quality + 2
+	sphere.rings = quality
 	sphere.height = 2 * r
 	sphere.radius = r
 	sphere.material = material

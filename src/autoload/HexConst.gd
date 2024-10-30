@@ -36,7 +36,6 @@ var extra_verts_per_center := 7
 var smooth_height_factor_inner := 1.0
 var smooth_height_factor_outer := 1.0
 
-
 var trans_type_max_height_diff := 4
 
 # Use smooth groups
@@ -58,7 +57,7 @@ const MAP_INVALID_HEIGHT: int = -1
 
 # Includes one circle of ocean
 # Size = n means n circles around the map origin. So n=1 means 7 tiles (one origin tile and 6 additional tiles)
-const MAP_SIZE: int = 5
+const MAP_SIZE: int = 9
 # 12 for most performance tests in the past
 
 # ========================================================

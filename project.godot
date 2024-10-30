@@ -140,13 +140,13 @@ trigger_weather_change={
 
 [rendering]
 
-lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=4
 lights_and_shadows/directional_shadow/16_bits=false
 scaling_3d/mode=2
 scaling_3d/scale=0.5
 global_illumination/sdfgi/probe_ray_count=2
-anti_aliasing/quality/msaa_2d=1
-anti_aliasing/quality/msaa_3d=1
+anti_aliasing/quality/msaa_2d=2
+anti_aliasing/quality/msaa_3d=2
 
 [shader_globals]
 

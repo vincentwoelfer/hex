@@ -1,6 +1,13 @@
-[gd_resource type="StandardMaterial3D" format=3 uid="uid://dl57q4ja1krcx"]
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://dl57q4ja1krcx"]
+
+[ext_resource type="Texture2D" uid="uid://dsc3xgdkpfudr" path="res://assets/textures/rock_collection_1_baseColor.jpeg" id="1_0rgyr"]
 
 [resource]
 vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("1_0rgyr")
+uv1_scale = Vector3(0.1, 0.1, 0.1)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 0.528076
+uv1_world_triplanar = true
 distance_fade_min_distance = 80.0
 distance_fade_max_distance = 50.0

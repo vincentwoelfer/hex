@@ -14,8 +14,8 @@ var geometry_inputs: Dictionary[int, HexGeometryInput] = {}
 func fetch_or_create_geometry_input(hex_pos: HexPos) -> HexGeometryInput:
 	var key: int = hex_pos.hash()
 	if not geometry_inputs.has(key):
-		# Create new entry if not existing
-		geometry_inputs[key] = HexGeometryInput.new(MapGenerationData.determine_height(hex_pos))
+		# Create new entry if not existing. This is the ONLY place HexGeometryInput is ever created
+		geometry_inputs[key] = HexGeometryInput.new(hex_pos, MapGenerationData.determine_height(hex_pos))
 
 	return geometry_inputs[key]
 

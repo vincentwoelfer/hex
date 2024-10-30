@@ -4,7 +4,6 @@ class_name Util
 ######################################################
 # Randomness
 ######################################################
-
 static func randCircularOffset(r_max: float) -> Vector3:
 	var angle := randf_range(0.0, 2.0 * PI)
 	var r := randf_range(0.0, r_max)
@@ -75,6 +74,13 @@ static func sortVecAccordingToAngles(vecs: Array[Vector3]) -> Array[Vector3]:
 	vecs.sort_custom(func(a: Vector3, b: Vector3) -> bool: return !isClockwiseOrder(a, b))
 	return vecs
 
+
+######################################################
+# Misc
+######################################################
+# Like clamp but ensures values is between a,b , even if a > b
+static func clampf(val: float, a: float, b: float) -> float:
+	return clampf(val, minf(a, b), maxf(a, b))
 
 ######################################################
 # 3D Vector Math

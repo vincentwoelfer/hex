@@ -70,7 +70,6 @@ func _input(event: InputEvent) -> void:
 			get_tree().quit()
 
 
-
 func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:
 	print("EventBus: Weather Changed to ", WeatherControl.WeatherType.keys()[new_weather])
 
@@ -103,10 +102,12 @@ func pretty_print_actions(actions_dict: Dictionary[String, String]) -> void:
 	var sorted_hotkeys: Array[String] = actions_dict.values()
 	sorted_hotkeys.sort_custom(func(a: String, b: String) -> bool: return a < b)
 	
+	print("=============== Key Bindings ===============")
 	for hotkey: String in sorted_hotkeys:
 		var action := get_key_by_value(actions_dict, hotkey)
 		var padding: String = " ".repeat(max_action_length - action.length())
 		print("%s:%s\t%s" % [action, padding, actions_dict[action]])
+	print("============================================")
 
 
 func get_key_by_value(dict: Dictionary[String, String], value: String) -> String:

@@ -3,6 +3,7 @@ extends Node3D
 
 var generate: bool = false
 var last_generate_timestamp := 0.0
+var max_generation_delay := 1.0
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -17,7 +18,7 @@ func set_generate() -> void:
 
 
 func _process(delta: float) -> void:
-	if self.generate and (Time.get_unix_time_from_system() - last_generate_timestamp) > 1.0:
+	if self.generate and (Time.get_unix_time_from_system() - last_generate_timestamp) > max_generation_delay:
 		last_generate_timestamp = Time.get_unix_time_from_system()
 		self.generate = false
 		generate_complete_map()
@@ -39,6 +40,8 @@ func generate_complete_map() -> void:
 	# Generate hex-tiles (= Geometry, Plants...). This is done by the hex tile and we only call it for every tile
 	# This allows this to be parallelized later on
 	generate_all_hex_tile_geometry()
+
+	MapManager.map.print_debug_stats()
 
 	########################################################
 	########################################################

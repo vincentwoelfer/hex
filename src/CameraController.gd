@@ -9,9 +9,10 @@ var height_min: float = 1.5
 var height_max: float = 13.0
 var currZoom: float = 5.0
 var zoomTarget: float = currZoom
+
 # higher value = further away
 var zoom_min: float = 0.075
-var zoom_max: float = 7.0
+var zoom_max: float = 12.0
 
 var lookAtPoint: Vector3
 var followPoint: Vector3 # = target, also used for movement
@@ -35,7 +36,7 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("rotate_cam_left"):
 		orientation = (orientation + 6 - 1) % 6
 	if event.is_action_pressed("rotate_cam_right"):
-		orientation = (orientation + 6 + 1) % 6	
+		orientation = (orientation + 6 + 1) % 6
 
 	# Zoom
 	var zoom_speed := 0.3

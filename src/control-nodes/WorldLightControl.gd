@@ -229,6 +229,9 @@ func interpolate_properties_for_time(time: float) -> Dictionary[String, Variant]
 	sun_y = deg_to_rad(lerpf(sun_rotation_y_start, sun_rotation_y_finish, day_time_frac))
 
 	# ---- Put everything together ----
+	if DebugSettings.fixed_sun_energy:
+		sun_light_energy = 1.0
+
 	var properties: Dictionary[String, Variant] = {
 		"sun_light_energy": sun_light_energy,
 		"sun_light_color": light_color,

@@ -39,8 +39,7 @@ func create_complete_hex_geometry_input(hex_pos: HexPos) -> HexGeometryInput:
 
 		# Finally genereate own
 		own_info.generate_complete(neighbours_info)
-
-	map.print_debug_stats()
+	
 	return own_info
 
 
