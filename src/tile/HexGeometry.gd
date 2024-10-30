@@ -10,8 +10,7 @@ var samplerHorizontal: PolygonSurfaceSampler
 var samplerVertical: PolygonSurfaceSampler
 
 # Input Variables. The height is absolute!
-var transitions: Array[HexTileTransition]
-var height: int
+var input: HexGeometryInput
 
 # Intermediate variables
 var verts_center: PackedVector3Array
@@ -19,30 +18,26 @@ var verts_inner: PackedVector3Array
 var verts_outer: PackedVector3Array
 
 
-func _init(height_: int, transitions_: Array[HexTileTransition]) -> void:
-	self.height = height_
-	self.transitions = transitions_
-
-
-func get_corner_vertex(i: int) -> Vector3:
-	return verts_outer[get_corner_index(i)]
-
-func get_corner_index(i: int) -> int:
-	return i * HexConst.total_verts_per_side()
+func _init(input_: HexGeometryInput) -> void:
+	assert(input_ != null)
+	self.input = input_
+	generate()
 
 
 func generate() -> void:
+	#########################################
+	# Generate flat vertices (no height information)
+	#########################################
 	verts_center = generateCenterPoints(HexConst.extra_verts_per_center)
 	verts_inner = generateInnerHexagonNoCorners(HexConst.inner_radius, HexConst.extra_verts_per_side, HexConst.core_circle_smooth_strength)
 	verts_outer = generateOuterHexagonWithCorners(HexConst.inner_radius, HexConst.outer_radius, HexConst.extra_verts_per_side)
 
 	#########################################
-	# Adjust vertex heights
+	# Set vertex heights
 	#########################################
-	# Adjust outer/transitional vertex heights
-	modifyOuterVertexHeights()
-	modifyInnerAndCenterVertexHeights()
-	modifyOuterVertexHeightsAgain()
+	setOuterVertexHeights()
+	setInnerAndCenterVertexHeights()
+	# setOuterVertexHeightsAgain()
 
 	#########################################
 	# Triangulate
@@ -51,7 +46,9 @@ func generate() -> void:
 	triangles += triangulateCenter()
 	triangles += triangulateOuter()
 
-	# Add triangles to mesh
+	#########################################
+	# Build mesh from triangles
+	#########################################
 	var st: SurfaceTool = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_normal(Vector3.UP)
@@ -64,7 +61,9 @@ func generate() -> void:
 	st.generate_normals()
 	mesh = st.commit()
 
-	# Recreate triangle samplerAll
+	#########################################
+	# Create polygon samplers from triangles
+	#########################################
 	self.samplerAll = PolygonSurfaceSampler.new(self.triangles)
 	self.samplerHorizontal = PolygonSurfaceSampler.new(self.triangles)
 	self.samplerHorizontal.filter_max_incline(45)
@@ -73,90 +72,100 @@ func generate() -> void:
 	self.samplerVertical.filter_min_incline(45)
 
 
-func modifyInnerAndCenterVertexHeights() -> void:
-	# Set height according to weightes average of hex corners
-	for i in range(verts_center.size()):
-		verts_center[i].y = lerpf(verts_center[i].y, getInterpolatedHeightInside(verts_center[i]), HexConst.smooth_height_factor_inner)
-
-	for i in range(verts_inner.size()):
-		verts_inner[i].y = lerpf(verts_inner[i].y, getInterpolatedHeightInside(verts_inner[i]), HexConst.smooth_height_factor_inner)
-
-
-func modifyOuterVertexHeightsAgain() -> void:
-	for i in range(verts_outer.size()):
-		var is_corner: bool = i % HexConst.total_verts_per_side() == 0
-		
-		if not is_corner:
-			var prev_corner: int = i - (i % HexConst.total_verts_per_side())
-			var next_corner: int = (prev_corner + HexConst.total_verts_per_side()) % verts_outer.size()
-
-			var t := compute_t_on_line_segment(Util.toVec2(verts_outer[i]), Util.toVec2(verts_outer[prev_corner]), Util.toVec2(verts_outer[next_corner]))
-			var h := (1.0 - t) * verts_outer[prev_corner].y + t * verts_outer[next_corner].y
-
-			verts_outer[i].y = lerpf(verts_outer[i].y, h, HexConst.smooth_height_factor_outer)
-
-
-func getInterpolatedHeightInside(p: Vector3) -> float:
-	var weights := computeBarycentricWeightsForInsidePoint(p)
-	var h: float = 0.0
+func setOuterVertexHeights() -> void:
+	# For each CORNER: Take corner vertex height from input. No transition height here, corner_vertices[].height is already final height
 	for i in range(6):
-		h += weights[i] * get_corner_vertex(i).y * getCornerWeightsAccordingToTransitionTypes(i)
-
-	return h
-
-
-func getCornerWeightsAccordingToTransitionTypes(corner_index: int) -> float:
-	# Get both transitions
-	var trans: Array[HexTileTransition] = [transitions[(corner_index - 1 + 6) % 6], transitions[corner_index]]
-
-	# Average transition types
-	return (trans[0].get_weight() + trans[1].get_weight()) / 2.0
-
-
-# Computes the height of the corner vertex bordering these two transitions.
-# Relative = already as float and minus own height -> as vertex coordinates
-func getCornerVertexHeight(trans: Array[HexTileTransition]) -> float:
-	# Add transitions to array
-	var heights: Array[int] = [self.height]
-	for t in trans:
-		if t.type != HexTileTransition.Type.INVALID:
-			heights.append(t.height_other)
-
-	var accum := 0.0
-
-	for h in heights:
-		accum += h
-	var avg := accum / heights.size()
-
-	var final_height := (avg - self.height) * HexConst.height
-	
-	#var final_height := HexConst.transition_height(avg - self.height)
-
-	return final_height
-
-
-func modifyOuterVertexHeights() -> void:
-	# For each CORNER: Adjust vertices according to both adjacent tiles
-	for i in range(6):
-		# Get both transitions and create sorted heights array
-		var trans: Array[HexTileTransition] = [transitions[(i - 1 + 6) % 6], transitions[i]]
-
-		# Actually set height
-		verts_outer[get_corner_index(i)].y = getCornerVertexHeight(trans)
+		verts_outer[dir_to_corner_index(i)].y = input.corner_vertices[i].y
+		#print(input.corner_vertices[i].y)
 
 
 	# For each DIRECTION: Adjust height of outer vertices according do adjacent tiles.
 	# This does not modify the corner vertices
 	for i in range(6):
 		# Determine height (normalize relative to own height)
-		var y: float = HexConst.transition_height(transitions[i].height_other - self.height)
+		var y: float = HexConst.transition_height(input.transitions[i].height_other - input.height)
 
 		# +1 to ommit corners
-		var start := get_corner_index(i) + 1
-		var end := get_corner_index(i + 1)
+		var start := dir_to_corner_index(i) + 1
+		var end := dir_to_corner_index(i + 1)
 
 		for x in range(start, end):
 			verts_outer[x].y = y
+
+
+func setInnerAndCenterVertexHeights() -> void:
+	if HexConst.smooth_height_factor_inner == 0.0:
+		return
+
+	# Set height according to weighted average of hex corners
+	for i in range(verts_center.size()):
+		verts_center[i].y = lerpf(0.0, getInterpolatedHeightInside(verts_center[i]), HexConst.smooth_height_factor_inner)
+
+	for i in range(verts_inner.size()):
+		verts_inner[i].y = lerpf(0.0, getInterpolatedHeightInside(verts_inner[i]), HexConst.smooth_height_factor_inner)
+
+
+# func setOuterVertexHeightsAgain() -> void:
+# 	if HexConst.smooth_height_factor_outer == 0.0:
+# 		return
+
+# 	for i in range(verts_outer.size()):
+# 		var is_corner: bool = i % HexConst.total_verts_per_side() == 0
+		
+# 		if not is_corner:
+# 			var prev_corner: int = i - (i % HexConst.total_verts_per_side())
+# 			var next_corner: int = (prev_corner + HexConst.total_verts_per_side()) % verts_outer.size()
+
+# 			# var t := compute_t_on_line_segment(Util.toVec2(verts_outer[i]), Util.toVec2(verts_outer[prev_corner]), Util.toVec2(verts_outer[next_corner]))
+# 			# var h := (1.0 - t) * verts_outer[prev_corner].y + t * verts_outer[next_corner].y
+
+# 			# verts_outer[i].y = lerpf(verts_outer[i].y, h, HexConst.smooth_height_factor_outer)
+
+# 			@warning_ignore("integer_division")
+# 			var prev_corner_index: int = prev_corner / HexConst.total_verts_per_side()
+# 			@warning_ignore("integer_division")
+# 			var next_corner_index: int = next_corner / HexConst.total_verts_per_side()
+
+# 			var trans_type := transitions[prev_corner_index].type
+
+# 			var t := compute_t_on_line_segment(Util.toVec2(verts_outer[i]), Util.toVec2(verts_outer[prev_corner]), Util.toVec2(verts_outer[next_corner]))
+# 			var h := (1.0 - t) * getCornerHeightWeightedByTransitions(prev_corner_index, trans_type) + t * getCornerHeightWeightedByTransitions(next_corner_index, trans_type)
+
+# 			verts_outer[i].y = lerpf(verts_outer[i].y, h, HexConst.smooth_height_factor_outer)
+
+
+func getInterpolatedHeightInside(p: Vector3) -> float:
+	var weights := computeBarycentricWeightsForInsidePoint(p)
+	var h: float = 0.0
+	for i in range(6):
+		# TODO dont weight corner height by transitions, use full weight but change corner height
+		#h += weights[i] * get_corner_vertex(i).y * getCornerWeightsAccordingToTransitionTypes(i)
+
+		# Only use smooth transitions 
+		# h += weights[i] * getCornerHeightWeightedByTransitions(i, HexTileTransition.Type.SMOOTH)
+		h += weights[i] * input.corner_vertices_smoothing[i].y
+
+	return h
+
+
+# func getCornerHeightWeightedByTransitions(corner_index: int, transition_perspective: HexTileTransition.Type) -> float:
+# 	var trans: Array[HexTileTransition] = [transitions[(corner_index - 1 + 6) % 6], transitions[corner_index]]
+# 	var transition_weighted_corner_heights: Array[float] = [0.0, 0.0]
+
+# 	var num_valid: int = 0
+# 	for i in range(2):
+# 		transition_weighted_corner_heights[i] = HexConst.transition_height(trans[i].height_other - input.height)
+# 		if trans[i].type != transition_perspective:
+# 			transition_weighted_corner_heights[i] = 0
+# 		else:
+# 			num_valid += 1
+
+# 	# TODO BUGGY
+# 	if num_valid > 0:
+# 		var avg := (transition_weighted_corner_heights[0] + transition_weighted_corner_heights[1]) / num_valid
+# 		return avg
+# 	else:
+# 		return get_corner_vertex(corner_index).y
 
 
 func triangulateCenter() -> Array[Triangle]:
@@ -191,7 +200,7 @@ func triangulateCenter() -> Array[Triangle]:
 		if all_vertices_on_circle and Util.isTriangleOutsideOfPolygon([p1, p2, p3], verts_polygon_packed):
 			continue
 
-		tris.append(Triangle.new(p1, p2, p3, Colors.randColorVariation(col, 0.05)))
+		tris.append(Triangle.new(p1, p2, p3, Colors.colorVariation(col, 0.05)))
 
 	return tris
 
@@ -202,55 +211,59 @@ func triangulateOuter() -> Array[Triangle]:
 	var s_out := verts_outer.size()
 
 	# Per Side
-	for x in range(6):
-		var col := Colors.getDistincHexColor(x)
+	for dir in range(6):
+		var sideColor := Colors.getDistincHexColor(dir)
+		sideColor = Colors.modifyColorForTransitionType(sideColor, input.transitions[dir].type)
 
 		# start inner & outer
-		var i := x * (1 + HexConst.extra_verts_per_side)
-		var j := x * HexConst.total_verts_per_side()
+		var i := dir * (1 + HexConst.extra_verts_per_side)
+		var j := dir * HexConst.total_verts_per_side()
 
 		# end inner & outer
-		var n1 := (x + 1) * (1 + HexConst.extra_verts_per_side)
-		var n2 := (x + 1) * HexConst.total_verts_per_side() - 1
+		var n1 := (dir + 1) * (1 + HexConst.extra_verts_per_side)
+		var n2 := (dir + 1) * HexConst.total_verts_per_side() - 1
 
 		# Triangulate start-corner manually here
-		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], Colors.randColorVariation(col)))
+		var corner_color := Colors.modifyColorForCornerArea(sideColor)
+		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], corner_color))
 		j += 1
 
 		# Only transition area between hexes, without corners!
 		while i < n1 or j < n2:
-			var c := Colors.randColorVariation(col)
+			var col := Colors.colorVariation(sideColor)
 			var outer_is_clockwise_further := Util.isClockwiseOrder(verts_inner[i % s_in], verts_outer[j % s_out])
 
 			if j == n2 or (i < n1 and outer_is_clockwise_further):
-				tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_inner[(i + 1) % s_in], c))
+				tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_inner[(i + 1) % s_in], col))
 				i += 1
 			else:
-				tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], c))
+				tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], col))
 				j += 1
 
 		# Triangulate end-corner manually here
-		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], Colors.randColorVariation(col)))
+		corner_color = Colors.modifyColorForCornerArea(sideColor)
+		tris.append(Triangle.new(verts_inner[i % s_in], verts_outer[j % s_out], verts_outer[(j + 1) % s_out], corner_color))
 
 	return tris
 
 
+# Point must be strictly inside hexagon (not on borders)!
 func computeBarycentricWeightsForInsidePoint(p_3d: Vector3) -> PackedFloat32Array:
 	# See http://www.geometry.caltech.edu/pubs/MHBD02.pdf
 
 	var p := Util.toVec2(p_3d)
-	var weights: PackedFloat32Array
+	var weights: PackedFloat32Array = []
 	weights.resize(6)
-	var weight_sum: float = 0
+
+	var weight_sum: float = 0.0
 	var on_border := false
 
 	for i in range(6):
 		var w: float
-		var prev := (i - 1 + 6) % 6
-		var next := (i + 1) % 6
-		var corner_i := Util.toVec2(get_corner_vertex(i))
-		var corner_prev := Util.toVec2(get_corner_vertex(prev))
-		var corner_next := Util.toVec2(get_corner_vertex(next))
+		# Get corners as 2D
+		var corner_i := Util.toVec2(input.corner_vertices[i])
+		var corner_prev := Util.toVec2(input.corner_vertices[Util.as_dir(i - 1)])
+		var corner_next := Util.toVec2(input.corner_vertices[Util.as_dir(i + 1)])
 
 		# TODO maybe remove this code if its slow and not needed!
 		# Check if p is very close to one of the hexagon border segments for this corner i
@@ -268,7 +281,6 @@ func computeBarycentricWeightsForInsidePoint(p_3d: Vector3) -> PackedFloat32Arra
 		var tan1 := cotangent(p, corner_i, corner_prev)
 		var tan2 := cotangent(p, corner_i, corner_next)
 		w = (tan1 + tan2) / (p - corner_i).length_squared()
-
 
 		weights[i] = w
 		weight_sum += w
@@ -302,6 +314,16 @@ func doesVertsInnerTrianglePointsInwards(i1: int, i2: int, i3: int) -> bool:
 	# Inwards if center is smaller than both other vertices
 	return dist_center <= dist_left and dist_center <= dist_right
 
+
+func get_corner_vertex(i: int) -> Vector3:
+	return verts_outer[dir_to_corner_index(i)]
+
+
+#########################################################################################
+#########################################################################################
+# Static functions
+#########################################################################################
+#########################################################################################
 
 static func generateInnerHexagonNoCorners(r: float, extra_verts_per_side: int, smooth_strength: float) -> PackedVector3Array:
 	var total_verts: int = 6 * (1 + extra_verts_per_side)
@@ -357,9 +379,6 @@ static func generateOuterHexagonWithCorners(r_inner: float, r_outer: float, extr
 	return vertices
 
 
-#########################################################################################
-# Actual static functions
-#########################################################################################
 # Compute the 3 Vector3 points for one hex corner
 static func getThreeHexCornerVertices(r_inner: float, r_outer: float, angle: float) -> PackedVector3Array:
 	# No smooth strength since corner
@@ -416,3 +435,7 @@ static func cotangent(a: Vector2, b: Vector2, c: Vector2) -> float:
 	var ba := a - b
 	var bc := c - b
 	return bc.dot(ba) / abs(bc.cross(ba))
+
+
+static func dir_to_corner_index(i: int) -> int:
+	return i * HexConst.total_verts_per_side()

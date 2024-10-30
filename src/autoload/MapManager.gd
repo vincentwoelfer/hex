@@ -17,31 +17,125 @@ const MAP_SIZE: int = 5
 var map: HexMap = HexMap.new()
 	
 
-func get_hex_transitions(hex_pos: HexPos) -> Array[HexTileTransition]:
-	assert(map.get_hex(hex_pos) != null)
+# Requires the heights of the adjacent hex to be added to the map already
+func create_hex_geometry_input(hex_pos: HexPos) -> HexGeometryInput:
+	var tile := map.get_hex(hex_pos)
+	assert(tile != null)
 
-	var own_height := map.get_hex(hex_pos).height
+	# Height
+	var input := HexGeometryInput.new()
+	input.height = tile.height
 
-	var transitions: Array[HexTileTransition] = []
+	# Neighbours
+	var neighbours: Array[HexTile] = []
+	neighbours.resize(6)
 	for dir in range(6):
-		var adj: HexTile = map.get_hex(hex_pos.get_neighbor(dir))
+		neighbours[dir] = map.get_hex(hex_pos.get_neighbor(dir))
+
+	# Transitions
+	for dir in range(6):
+		input.transitions[dir] = create_transition_between_tiles(tile, neighbours[dir])
+		
+	# Corner vertices
+	for dir in range(6):
+		var angle := Util.getHexAngle(dir)
+		var vec: Vector3 = Util.getHexVertex(HexConst.outer_radius, angle) # X/Z
+		var both_neighbours: Array[HexTile] = [neighbours[Util.as_dir(dir - 1)], neighbours[dir]]
+		vec.y = determine_corner_vertex_height(input.height, both_neighbours)
+		input.corner_vertices[dir] = vec
+
+	# Corner vertices smoothing
+	for dir in range(6):
+		# Use normal corner_vertex as base
+		var vec: Vector3 = input.corner_vertices[dir]
+
+		var both_transitions: Array[HexGeometryInput.Transition] = [input.transitions[Util.as_dir(dir - 1)], input.transitions[Util.as_dir(dir)]]
+		vec.y = determine_corner_vertex_smoothing_height(input.height, vec.y, both_transitions)
+		input.corner_vertices_smoothing[dir] = vec
+	
+	return input
+
+
+func determine_corner_vertex_smoothing_height(own_height: int, strict_corner_height: float, trans: Array[HexGeometryInput.Transition]) -> float:
+	# BOTH THE SAME
+	if trans[0].type == trans[1].type:
+		# Both SMOOTH
+		if trans[0].type == HexGeometryInput.TransitionType.SMOOTH:
+			# Use normal (strict) corner vertex
+			return strict_corner_height # Already global height
+
+		# BOTH SHARP
+		elif trans[0].type == HexGeometryInput.TransitionType.SHARP:
+			# Use own height
+			return 0.0
+
+		# BOTH INVALID
+		elif trans[0].type == HexGeometryInput.TransitionType.INVALID:
+			# Use own height
+			return 0.0
+		
+		# Should never happen
+		assert(false)
+		return 0.0
+
+	# BOTH DIFFERENT
+	else:
+		# Different or one invalid -> take the smooth one and average
 		var height_other: int
-		var type : HexTileTransition.Type
-
-		if adj != null:
-			height_other = adj.height
-			if abs(height_other - own_height) >= HexConst.trans_type_max_height_diff:
-				type = HexTileTransition.Type.SHARP
-			else:
-				type = HexTileTransition.Type.SMOOTH
-
+		if trans[0].type == HexGeometryInput.TransitionType.SMOOTH:
+			height_other = trans[0].height_other
 		else:
-			# If neighbour does not exists set height to same as own tile and mark transition
-			height_other = own_height
-			type = HexTileTransition.Type.INVALID
+			height_other = trans[1].height_other
 
-		transitions.push_back(HexTileTransition.new(height_other, type))
-	return transitions
+		var avg := (height_other + own_height) / 2.0
+		return (avg - own_height) * HexConst.height
+		
+
+# Computes the height of the corner vertex bordering these two transitions.
+# Relative = already as float and minus own height -> as vertex coordinates
+func determine_corner_vertex_height(own_height: int, neighbours: Array[HexTile]) -> float:
+	var heights: Array[int] = [own_height]
+	for n in neighbours:
+		if n != null:
+			heights.append(n.height)
+
+	# No valid neighbours -> use own height
+	if heights.size() == 1:
+		return own_height * HexConst.height
+
+	# One valid neighbour -> average heights
+	if heights.size() == 2:
+		var avg := (heights[0] + heights[1]) / 2.0
+		return (avg - own_height) * HexConst.height
+
+	# Two valid neighbours -> per-transition average -> use median
+	else:
+		var averages: Array[float] = []
+		averages.push_back((heights[0] + heights[1]) / 2.0)
+		averages.push_back((heights[1] + heights[2]) / 2.0)
+		averages.push_back((heights[2] + heights[0]) / 2.0)
+
+		# median
+		averages.sort()
+		var median := averages[1]
+		return (median - own_height) * HexConst.height
+
+
+func create_transition_between_tiles(from: HexTile, to: HexTile) -> HexGeometryInput.Transition:
+	assert(from != null)
+	var t := HexGeometryInput.Transition.new()
+
+	if to != null:
+		t.height_other = to.height
+		if abs(t.height_other - from.height) >= HexConst.trans_type_max_height_diff:
+			t.type = HexGeometryInput.TransitionType.SHARP
+		else:
+			t.type = HexGeometryInput.TransitionType.SMOOTH
+	else:
+		# If neighbour does not exists set height to same as from tile and mark transition invalid
+		t.height_other = from.height
+		t.type = HexGeometryInput.TransitionType.INVALID
+	return t
 
 
 func get_all_hex_coordinates(N: int) -> Array[HexPos]:

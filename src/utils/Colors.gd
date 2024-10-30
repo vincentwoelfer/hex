@@ -11,7 +11,7 @@ static func randColorNoExtreme(offset: float = 0.1) -> Color:
 	return Color(randf_range(lo, hi), randf_range(lo, hi), randf_range(lo, hi), 1.0)
 
 
-static func randColorVariation(color: Color, variation: float = 0.1) -> Color:
+static func colorVariation(color: Color, variation: float = 0.1) -> Color:
 	return color + Color(randf_range(-variation, variation), randf_range(-variation, variation), randf_range(-variation, variation), 0.0)
 
 
@@ -27,7 +27,20 @@ static func getDistincHexColor(i: int) -> Color:
 	return Color.BLACK
 
 static func getDistinctHexColorTopSide() -> Color:
-	return Color(0.2, 0.3, 0.2)
+	return Color(0.15, 0.3, 0.15)
+
+
+static func modifyColorForCornerArea(base: Color) -> Color:
+	return base.lerp(Color(base.g, base.b, base.r), 0.4)
+
+
+static func modifyColorForTransitionType(base: Color, trans_type: HexGeometryInput.TransitionType) -> Color:
+	if trans_type == HexGeometryInput.TransitionType.SHARP:
+		return base.darkened(0.8)
+	elif trans_type == HexGeometryInput.TransitionType.SMOOTH:
+		return base.lightened(0.3)
+	
+	return base.lerp(Color.BLACK, 0.9)
 
 
 static func getColorForIncline(inclineDeg: float) -> Color:

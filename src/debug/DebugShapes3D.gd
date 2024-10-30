@@ -1,3 +1,4 @@
+@tool
 class_name DebugShapes3D
 
 static func create_sphere(r: float, color: Color = Color.RED) -> PrimitiveMesh:

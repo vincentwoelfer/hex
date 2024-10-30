@@ -70,8 +70,7 @@ static var hexpos_directions: Array[HexPos] = [
 # ]
 
 static func hexpos_direction(direction: int) -> HexPos:
-    assert(direction >= 0)
-    return hexpos_directions[direction % 6]
+    return hexpos_directions[Util.as_dir(direction)]
 
 
 # static func hexpos_direction_diagonal(direction: int) -> HexPos:

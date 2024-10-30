@@ -70,9 +70,14 @@ func generate() -> void:
 	if rocks != null:
 		rocks.free()
 
+	# Does this solve everything?
+	# For now, it deletes debug visuals
+	for c in self.get_children():
+		c.free()
+
 	# Add geometry - Get relevant parameters from Map (read-only)
-	geometry = HexGeometry.new(self.height, MapManager.get_hex_transitions(self.hexpos))
-	geometry.generate()
+	var hex_input := MapManager.create_hex_geometry_input(self.hexpos)
+	geometry = HexGeometry.new(hex_input)
 	terrainMesh = MeshInstance3D.new()
 	terrainMesh.name = "terrain"
 	terrainMesh.mesh = geometry.mesh
@@ -80,11 +85,13 @@ func generate() -> void:
 	terrainMesh.material_overlay = HIGHLIGHT_MAT
 	add_child(terrainMesh, true)
 
+	if DebugSettings.visualize_hex_input:
+		hex_input.create_debug_visualization(self)
+
 	if DebugSettings.generate_collision and self.height > 0:
 		terrainMesh.create_convex_collision(true, true)
 
-
-	if height > 0 and geometry.samplerHorizontal.is_valid():
+	if self.height > 0 and geometry.samplerHorizontal.is_valid():
 		# Add plants
 		if DebugSettings.enable_grass:
 			plant = SurfacePlant.new()
