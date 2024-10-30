@@ -45,8 +45,17 @@ func magnitude() -> int:
 #     return HexPos.new(-a.r, -a.s, -a.q)
 
 
-func get_neighbor(dir: int) -> HexPos:
+func get_neighbour(dir: int) -> HexPos:
     return add(hexpos_direction(dir))
+
+
+func get_all_neighbours() -> Array[HexPos]:
+    var neighbours: Array[HexPos] = []
+    neighbours.resize(6)
+
+    for dir in range(6):
+        neighbours[dir] = add(hexpos_direction(dir))
+    return neighbours
 
 
 #########################################
@@ -78,7 +87,7 @@ static func hexpos_direction(direction: int) -> HexPos:
     # return hexpos_diagonals[direction % 6]
 
 
-# static func hexpos_diagonal_neighbor(hex: HexPos, direction: int) -> HexPos:
+# static func hexpos_diagonal_neighbour(hex: HexPos, direction: int) -> HexPos:
 #     return hexpos_add(hex, hexpos_direction_diagonal(direction))
 
 

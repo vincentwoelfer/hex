@@ -13,7 +13,7 @@ const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.
 var allAvailRockMeshes: Array[ArrayMesh]
 
 # Core Variables
-var hexpos: HexPos
+var hex_pos: HexPos
 var height: int
 
 var params: HexTileParams
@@ -26,11 +26,11 @@ var plant: SurfacePlant
 var rocks: MeshInstance3D
 
 # Does not much, only actual constructor
-func _init(hexpos_: HexPos, height_: int) -> void:
-	self.hexpos = hexpos_
+func _init(hex_pos_: HexPos, height_: int) -> void:
+	self.hex_pos = hex_pos_
 	self.height = height_
-	if self.hexpos != null:
-		self.name = 'HexTile' + hexpos._to_string()
+	if self.hex_pos != null:
+		self.name = 'HexTile' + hex_pos._to_string()
 	else:
 		self.name = 'HexTile-Invalid'
 
@@ -76,7 +76,7 @@ func generate() -> void:
 		c.free()
 
 	# Add geometry - Get relevant parameters from Map (read-only)
-	var hex_input := MapManager.create_hex_geometry_input(self.hexpos)
+	var hex_input := MapManager.create_complete_hex_geometry_input(hex_pos)
 	geometry = HexGeometry.new(hex_input)
 	terrainMesh = MeshInstance3D.new()
 	terrainMesh.name = "terrain"
@@ -146,4 +146,4 @@ func _process(delta: float) -> void:
 
 
 func is_valid() -> bool:
-	return hexpos != null
+	return hex_pos != null

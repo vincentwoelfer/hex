@@ -48,6 +48,20 @@ var smooth_vertex_normals: bool = false
 var grass_density := 10.0
 
 # ========================================================
+# ==================== Actual Constants ====================
+# ========================================================
+const MAP_MIN_HEIGHT: int = 1
+const MAP_MAX_HEIGHT: int = 20
+
+const MAP_OCEAN_HEIGHT: int = 0
+const MAP_INVALID_HEIGHT: int = -1
+
+# Includes one circle of ocean
+# Size = n means n circles around the map origin. So n=1 means 7 tiles (one origin tile and 6 additional tiles)
+const MAP_SIZE: int = 5
+# 12 for most performance tests in the past
+
+# ========================================================
 # ==================== Derived values ====================
 # ========================================================
 

@@ -11,7 +11,7 @@ func _init() -> void:
 func parse_selection_position(pos: Vector3) -> void:
 	var hex_pos_frac: HexPosFrac = HexPos.xyz_to_hexpos_frac(pos)
 	var hex_pos: HexPos = hex_pos_frac.round()
-	var hex_tile: HexTile = MapManager.map.get_hex(hex_pos)
+	var hex_tile: HexTile = MapManager.map.get_hex_tile(hex_pos)
 
 	if hex_tile != null and hex_tile.is_valid():
 		self.update_selected_hex_tile(hex_tile)
@@ -52,7 +52,7 @@ func randomize_selected_tile() -> void:
 		current_selection.position += Vector3(0, step * HexConst.height, 0)
 
 		for dir in range(6):
-			var n := MapManager.map.get_hex(current_selection.hexpos.get_neighbor(dir))
+			var n := MapManager.map.get_hex_tile(current_selection.hexpos.get_neighbour(dir))
 			if n != null:
 				n.generate()
 		current_selection.generate()

@@ -1,7 +1,6 @@
 @tool
 extends Node3D
 
-var height_noise: Noise = preload("res://assets/noise/TerrainHeightNoiseGenerator.tres")
 var generate: bool = false
 var last_generate_timestamp := 0.0
 
@@ -28,11 +27,12 @@ func generate_complete_map() -> void:
 	# MAP GENERATION STEP 1
 	# Create and instantiate empty hex-tiles, add as child and set world position
 	# Only done ONCE and expects map to be empty
-	MapManager.map.free_all()
+	MapManager.map.free_all_hex_tiles()
+	MapManager.map.free_all_geometry_inputs()
 	
-	var coordinates := MapManager.get_all_hex_coordinates(MapManager.MAP_SIZE)
+	var coordinates := MapManager.get_all_hex_coordinates(HexConst.MAP_SIZE)
 	for hex_pos in coordinates:
-		var height: int = determine_height(hex_pos)
+		var height: int = MapGenerationData.determine_height(hex_pos)
 		create_empty_hex_tile(hex_pos, height)
 
 	# MAP GENERATION STEP 2
@@ -48,7 +48,7 @@ func generate_complete_map() -> void:
 	# var st_combined: SurfaceTool = SurfaceTool.new()
 
 	# for hex_pos in coordinates:
-	# 	var tile :HexTile = MapManager.map.get_hex(hex_pos)
+	# 	var tile :HexTile = HexConst.MAP.get_hex_tile(hex_pos)
 	# 	st_combined.append_from(tile.geometry.mesh, 0, tile.global_transform)
 
 	# instance.set_mesh(st_combined.commit())
@@ -60,9 +60,9 @@ func generate_complete_map() -> void:
 # For STEP 1
 func create_empty_hex_tile(hex_pos: HexPos, height: int) -> void:
 	# Verify that this hex_pos does not contain a tile yet
-	assert(MapManager.map.get_hex(hex_pos) == null)
+	assert(MapManager.map.get_hex_tile(hex_pos) == null)
 
-	var hex_tile := MapManager.map.add_hex(hex_pos, height)
+	var hex_tile := MapManager.map.add_hex_tile(hex_pos, height)
 
 	# Add to Scene tree at correct position
 	var world_pos: Vector2 = HexPos.hexpos_to_xy(hex_pos)
@@ -77,31 +77,10 @@ func generate_all_hex_tile_geometry() -> void:
 	var t_start := Time.get_ticks_msec()
 
 	# Get coordinates
-	var coordinates := MapManager.get_all_hex_coordinates(MapManager.MAP_SIZE)
+	var coordinates := MapManager.get_all_hex_coordinates(HexConst.MAP_SIZE)
 	for hex_pos in coordinates:
-		MapManager.map.get_hex(hex_pos).generate()
+		MapManager.map.get_hex_tile(hex_pos).generate()
 
 	# Finish
 	var t := (Time.get_ticks_msec() - t_start) / 1000.0
 	print("Generated %d hex tiles in %.3f sec" % [coordinates.size(), t])
-
-
-func determine_height(hex_pos: HexPos) -> int:
-	var pos2D: Vector2 = HexPos.hexpos_to_xy(hex_pos)
-	var noise: float = height_noise.get_noise_2d(pos2D.x, pos2D.y)
-	noise = remap(noise, -1.0, 1.0, 0.0, 1.0)
-
-	var height_f: float = remap(noise, 0.0, 1.0, MapManager.MIN_HEIGHT, MapManager.MAX_HEIGHT)
-	var height: int = roundf(height_f) as int
-
-	# Modify further (away from noise map)	
-	height = clampi(height, MapManager.MIN_HEIGHT + 4, MapManager.MAX_HEIGHT) + 1
-
-	if height > MapManager.MAX_HEIGHT * 0.85:
-		height += 6
-
-	# Border
-	if hex_pos.magnitude() == MapManager.MAP_SIZE:
-		height = MapManager.OCEAN_HEIGHT
-
-	return height
