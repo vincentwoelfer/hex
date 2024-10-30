@@ -201,10 +201,7 @@ void fragment() {
 	//AO = mix(0.1, 1.0, height_factor*height_factor); // Note: This looks better but is only visible when shadows are enabled!
 
 	// --- ROUGHNESS ---
-	// float roughness_dry = mix(1.0, 0.5, ease_out_quartic(height_factor));
-	// float roughness_wet = mix(0.5, 0.5, ease_out_quartic(height_factor));
-	// ROUGHNESS = mix(roughness_dry, roughness_wet, global_world_wetness);
-	ROUGHNESS = mix(1.0, 0.5, ease_out_quartic(height_factor));
+	ROUGHNESS = mix(1.0, 0.7, ease_out_quartic(height_factor));
 
 	// --- SPECULAR --- 
 	SPECULAR = mix (0.6, 0.9, global_world_wetness);
