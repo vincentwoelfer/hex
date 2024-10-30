@@ -22,6 +22,9 @@ func _init(a_: Vector3, b_: Vector3, c_: Vector3, color_: Color = Color()) -> vo
 	if not DebugSettings.use_distinc_hex_colors:
 		# For testing, set color based on incline
 		color = Colors.getColorForIncline(calculateInclineDeg())
+
+	# When using textured, set albedo wo white
+	color = Color.WHITE
 	
 
 func getArea() -> float:
