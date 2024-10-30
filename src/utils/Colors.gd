@@ -53,14 +53,16 @@ static func modifyColorForTransitionType(base: Color, trans_type: HexGeometryInp
 static func getColorForIncline(inclineDeg: float) -> Color:
 	if inclineDeg <= 25.0:
 		inclineDeg = 0.0
-	if inclineDeg >= 30:
-		pass
-		#inclineDeg = 70.0
+
+	# Clamp + max incline-color is already reached at 70deg
 	inclineDeg = clampf(inclineDeg / 70.0, 0.0, 1.0)
 
-	var green := Color.DARK_GREEN.lerp(Color8(22, 17, 12), 0.9)
-	const gray := Color8(16, 17, 13)
+	#var green := Color.DARK_GREEN.lerp(Color8(22, 17, 12), 0.9)
+	#var gray := Color8(16, 17, 13)
+
+	var ground := Color8(15, 15, 10)
+	var wall := Color(0.17, 0.225, 0.225)
 	
-	var color := green.lerp(gray, inclineDeg)
+	var color := ground.lerp(wall, inclineDeg)
 
 	return color

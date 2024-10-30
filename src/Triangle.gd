@@ -24,7 +24,7 @@ func _init(a_: Vector3, b_: Vector3, c_: Vector3, color_: Color = Color()) -> vo
 		color = Colors.getColorForIncline(calculateInclineDeg())
 
 	# When using textured, set albedo wo white
-	color = Color.WHITE
+	#color = Color.WHITE
 	
 
 func getArea() -> float:
