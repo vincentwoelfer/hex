@@ -55,7 +55,9 @@ func generate_complete_map() -> void:
 
 	# instance.set_mesh(st_combined.commit())
 	# const DEFAULT_GEOM_MATERIAL: Material = preload('res://assets/materials/default_geom_material.tres')
+	# const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
 	# instance.material_override = DEFAULT_GEOM_MATERIAL
+	# instance.material_overlay = HIGHLIGHT_MAT
 	# add_child(instance, true)
 
 	# # ROCKS
