@@ -85,6 +85,9 @@ func generate() -> void:
 	terrainMesh.mesh = geometry.mesh
 	terrainMesh.material_override = DEFAULT_TERRAIN_MAT
 	terrainMesh.material_overlay = HIGHLIGHT_MAT
+	#terrainMesh.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+	# terrainMesh.visibility_range_end = 100
+	# terrainMesh.visibility_range_end_margin = 20
 	add_child(terrainMesh, true)
 
 	if DebugSettings.visualize_hex_input:
