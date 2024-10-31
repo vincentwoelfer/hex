@@ -13,6 +13,11 @@
 [ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://dev-utility/USE_THIS_HexConstantsModifier.tscn" id="12_e2267"]
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_t12eh"]
+auto_exposure_enabled = true
+auto_exposure_scale = 0.3
+dof_blur_far_distance = 50.0
+dof_blur_far_transition = 50.0
+auto_exposure_min_sensitivity = 100.0
 
 [node name="TestScene" type="Node3D"]
 
@@ -35,7 +40,7 @@ environment = ExtResource("2_2n06e")
 camera_attributes = ExtResource("3_lr7o2")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 8, 6)
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 22, 6)
 attributes = SubResource("CameraAttributesPractical_t12eh")
 current = true
 fov = 80.0
@@ -52,7 +57,7 @@ directional_shadow_blend_splits = true
 directional_shadow_max_distance = 300.0
 
 [node name="MapGeneration" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+top_level = true
 script = ExtResource("1_2h4g3")
 
 [node name="SelectionManager" type="Node3D" parent="."]
