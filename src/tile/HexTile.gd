@@ -80,12 +80,12 @@ func generate() -> void:
 	# Add geometry - Get relevant parameters from Map (read-only)
 	var hex_input := MapManager.create_complete_hex_geometry_input(hex_pos)
 	geometry = HexGeometry.new(hex_input)
-	# terrainMesh = MeshInstance3D.new()
-	# terrainMesh.name = "terrain"
-	# terrainMesh.mesh = geometry.mesh
-	# terrainMesh.material_override = DEFAULT_TERRAIN_MAT
-	# terrainMesh.material_overlay = HIGHLIGHT_MAT
-	# add_child(terrainMesh, true)
+	terrainMesh = MeshInstance3D.new()
+	terrainMesh.name = "terrain"
+	terrainMesh.mesh = geometry.mesh
+	terrainMesh.material_override = DEFAULT_TERRAIN_MAT
+	terrainMesh.material_overlay = HIGHLIGHT_MAT
+	add_child(terrainMesh, true)
 
 	if DebugSettings.visualize_hex_input:
 		hex_input.create_debug_visualization(self)
@@ -104,12 +104,12 @@ func generate() -> void:
 		# Add rocks
 		if DebugSettings.enable_rocks:
 			rocksMesh = addRocks(geometry.samplerHorizontal)
-			# if rocksMesh != null:
-			# 	rocks = MeshInstance3D.new()
-			# 	rocks.name = "Rocks"
-			# 	rocks.material_override = ROCKS_MATERIAL
-			# 	rocks.mesh = rocksMesh
-			# 	add_child(rocks, true)
+			if rocksMesh != null:
+				rocks = MeshInstance3D.new()
+				rocks.name = "Rocks"
+				rocks.material_override = ROCKS_MATERIAL
+				rocks.mesh = rocksMesh
+				add_child(rocks, true)
 
 
 func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:

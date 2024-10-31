@@ -58,6 +58,7 @@ func generate() -> void:
 
 	# Removes duplicates and actually create mesh
 	st.index()
+	st.optimize_indices_for_cache()
 	st.generate_normals()
 	mesh = st.commit()
 
