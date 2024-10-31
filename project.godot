@@ -142,9 +142,9 @@ trigger_weather_change={
 
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality=4
 lights_and_shadows/directional_shadow/16_bits=false
-scaling_3d/mode=1
-scaling_3d/scale=0.75
-global_illumination/sdfgi/probe_ray_count=2
+global_illumination/gi/use_half_resolution=true
+scaling_3d/mode=2
+scaling_3d/scale=0.6
 
 [shader_globals]
 

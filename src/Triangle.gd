@@ -23,9 +23,6 @@ func _init(a_: Vector3, b_: Vector3, c_: Vector3, color_: Color = Color()) -> vo
 		# For testing, set color based on incline
 		color = Colors.getColorForIncline(calculateInclineDeg())
 
-	# When using textured, set albedo wo white
-	#color = Color.WHITE
-	
 
 func getArea() -> float:
 	return 0.5 * (b - a).cross(c - a).length()

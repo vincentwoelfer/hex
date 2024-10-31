@@ -8,6 +8,7 @@ extends Resource
 @export var weather_change_probability := 0.4
 @export var weather_distribution: Dictionary[String, float] = {}
 
+
 func sample_weather_type() -> WeatherControl.WeatherType:
 	if weather_distribution.is_empty():
 		return WeatherControl.WeatherType.SUNSHINE

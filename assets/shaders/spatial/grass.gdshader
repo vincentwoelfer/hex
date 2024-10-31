@@ -200,11 +200,13 @@ void fragment() {
 
 	//AO = mix(0.1, 1.0, height_factor*height_factor); // Note: This looks better but is only visible when shadows are enabled!
 
-	// --- ROUGHNESS ---
-	ROUGHNESS = mix(1.0, 0.7, ease_out_quartic(height_factor));
+	// --- ROUGHNESS --- Less rough for upper part, less if wet
+	float roughness_min = 0.7 * (1.0 - global_world_wetness * 0.3);
+
+	ROUGHNESS = mix(1.0, roughness_min, ease_out_quartic(height_factor));
 
 	// --- SPECULAR --- 
-	SPECULAR = mix (0.6, 0.9, global_world_wetness);
+	SPECULAR = mix (0.5, 0.7, global_world_wetness);
 
 	ANISOTROPY = 0.85;
 
