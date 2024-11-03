@@ -86,6 +86,9 @@ func _weighted_random_choice() -> int:
 
 
 func compute_custom_aabb(object_height: float) -> AABB:
+	if not is_valid():
+		return AABB()
+		
 	var aabb := AABB(triangles[0].a, Vector3.ZERO)
 
 	for tri: Triangle in triangles:

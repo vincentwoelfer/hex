@@ -21,6 +21,7 @@ signal Signal_TooglePerTileUi() # 1
 signal Signal_ToogleWorldTimeAutoAdvance() # 2
 signal Signal_randomizeSelectedTile() # 3
 signal Signal_TriggerWeatherChange() # 4
+signal Signal_TriggerLod() # 9
 signal Signal_AdvanceWorldTimeOneStep() # Space
 signal Signal_ToggleSpeedUpTime() # Shift
 
@@ -41,6 +42,14 @@ func _ready() -> void:
 
 	# Connect to events to print debug info
 	Signal_WeatherChanged.connect(_on_Signal_WeatherChanged)
+
+	var timer: Timer = Timer.new()
+	timer.wait_time = 0.05 # Time in seconds
+	timer.one_shot = false # Repeat indefinitely
+	add_child(timer)
+	timer.start()
+
+	timer.timeout.connect(func() -> void: Signal_TriggerLod.emit())
 
 
 # React to keyboard inputs to directly trigger events
@@ -65,6 +74,9 @@ func _input(event: InputEvent) -> void:
 
 		if event.is_action_pressed("trigger_weather_change"):
 			Signal_TriggerWeatherChange.emit()
+
+		if event.is_action_pressed("trigger_lod"):
+			Signal_TriggerLod.emit()
 
 	###################################################################
 	# NON-Signal Input Actions

@@ -8,7 +8,6 @@ var triangles: Array[Triangle]
 var samplerAll: PolygonSurfaceSampler
 var samplerHorizontal: PolygonSurfaceSampler
 var samplerVertical: PolygonSurfaceSampler
-
 var occluder: ArrayOccluder3D
 
 # Input Variables. The height is absolute!
@@ -78,43 +77,6 @@ func generate() -> void:
 	# Occluder
 	########################################
 	generateOccluder()
-
-
-
-func generateOccluder() -> void:
-	var occluder_height := 30
-	var occluder_tris: Array[Triangle]
-
-	# Generate top surface triangles
-	for i in range(1, 6 - 1):
-		occluder_tris.append(Triangle.new(input.corner_vertices[0], input.corner_vertices[i], input.corner_vertices[i + 1]))
-
-	# Side triangles
-	for i in range(6):
-		var next_i := Util.as_dir(i + 1)
-		var top_a := input.corner_vertices[i]
-		var top_b := input.corner_vertices[next_i]
-		var bottom_a := top_a - Vector3(0, occluder_height, 0)
-		var bottom_b := top_b - Vector3(0, occluder_height, 0)
-		
-		occluder_tris.append(Triangle.new(top_a, bottom_a, bottom_b))
-		occluder_tris.append(Triangle.new(top_a, bottom_b, top_b))
-
-	# Add to surface tool
-	var st: SurfaceTool = SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for tri in occluder_tris:
-		tri.addToSurfaceTool(st)
-	st.index()
-
-	# Get arrays
-	var occluder_arrays := st.commit_to_arrays()
-	var vertices: PackedVector3Array = occluder_arrays[Mesh.ARRAY_VERTEX]
-	var indices: PackedInt32Array = occluder_arrays[Mesh.ARRAY_INDEX]
-
-	# Create occluder from arrays
-	occluder = ArrayOccluder3D.new()
-	occluder.set_arrays(vertices, indices)
 
 
 func setInnerAndCenterVertexHeights() -> void:
@@ -252,6 +214,42 @@ func triangulateOuter() -> Array[Triangle]:
 	return tris
 
 
+func generateOccluder() -> void:
+	var occluder_height := 30
+	var occluder_tris: Array[Triangle]
+
+	# Generate top surface triangles
+	for i in range(1, 6 - 1):
+		occluder_tris.append(Triangle.new(input.corner_vertices[0], input.corner_vertices[i], input.corner_vertices[i + 1]))
+
+	# Side triangles
+	for i in range(6):
+		var next_i := Util.as_dir(i + 1)
+		var top_a := input.corner_vertices[i]
+		var top_b := input.corner_vertices[next_i]
+		var bottom_a := top_a - Vector3(0, occluder_height, 0)
+		var bottom_b := top_b - Vector3(0, occluder_height, 0)
+		
+		occluder_tris.append(Triangle.new(top_a, bottom_a, bottom_b))
+		occluder_tris.append(Triangle.new(top_a, bottom_b, top_b))
+
+	# Add to surface tool
+	var st: SurfaceTool = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for tri in occluder_tris:
+		tri.addToSurfaceTool(st)
+	st.index()
+
+	# Get arrays
+	var occluder_arrays := st.commit_to_arrays()
+	var vertices: PackedVector3Array = occluder_arrays[Mesh.ARRAY_VERTEX]
+	var indices: PackedInt32Array = occluder_arrays[Mesh.ARRAY_INDEX]
+
+	# Create occluder from arrays
+	occluder = ArrayOccluder3D.new()
+	occluder.set_arrays(vertices, indices)
+
+
 # Point must be strictly inside hexagon (not on borders)!
 func computeBarycentricWeightsForInsidePoint(p_3d: Vector3) -> PackedFloat32Array:
 	# See http://www.geometry.caltech.edu/pubs/MHBD02.pdf
@@ -329,7 +327,6 @@ func get_corner_vertex(i: int) -> Vector3:
 # Static functions
 #########################################################################################
 #########################################################################################
-
 static func generateInnerHexagonNoCorners(r: float, extra_verts_per_side: int, smooth_strength: float) -> PackedVector3Array:
 	var total_verts: int = 6 * (1 + extra_verts_per_side)
 	var angle_step: float = 2.0 * PI / total_verts

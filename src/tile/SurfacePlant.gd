@@ -21,6 +21,13 @@ var tween: Tween
 
 var num_blades_total: int
 
+# Store Transform3Ds as 4 Vectors each
+# var transforms: PackedVector3Array
+var transforms: Array[Transform3D]
+
+#
+var current_lod_factor: float = 1.0
+var current_lod_mesh: int = 0
 
 func _init() -> void:
 	mesh_instance = MultiMeshInstance3D.new()
@@ -29,10 +36,72 @@ func _init() -> void:
 	mesh_instance.extra_cull_margin = 0.5
 	add_child(mesh_instance, true)
 
-
 	# Only for testing
 	set_shader_value(get_curr_color(), 'tip_color')
 	set_shader_value(curr_height, 'height_mod')
+
+	EventBus.Signal_TriggerLod.connect(recalculate_lod)
+
+
+func recalculate_lod() -> void:
+	var camera_position: Vector3 = get_viewport().get_camera_3d().global_transform.origin
+	var dist := camera_position.distance_squared_to(mesh_instance.global_position)
+
+	var new_lod_factor: float
+	var new_lod_mesh: int
+	if dist <= 25 * 25:
+		new_lod_factor = 1.0
+		new_lod_mesh = 0
+	elif dist <= 32 * 32:
+		new_lod_factor = 0.9
+		new_lod_mesh = 0
+	elif dist <= 40 * 40:
+		new_lod_factor = 0.8
+		new_lod_mesh = 1
+	elif dist <= 50 * 50:
+		new_lod_factor = 0.5
+		new_lod_mesh = 1
+	elif dist <= 60 * 60:
+		new_lod_factor = 0.3
+		new_lod_mesh = 1
+	elif dist <= 70 * 70:
+		new_lod_factor = 0.2
+		new_lod_mesh = 1
+	elif dist <= 90 * 90:
+		new_lod_factor = 0.1
+		new_lod_mesh = 1
+	elif dist <= 120 * 120:
+		new_lod_factor = 0.05
+		new_lod_mesh = 1
+	else:
+		new_lod_factor = 0.02
+		new_lod_mesh = 1
+
+
+	if current_lod_factor != new_lod_factor:
+		current_lod_factor = new_lod_factor
+		set_instance_count(current_lod_factor)
+
+	if current_lod_mesh != new_lod_mesh:
+		current_lod_mesh = new_lod_mesh
+
+		if current_lod_mesh == 0:
+			mesh_instance.multimesh.mesh = GRASS_MESH_HIGH
+		else:
+			mesh_instance.multimesh.mesh = GRASS_MESH_LOW
+
+
+func set_instance_count(factor: float) -> void:
+	var new_instance_count: int = floor(num_blades_total * factor)
+	var multi_mesh: MultiMesh = mesh_instance.multimesh
+	multi_mesh.instance_count = new_instance_count
+
+	for i in range(new_instance_count):
+		#var t: Transform3D = Transform3D(transforms[i + 0], transforms[i + 1], transforms[i + 2], transforms[i + 3])
+		var t: Transform3D = transforms[i]
+		multi_mesh.set_instance_transform(i, t)
+
+	#mesh_instance.multimesh = multi_mesh
 
 
 func get_curr_color() -> Color:
@@ -105,24 +174,35 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	if RenderingServer.get_video_adapter_type() != RenderingDevice.DEVICE_TYPE_DISCRETE_GPU:
 		var bad_gpu_reduction := 0.3
 		num_blades_total = round(num_blades_total * bad_gpu_reduction)
-		mesh_to_use = GRASS_MESH_LOW
+		#mesh_to_use = GRASS_MESH_LOW
 
 	# Compute custom aabb
 	mesh_instance.custom_aabb = surface_sampler.compute_custom_aabb(1.0)
 	if DebugSettings.visualize_plant_custom_aabb:
 		add_custom_aabb_visualization()
 
+	# Create multi-mesh
 	var multi_mesh := MultiMesh.new()
 	multi_mesh.mesh = mesh_to_use
 	multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
 	multi_mesh.instance_count = num_blades_total
 
+	transforms.clear()
+	# transforms.resize(num_blades_total * 4)
+	transforms.resize(num_blades_total)
 	for i in range(num_blades_total):
 		var t := surface_sampler.get_random_point_transform()
 		multi_mesh.set_instance_transform(i, t)
 
-	mesh_instance.multimesh = multi_mesh
+		# Store transform
+		transforms[i] = t
+		# transforms[i + 0] = t.basis.x
+		# transforms[i + 1] = t.basis.y
+		# transforms[i + 2] = t.basis.z
+		# transforms[i + 3] = t.origin
+	
 
+	mesh_instance.multimesh = multi_mesh
 
 # Key as last parameter to allow tween to bind this
 func set_shader_value(value: Variant, key: String) -> void:

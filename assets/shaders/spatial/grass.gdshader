@@ -96,8 +96,9 @@ void vertex() {
 
 	// The further the distance from the camera, the thicker the grass blade will
 	// appear to account for decreasing density with LOD
-	const float max_dist_thicken_factor = 8.0;
-	VERTEX.x *= 1.0 + min(ease_in_quartic(0.0225*camera_distance), max_dist_thicken_factor);
+	const float max_dist_thicken_factor = 15.0;
+	const float thicken_dist_scaling = 0.035; // Higher -> thicker earlier. OG = 0.033
+	VERTEX.x *= 1.0 + min(ease_in_quartic(thicken_dist_scaling * camera_distance), max_dist_thicken_factor);
 
 	// Apply offsets and scale everything down by 0.5
 	VERTEX.y *= 0.5 * height_mod * rand_height_factor;
