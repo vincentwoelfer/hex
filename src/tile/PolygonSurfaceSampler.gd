@@ -83,3 +83,17 @@ func _weighted_random_choice() -> int:
 
 	# Fallback in case of rounding errors
 	return area_weights.size() - 1
+
+
+func compute_custom_aabb(object_height: float) -> AABB:
+	var aabb := AABB(triangles[0].a, Vector3.ZERO)
+
+	for tri: Triangle in triangles:
+		aabb = aabb.expand(tri.a)
+		aabb = aabb.expand(tri.b)
+		aabb = aabb.expand(tri.c)
+
+	# Expand aabb upwards by object height
+	aabb = aabb.expand(aabb.get_support(Vector3.UP) + Vector3(0, object_height, 0))
+
+	return aabb

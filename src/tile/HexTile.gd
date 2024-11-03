@@ -22,6 +22,7 @@ var label: HexTileLabel
 # Visual Representation
 var geometry: HexGeometry
 var terrainMesh: MeshInstance3D
+var terrainOccluderInstance: OccluderInstance3D
 var plant: SurfacePlant
 var rocks: MeshInstance3D
 
@@ -89,6 +90,11 @@ func generate() -> void:
 	# terrainMesh.visibility_range_end = 100
 	# terrainMesh.visibility_range_end_margin = 20
 	add_child(terrainMesh, true)
+
+	# Occluder
+	terrainOccluderInstance = OccluderInstance3D.new()
+	terrainOccluderInstance.occluder = geometry.occluder
+	add_child(terrainOccluderInstance, true)
 
 	if DebugSettings.visualize_hex_input:
 		hex_input.create_debug_visualization(self)

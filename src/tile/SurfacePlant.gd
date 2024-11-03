@@ -21,12 +21,14 @@ var tween: Tween
 
 var num_blades_total: int
 
+
 func _init() -> void:
 	mesh_instance = MultiMeshInstance3D.new()
 	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mesh_instance.material_override = GRASS_MAT
-	mesh_instance.extra_cull_margin = 1.0
+	mesh_instance.extra_cull_margin = 0.5
 	add_child(mesh_instance, true)
+
 
 	# Only for testing
 	set_shader_value(get_curr_color(), 'tip_color')
@@ -105,6 +107,11 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 		num_blades_total = round(num_blades_total * bad_gpu_reduction)
 		mesh_to_use = GRASS_MESH_LOW
 
+	# Compute custom aabb
+	mesh_instance.custom_aabb = surface_sampler.compute_custom_aabb(1.0)
+	if DebugSettings.visualize_plant_custom_aabb:
+		add_custom_aabb_visualization()
+
 	var multi_mesh := MultiMesh.new()
 	multi_mesh.mesh = mesh_to_use
 	multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
@@ -134,3 +141,14 @@ func get_shader_value_float(key: String) -> float:
 	if value is not float:
 		return 0.0
 	return value
+
+func add_custom_aabb_visualization() -> void:
+	var vis := MeshInstance3D.new()
+	vis.mesh = BoxMesh.new()
+	(vis.mesh as BoxMesh).size = mesh_instance.custom_aabb.size
+	vis.position = mesh_instance.custom_aabb.get_center()
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(1, 0, 0, 0.3)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	vis.material_override = material
+	add_child(vis, true)

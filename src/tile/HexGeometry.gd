@@ -9,6 +9,8 @@ var samplerAll: PolygonSurfaceSampler
 var samplerHorizontal: PolygonSurfaceSampler
 var samplerVertical: PolygonSurfaceSampler
 
+var occluder: ArrayOccluder3D
+
 # Input Variables. The height is absolute!
 var input: HexGeometryInput
 
@@ -71,6 +73,48 @@ func generate() -> void:
 
 	self.samplerVertical = PolygonSurfaceSampler.new(self.triangles)
 	self.samplerVertical.filter_min_incline(45)
+
+	########################################
+	# Occluder
+	########################################
+	generateOccluder()
+
+
+
+func generateOccluder() -> void:
+	var occluder_height := 30
+	var occluder_tris: Array[Triangle]
+
+	# Generate top surface triangles
+	for i in range(1, 6 - 1):
+		occluder_tris.append(Triangle.new(input.corner_vertices[0], input.corner_vertices[i], input.corner_vertices[i + 1]))
+
+	# Side triangles
+	for i in range(6):
+		var next_i := Util.as_dir(i + 1)
+		var top_a := input.corner_vertices[i]
+		var top_b := input.corner_vertices[next_i]
+		var bottom_a := top_a - Vector3(0, occluder_height, 0)
+		var bottom_b := top_b - Vector3(0, occluder_height, 0)
+		
+		occluder_tris.append(Triangle.new(top_a, bottom_a, bottom_b))
+		occluder_tris.append(Triangle.new(top_a, bottom_b, top_b))
+
+	# Add to surface tool
+	var st: SurfaceTool = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for tri in occluder_tris:
+		tri.addToSurfaceTool(st)
+	st.index()
+
+	# Get arrays
+	var occluder_arrays := st.commit_to_arrays()
+	var vertices: PackedVector3Array = occluder_arrays[Mesh.ARRAY_VERTEX]
+	var indices: PackedInt32Array = occluder_arrays[Mesh.ARRAY_INDEX]
+
+	# Create occluder from arrays
+	occluder = ArrayOccluder3D.new()
+	occluder.set_arrays(vertices, indices)
 
 
 func setInnerAndCenterVertexHeights() -> void:

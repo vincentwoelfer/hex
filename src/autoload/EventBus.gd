@@ -66,8 +66,15 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_pressed("trigger_weather_change"):
 			Signal_TriggerWeatherChange.emit()
 
+	###################################################################
+	# NON-Signal Input Actions
+	###################################################################
 		if event.is_action_pressed("quit_game"):
 			get_tree().quit()
+
+		if event.is_action_pressed("toogle_occlusion_culling"):
+			get_tree().root.use_occlusion_culling = !get_tree().root.use_occlusion_culling
+			print("Occlusion Culling set to ", get_tree().root.use_occlusion_culling)
 
 
 func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:
