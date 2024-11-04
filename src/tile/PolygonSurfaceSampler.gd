@@ -1,8 +1,12 @@
 class_name PolygonSurfaceSampler
 
-var area_weights: Array[float]
+
 var triangles: Array[Triangle]
+
+# Percentage of the total area each triangle covers
+var area_weights: Array[float]
 var total_area: float
+var total_weight: float
 
 
 func _init(triangles_: Array[Triangle]) -> void:
@@ -60,6 +64,7 @@ func get_random_point_transform() -> Transform3D:
 func _calculate_area_weights() -> void:
 	var areas: Array[float] = []
 	total_area = 0.0
+	total_weight = 0.0
 	for tri in self.triangles:
 		var area: float = tri.getArea()
 		areas.append(area)
@@ -67,22 +72,19 @@ func _calculate_area_weights() -> void:
 
 	self.area_weights.clear()
 	for area in areas:
-		area_weights.append(area / total_area)
+		var weight: float = area / total_area
+		# We already include the weights of the previous triangles to make the lookup faster
+		area_weights.append(weight + total_weight)
+		total_weight += weight
 
 
 func _weighted_random_choice() -> int:
-	var total_weight: float = 0.0
-	for weight in area_weights:
-		total_weight += weight
-
+	# ChatGPT magic
 	var rand: float = randf() * total_weight
-	for i in range(area_weights.size()):
-		if rand < area_weights[i]:
-			return i
-		rand -= area_weights[i]
-
-	# Fallback in case of rounding errors
-	return area_weights.size() - 1
+	var index: int = area_weights.bsearch(rand)
+	if index < 0:
+		index = ~index # Convert the negative insertion point to the actual index
+	return index
 
 
 func compute_custom_aabb(object_height: float) -> AABB:

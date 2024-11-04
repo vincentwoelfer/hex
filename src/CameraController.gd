@@ -26,7 +26,7 @@ var lerpSpeed: float = 8.5 # almost instant, otherwise camera control feels slug
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	Input.mouse_mode = Input.MOUSE_MODE_CONFINED
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	lookAtPoint = Vector3(0, 4, 0)
 	followPoint = Vector3(0, 4, 0)
 	actual_curr_rotation = compute_target_forward_angle(orientation)

@@ -39,7 +39,7 @@ func _init() -> void:
 	set_shader_value(get_curr_color(), 'tip_color')
 	set_shader_value(curr_height, 'height_mod')
 
-	EventBus.Signal_TriggerLod.connect(recalculate_lod)
+	# EventBus.Signal_TriggerLod.connect(recalculate_lod)
 
 
 func recalculate_lod() -> void:
