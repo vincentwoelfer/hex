@@ -2,6 +2,7 @@ class_name SurfacePlant
 extends Node3D
 
 const GRASS_MESH_HIGH := preload('res://assets/meshes/plants/grass_hres.obj')
+const GRASS_MESH_MED := preload('res://assets/meshes/plants/grass_mres.obj')
 const GRASS_MESH_LOW := preload('res://assets/meshes/plants/grass_lres.obj')
 const GRASS_MAT: ShaderMaterial = preload('res://assets/materials/grass_material.tres')
 
@@ -39,7 +40,7 @@ func _init() -> void:
 	set_shader_value(get_curr_color(), 'tip_color')
 	set_shader_value(curr_height, 'height_mod')
 
-	# EventBus.Signal_TriggerLod.connect(recalculate_lod)
+	EventBus.Signal_TriggerLod.connect(recalculate_lod)
 
 
 func recalculate_lod() -> void:
@@ -53,28 +54,28 @@ func recalculate_lod() -> void:
 		new_lod_mesh = 0
 	elif dist <= 32 * 32:
 		new_lod_factor = 0.9
-		new_lod_mesh = 0
+		new_lod_mesh = 1
 	elif dist <= 40 * 40:
 		new_lod_factor = 0.8
-		new_lod_mesh = 1
+		new_lod_mesh = 2
 	elif dist <= 50 * 50:
 		new_lod_factor = 0.5
-		new_lod_mesh = 1
+		new_lod_mesh = 2
 	elif dist <= 60 * 60:
 		new_lod_factor = 0.3
-		new_lod_mesh = 1
+		new_lod_mesh = 2
 	elif dist <= 70 * 70:
 		new_lod_factor = 0.2
-		new_lod_mesh = 1
+		new_lod_mesh = 2
 	elif dist <= 90 * 90:
 		new_lod_factor = 0.1
-		new_lod_mesh = 1
+		new_lod_mesh = 2
 	elif dist <= 120 * 120:
 		new_lod_factor = 0.05
-		new_lod_mesh = 1
+		new_lod_mesh = 2
 	else:
 		new_lod_factor = 0.02
-		new_lod_mesh = 1
+		new_lod_mesh = 2
 
 
 	if current_lod_factor != new_lod_factor:
@@ -86,6 +87,8 @@ func recalculate_lod() -> void:
 
 		if current_lod_mesh == 0:
 			mesh_instance.multimesh.mesh = GRASS_MESH_HIGH
+		elif current_lod_mesh == 1:
+			mesh_instance.multimesh.mesh = GRASS_MESH_MED
 		else:
 			mesh_instance.multimesh.mesh = GRASS_MESH_LOW
 
@@ -148,7 +151,8 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 
 	# Reduce in editor
 	if Engine.is_editor_hint():
-		var in_editor_density_reduction := 0.5
+		# var in_editor_density_reduction := 0.5
+		var in_editor_density_reduction := 1.0
 		num_blades_total = round(num_blades_total * in_editor_density_reduction)
 
 	# Reduce if gpu is bad

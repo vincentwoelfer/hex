@@ -48,9 +48,9 @@ script = ExtResource("4_j2ckc")
 
 [node name="SunLight" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true
-transform = Transform3D(0.650104, -0.356982, 0.670764, 0, 0.882766, 0.469809, -0.759845, -0.305425, 0.573889, 0, 50, 0)
-light_color = Color(1, 0.94, 0.88, 1)
-light_energy = 3.6
+transform = Transform3D(0.999999, -1.89999e-16, 1.59428e-16, 0, 0.642786, 0.766042, -2.48026e-16, -0.766042, 0.642785, 0, 50, 0)
+light_color = Color(1, 1, 0.85, 1)
+light_energy = 2.22
 light_angular_distance = 2.0
 shadow_enabled = true
 directional_shadow_blend_splits = true
@@ -66,7 +66,7 @@ script = ExtResource("6_x1kdg")
 [node name="WorldLightControl" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("8_4pj04")
-current_time = 9.0
+current_time = 14.0
 
 [node name="WeatherControl" parent="." instance=ExtResource("9_ukl4i")]
 unique_name_in_owner = true

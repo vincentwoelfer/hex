@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode cull_disabled, ensure_correct_normals;
+render_mode cull_disabled, ensure_correct_normals, blend_mix;
 
 global uniform float global_wind_direction;
 global uniform float global_wind_strength;
@@ -212,27 +212,49 @@ void fragment() {
 	ROUGHNESS = mix(1.0, roughness_min, ease_out_quartic(height_factor));
 
 	// --- SPECULAR --- 
-	SPECULAR = mix (0.5, 0.7, global_world_wetness);
+	SPECULAR = mix(0.5, 0.7, global_world_wetness);
 
-	ANISOTROPY = 0.85;
-
-	// TODO
-	//https://github.com/godotengine/godot/issues/79859
 }
 
+// void light() {
+// 	float sgn = 1.0;
+//     // if (dot( NORMAL, LIGHT ) <= 0.0)
+//     // {
+// 	// 	// reverse the normal if it's facing away from the light
+// 	// 	sgn = -1.0;
+//     // }
+
+// 	float diffuse_factor = pow(4.0, dot(sgn*NORMAL, LIGHT)) / 4.0; // Diffuse never drops to 0 to simulate ambient bounces
+// 	// float diffuse_factor = pow(4.0, length(LIGHT)) / 4.0; // Diffuse never drops to 0 to simulate ambient bounces
+// 	// float diffuse_factor = length(LIGHT);
+
+// 	float sss_factor = max(-dot(VIEW, LIGHT), 0.0) * 0.5;
+
+// 	DIFFUSE_LIGHT += (diffuse_factor + sss_factor*subsurface_scattering_color) * ATTENUATION * LIGHT_COLOR;
+// 	SPECULAR_LIGHT *= diffuse_factor;
+// }
+
 void light() {
-	float sgn = 1.0;
-    if (dot( NORMAL, LIGHT ) <= 0.0)
-    {
-		// reverse the normal if it's facing away from the light
-		sgn = -1.0;
-    }
+    // Calculate the diffuse light component
+    float NdotL = abs(dot(NORMAL, LIGHT));
 
-	float diffuse_factor = pow(4.0, dot(sgn*NORMAL, LIGHT)) / 4.0; // Diffuse never drops to 0 to simulate ambient bounces
-	float sss_factor = max(-dot(VIEW, LIGHT), 0.0) * 0.5;
+	// Simulate Backlight
+	// if (NdotL < 0.0) {
+	// 	const float backlight_factor = 0.8;
+	// 	NdotL = -NdotL * backlight_factor;
+	// }
+	// This gets 1 if light shines directly on it, backlight_factor if light shines
+	// directly through it and 0 if light comes 90deg from one side
+	const float side_support = 0.3;
+	float diffuse_factor = side_support + NdotL * (1.0 - side_support);
 
-	DIFFUSE_LIGHT += (diffuse_factor + sss_factor*subsurface_scattering_color) * ATTENUATION * LIGHT_COLOR;
-	SPECULAR_LIGHT *= diffuse_factor;
+	// Exxagerate diffuse factor
+	diffuse_factor = pow(2.0, diffuse_factor) / 4.0;
 
+	// Subsurface scattering
+	float sss_factor = max(-dot(VIEW, LIGHT), 0.0) * 0.7;
 
+    // Combine the diffuse and specular components
+    DIFFUSE_LIGHT += (diffuse_factor + sss_factor * subsurface_scattering_color) * ATTENUATION * LIGHT_COLOR;
+	SPECULAR_LIGHT *= diffuse_factor * ATTENUATION * LIGHT_COLOR * 0.5;
 }
