@@ -101,8 +101,6 @@ func set_instance_count(factor: float) -> void:
 		var t: Transform3D = transforms[i]
 		multi_mesh.set_instance_transform(i, t)
 
-	#mesh_instance.multimesh = multi_mesh
-
 
 func get_curr_color() -> Color:
 	var curr_color: Color = color_dry.lerp(color_healthy, curr_health)

@@ -59,7 +59,8 @@ static func getColorForIncline(inclineDeg: float) -> Color:
 	#var green := Color.DARK_GREEN.lerp(Color8(22, 17, 12), 0.9)
 	#var gray := Color8(16, 17, 13)
 
-	var ground := Color8(13, 12, 8)
+	#var ground := Color8(13, 12, 8)
+	var ground := Color8(4, 8, 2)
 	var wall := Color(0.17, 0.19, 0.21)
 	
 	var color := ground.lerp(wall, inclineDeg)
