@@ -22,7 +22,6 @@ var tween: Tween
 var num_blades_total: int
 
 # Store Transform3Ds as 4 Vectors each
-# var transforms: PackedVector3Array
 var transforms: Array[Transform3D]
 
 #
@@ -97,7 +96,6 @@ func set_instance_count(factor: float) -> void:
 	multi_mesh.instance_count = new_instance_count
 
 	for i in range(new_instance_count):
-		#var t: Transform3D = Transform3D(transforms[i + 0], transforms[i + 1], transforms[i + 2], transforms[i + 3])
 		var t: Transform3D = transforms[i]
 		multi_mesh.set_instance_transform(i, t)
 
@@ -105,21 +103,6 @@ func set_instance_count(factor: float) -> void:
 func get_curr_color() -> Color:
 	var curr_color: Color = color_dry.lerp(color_healthy, curr_health)
 	return curr_color
-
-	# var color: Color
-	# if get_viewport() != null:
-	# 	var cam := get_viewport().get_camera_3d()
-	# 	var dist: float = cam.global_position.distance_to(global_position)
-
-	# 	var t: float = clampf(remap(dist, 5, 75, 0, 1), 0, 1)
-	# 	color = Color.RED.lerp(Color.BLUE, t)
-
-		# DEBUG
-		#mesh_instance.multimesh.visible_instance_count = floor(remap(t, 0, 1, num_blades_total, 0))
-		# mesh_instance.multimesh.instance_count = floor(remap(t, 0, 1, num_blades_total, 0))
-
-		# for i in range(mesh_instance.multimesh.instance_count):
-		# 	mesh_instance.multimesh.set_instance_transform(i, transforms[i])
 
 
 func processWorldStep(humidity: float, shade: float, nutrition: float) -> void:
@@ -186,7 +169,6 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	multi_mesh.instance_count = num_blades_total
 
 	transforms.clear()
-	# transforms.resize(num_blades_total * 4)
 	transforms.resize(num_blades_total)
 	for i in range(num_blades_total):
 		var t := surface_sampler.get_random_point_transform()
@@ -194,10 +176,6 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 
 		# Store transform
 		transforms[i] = t
-		# transforms[i + 0] = t.basis.x
-		# transforms[i + 1] = t.basis.y
-		# transforms[i + 2] = t.basis.z
-		# transforms[i + 3] = t.origin
 	
 
 	mesh_instance.multimesh = multi_mesh
