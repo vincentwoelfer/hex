@@ -31,6 +31,7 @@ func _ready() -> void:
 	followPoint = Vector3(0, 4, 0)
 	actual_curr_rotation = compute_target_forward_angle(orientation)
 
+
 func _input(event: InputEvent) -> void:
 	# Rotate
 	if event.is_action_pressed("rotate_cam_left"):
@@ -45,6 +46,7 @@ func _input(event: InputEvent) -> void:
 	if Input.is_action_pressed("zoom_cam_backward"):
 		zoomTarget += zoom_speed
 	zoomTarget = clampf(zoomTarget, zoom_min, zoom_max)
+
 
 func updateContinuousInputs(delta: float) -> void:
 	# Up / Down
