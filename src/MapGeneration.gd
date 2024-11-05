@@ -15,20 +15,22 @@ var generated_queue: Array[HexTile] = []
 var generated_mutex: Mutex = Mutex.new()
 
 # Threads
-var thread: Thread
+var threads: Array[Thread] = []
+var num_threads: int = 1
 var is_running: bool = true
 
 
 # Misc
-var generation_dist_hex_tiles := 3
+var generation_dist_hex_tiles := 12
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	#delete_everything()
 
 	# Create thread
-	thread = Thread.new()
-	thread.start(thread_generation_func)
+	for i in range(num_threads):
+		threads.append(Thread.new())
+		threads[i].start(thread_generation_func)
 
 	# Signals
 	EventBus.Signal_HexConstChanged.connect(set_regenerate)
@@ -39,9 +41,10 @@ func _exit_tree() -> void:
 	is_running = false
 
 	# Post to the semaphore to unblock any waiting threads so they can exit
-	to_generate_semaphore.post()
-	thread.wait_to_finish()
-	print("MAIN: Thread finished")
+	to_generate_semaphore.post(num_threads)
+	for thread in threads:
+		thread.wait_to_finish()
+	print("MAIN: Threads finished")
 
 
 func _process(delta: float) -> void:

@@ -20,7 +20,7 @@ var orientation: int = 4 # from north looking south (to see the sun moving best)
 # current rotation in angle
 var actual_curr_rotation: float = 0
 
-var speed: float = 14
+var speed: float = 14 * 6
 var rotationLerpSpeed: float = 7.0
 var lerpSpeed: float = 8.5 # almost instant, otherwise camera control feels sluggish
 

@@ -44,6 +44,9 @@ func _init() -> void:
 
 
 func recalculate_lod() -> void:
+	if not is_inside_tree():
+		return
+
 	var camera_position: Vector3 = get_viewport().get_camera_3d().global_transform.origin
 	var dist := camera_position.distance_squared_to(mesh_instance.global_position)
 
@@ -180,7 +183,7 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 
 		# Store transform
 		transforms[i] = t
-	
+
 
 	mesh_instance.multimesh = multi_mesh
 
