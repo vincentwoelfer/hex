@@ -91,12 +91,12 @@ func generate() -> void:
 	#terrainMesh.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 	# terrainMesh.visibility_range_end = 100
 	# terrainMesh.visibility_range_end_margin = 20
-	add_child(terrainMesh, true)
+	add_child(terrainMesh, false)
 
 	# Occluder
 	terrainOccluderInstance = OccluderInstance3D.new()
 	terrainOccluderInstance.occluder = geometry.occluder
-	add_child(terrainOccluderInstance, true)
+	add_child(terrainOccluderInstance, false)
 
 	if DebugSettings.visualize_hex_input:
 		hex_input.create_debug_visualization(self)
@@ -110,7 +110,7 @@ func generate() -> void:
 			plant = SurfacePlant.new()
 			plant.name = "Grass"
 			plant.populate_multimesh(geometry.samplerHorizontal)
-			add_child(plant, true)
+			add_child(plant, false)
 
 		# Add rocks
 		if DebugSettings.enable_rocks:
@@ -120,7 +120,7 @@ func generate() -> void:
 				rocks.name = "Rocks"
 				rocks.material_override = ROCKS_MATERIAL
 				rocks.mesh = rocksMesh
-				add_child(rocks, true)
+				add_child(rocks, false)
 
 
 func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:

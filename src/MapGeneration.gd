@@ -70,7 +70,7 @@ func create_empty_hex_tile(hex_pos: HexPos) -> void:
 	hex_tile.position = Vector3(world_pos.x, height * HexConst.height, world_pos.y)
 
 	# Add to the current scene
-	add_child(hex_tile, true)
+	add_child(hex_tile, false)
 
 
 ##############################
@@ -102,7 +102,7 @@ func delete_everything() -> void:
 # const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
 # instance.material_override = DEFAULT_GEOM_MATERIAL
 # instance.material_overlay = HIGHLIGHT_MAT
-# add_child(instance, true)
+# add_child(instance, false)
 
 # # ROCKS
 # var instance_rocks := MeshInstance3D.new()
@@ -115,4 +115,4 @@ func delete_everything() -> void:
 # instance_rocks.set_mesh(st_combined.commit())
 # const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.tres')
 # instance_rocks.material_override = ROCKS_MATERIAL
-# add_child(instance_rocks, true)
+# add_child(instance_rocks, false)
