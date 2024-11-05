@@ -39,8 +39,16 @@ func print_debug_stats() -> void:
 #################################################
 # Hex Tiles
 #################################################
+func add_hex_tile_hash(key: int, height: int) -> HexTile:
+	var hex_pos: HexPos = HexPos.unhash(key)
+	if tiles.has(hash):
+		print("Map already has tile at r: %d, q: %d, s:%d!" % [hex_pos.r, hex_pos.q, hex_pos.s])
+	else:
+		tiles[key] = HexTile.new(hex_pos, height)
+	return tiles[key]
+
 func add_hex_tile(hex_pos: HexPos, height: int) -> HexTile:
-	var key: int = hex_pos.hash()
+	var key := hex_pos.hash()
 	if tiles.has(key):
 		print("Map already has tile at r: %d, q: %d, s:%d!" % [hex_pos.r, hex_pos.q, hex_pos.s])
 	else:
@@ -48,10 +56,14 @@ func add_hex_tile(hex_pos: HexPos, height: int) -> HexTile:
 	return tiles[key]
 
 
+func get_hex_tile_hash(key: int) -> HexTile:
+	if not tiles.has(key):
+		return null
+	return tiles[key]
+
 func get_hex_tile(hex_pos: HexPos) -> HexTile:
 	var key: int = hex_pos.hash()
 	if not tiles.has(key):
-		#print("Map has no tile at r: %d, q: %d, s:%d!" % [hex_pos.r, hex_pos.q, hex_pos.s])
 		return null
 	return tiles[key]
 

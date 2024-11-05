@@ -20,12 +20,32 @@ func _to_string() -> String:
 
 func hash() -> int:
 	# Maps [q,r] -> N, works bidirectionally and for signed integers
-	# Based on signed Szudzik pairing but without /2 in the end
+	# Based on signed Szudzik pairing but without /2 in the end (no "improved packing")
 	# https://www.vertexfragment.com/ramblings/cantor-szudzik-pairing-functions/#signed-szudzik
 	var a: int = 2 * q if q >= 0 else (-2 * q) - 1
 	var b: int = 2 * r if r >= 0 else (-2 * r) - 1
 	var result: int = (a * a) + a + b if a >= b else (b * b) + a
 	return result
+
+
+static func unhash(z: int) -> HexPos:
+	# Inverse of hash()
+	# https://gist.github.com/TheGreatRambler/048f4b38ca561e6566e0e0f6e71b7739	
+	var sqrtz: int = floori(sqrt(z))
+	var sqz: int = sqrtz * sqrtz;
+	var a: int
+	var b: int
+	if ((z - sqz) >= sqrtz):
+		a = sqrtz
+		b = z - sqz - sqrtz
+	else:
+		a = z - sqz
+		b = sqrtz
+	@warning_ignore("integer_division")
+	var q_: int = a / 2 if a % 2 == 0 else (a + 1) / -2
+	@warning_ignore("integer_division")
+	var r_: int = b / 2 if b % 2 == 0 else (b + 1) / -2
+	return HexPos.new(q_, r_, -q_ - r_)
 
 
 func add(other: HexPos) -> HexPos:

@@ -13,7 +13,6 @@ static func determine_height(hex_pos: HexPos) -> int:
 	if hex_pos.q < 0:
 		max_height += 16
 
-
 	var pos2D: Vector2 = HexPos.hexpos_to_xy(hex_pos)
 	var noise: float = height_noise.get_noise_2d(pos2D.x, pos2D.y)
 	noise = remap(noise, -1.0, 1.0, 0.0, 1.0)
