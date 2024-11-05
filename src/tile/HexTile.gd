@@ -78,9 +78,11 @@ func generate() -> void:
 	for c in self.get_children():
 		c.free()
 
-	# Add geometry - Get relevant parameters from Map (read-only)
+	# Add geometry - Get relevant parameters from Map (read-only).
+	# this is expensive -> multithread
 	var hex_input := MapManager.create_complete_hex_geometry_input(hex_pos)
-	geometry = HexGeometry.new(hex_input)
+	geometry = HexGeometry.new(hex_input) # directly calls generate
+
 	terrainMesh = MeshInstance3D.new()
 	terrainMesh.name = "terrain"
 	terrainMesh.mesh = geometry.mesh

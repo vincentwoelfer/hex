@@ -15,9 +15,11 @@ static func randCircularOffsetNormalDist(r_max: float) -> Vector3:
 	var r := clampf(randfn(r_max, 1.0), 0.0, r_max)
 	return vec3FromRadiusAngle(r, angle)
 
+
 ######################################################
 # ANGLES + VECTORS (Geometry)
 ######################################################
+
 # Ensures value is always [0, 5], even if suplying negative number
 static func as_dir(dir: int) -> int:
 	return (dir + 6) % 6
@@ -78,9 +80,11 @@ static func sortVecAccordingToAngles(vecs: Array[Vector3]) -> Array[Vector3]:
 ######################################################
 # Misc
 ######################################################
+
 # Like clamp but ensures values is between a,b , even if a > b
 static func clampf(val: float, a: float, b: float) -> float:
 	return clampf(val, minf(a, b), maxf(a, b))
+
 
 ######################################################
 # 3D Vector Math

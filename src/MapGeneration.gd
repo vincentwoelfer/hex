@@ -1,84 +1,87 @@
 @tool
 extends Node3D
 
-var generate: bool = false
-var last_generate_timestamp := 0.0
-var max_generation_delay := 1.0
+# Regeneration
+var regenerate: bool = false
+var last_regeneration_timestamp := 0.0
+var max_regeneration_delay := 1.0
+
+# Queues
+# var to_generate_queue: Array[HexPos] = []
+# var to_generate_mutex: Mutex = Mutex.new()
+# var to_generate_semaphore: Semaphore = Semaphore.new()
+
+
+# Threads
+# ....
+
+
+# Misc
+var generation_dist_hex_tiles := 3
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	generate_complete_map()
+	#delete_everything()
 
 	# Signals
-	EventBus.Signal_HexConstChanged.connect(set_generate)
-
-
-func set_generate() -> void:
-	self.generate = true
+	EventBus.Signal_HexConstChanged.connect(set_regenerate)
 
 
 func _process(delta: float) -> void:
-	if self.generate and (Time.get_unix_time_from_system() - last_generate_timestamp) > max_generation_delay:
-		last_generate_timestamp = Time.get_unix_time_from_system()
-		self.generate = false
-		generate_complete_map()
+	# Check regeneration
+	if self.regenerate and (Time.get_unix_time_from_system() - last_regeneration_timestamp) > max_regeneration_delay:
+		last_regeneration_timestamp = Time.get_unix_time_from_system()
+		self.regenerate = false
+		delete_everything()
+
+	# Add tiles near player to queue
+	var t_start := Time.get_ticks_msec()
+
+	var camera_position: Vector3 = get_viewport().get_camera_3d().global_transform.origin
+	var camera_hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(camera_position).round()
+
+	var coords_in_range := camera_hex_pos.get_all_coordinates_in_range(generation_dist_hex_tiles, true)
+	var num_generated := 0
+	for hex_pos in coords_in_range:
+		# Add HexTile if missing
+		var tile: HexTile = MapManager.map.get_hex_tile(hex_pos)
+		if tile == null:
+			create_empty_hex_tile(hex_pos)
+			tile = MapManager.map.get_hex_tile(hex_pos)
+			tile.generate()
+			num_generated += 1
+
+	var t := (Time.get_ticks_msec() - t_start) / 1000.0
+	if num_generated > 0:
+		print("Generated %d tiles in %.3f sec" % [num_generated, t])
+		MapManager.map.print_debug_stats()
 
 
-func generate_complete_map() -> void:
-	# MAP GENERATION STEP 1
-	# Create and instantiate empty hex-tiles, add as child and set world position
-	# Only done ONCE and expects map to be empty
-	MapManager.map.free_all_hex_tiles()
-	MapManager.map.free_all_geometry_inputs()
+# func generate_complete_map() -> void:
+# 	# MAP GENERATION STEP 1
+# 	# Create and instantiate empty hex-tiles, add as child and set world position
+# 	# Only done ONCE and expects map to be empty
+# 	MapManager.map.free_all_hex_tiles()
+# 	MapManager.map.free_all_geometry_inputs()
 	
-	var coordinates := MapManager.get_all_hex_coordinates(HexConst.MAP_SIZE)
-	for hex_pos in coordinates:
-		var height: int = MapGenerationData.determine_height(hex_pos)
-		create_empty_hex_tile(hex_pos, height)
+# 	var coordinates := MapManager.get_all_hex_coordinates(HexConst.MAP_SIZE)
+# 	for hex_pos in coordinates:
+# 		var height: int = MapGenerationData.determine_height(hex_pos)
+# 		create_empty_hex_tile(hex_pos, height)
 
-	# MAP GENERATION STEP 2
-	# Generate hex-tiles (= Geometry, Plants...). This is done by the hex tile and we only call it for every tile
-	# This allows this to be parallelized later on
-	generate_all_hex_tile_geometry()
-	MapManager.map.print_debug_stats()
-
-	########################################################
-	########################################################
-	########################################################
-	# TESTING - STEP 3 MERGE ALL TERRAIN
-	# var instance := MeshInstance3D.new()
-	# var st_combined: SurfaceTool = SurfaceTool.new()
-
-	# for hex_pos in coordinates:
-	# 	var tile: HexTile = MapManager.map.get_hex_tile(hex_pos)
-	# 	st_combined.append_from(tile.geometry.mesh, 0, tile.global_transform)
-
-	# instance.set_mesh(st_combined.commit())
-	# const DEFAULT_GEOM_MATERIAL: Material = preload('res://assets/materials/default_geom_material.tres')
-	# const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
-	# instance.material_override = DEFAULT_GEOM_MATERIAL
-	# instance.material_overlay = HIGHLIGHT_MAT
-	# add_child(instance, true)
-
-	# # ROCKS
-	# var instance_rocks := MeshInstance3D.new()
-	# st_combined = SurfaceTool.new()
-
-	# for hex_pos in coordinates:
-	# 	var tile: HexTile = MapManager.map.get_hex_tile(hex_pos)
-	# 	st_combined.append_from(tile.rocksMesh, 0, tile.global_transform)
-
-	# instance_rocks.set_mesh(st_combined.commit())
-	# const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.tres')
-	# instance_rocks.material_override = ROCKS_MATERIAL
-	# add_child(instance_rocks, true)
+# 	# MAP GENERATION STEP 2
+# 	# Generate hex-tiles (= Geometry, Plants...). This is done by the hex tile and we only call it for every tile
+# 	# This allows this to be parallelized later on
+# 	generate_all_hex_tile_geometry()
+# 	MapManager.map.print_debug_stats()
 
 
 # For STEP 1
-func create_empty_hex_tile(hex_pos: HexPos, height: int) -> void:
+func create_empty_hex_tile(hex_pos: HexPos) -> void:
 	# Verify that this hex_pos does not contain a tile yet
 	assert(MapManager.map.get_hex_tile(hex_pos) == null)
 
+	var height: int = MapGenerationData.determine_height(hex_pos)
 	var hex_tile := MapManager.map.add_hex_tile(hex_pos, height)
 
 	# Add to Scene tree at correct position
@@ -89,15 +92,60 @@ func create_empty_hex_tile(hex_pos: HexPos, height: int) -> void:
 	add_child(hex_tile, true)
 
 
-# STEP 2
-func generate_all_hex_tile_geometry() -> void:
-	var t_start := Time.get_ticks_msec()
+# # STEP 2
+# func generate_all_hex_tile_geometry() -> void:
+# 	var t_start := Time.get_ticks_msec()
 
-	# Get coordinates
-	var coordinates := MapManager.get_all_hex_coordinates(HexConst.MAP_SIZE)
-	for hex_pos in coordinates:
-		MapManager.map.get_hex_tile(hex_pos).generate()
+# 	# Get coordinates
+# 	var coordinates := MapManager.get_all_hex_coordinates(HexConst.MAP_SIZE)
+# 	for hex_pos in coordinates:
+# 		MapManager.map.get_hex_tile(hex_pos).generate()
 
-	# Finish
-	var t := (Time.get_ticks_msec() - t_start) / 1000.0
-	print("Generated %d hex tiles in %.3f sec" % [coordinates.size(), t])
+# 	# Finish
+# 	var t := (Time.get_ticks_msec() - t_start) / 1000.0
+# 	print("Generated %d hex tiles in %.3f sec" % [coordinates.size(), t])
+
+
+##############################
+# Regeneration
+##############################
+func set_regenerate() -> void:
+	self.regenerate = true
+
+
+func delete_everything() -> void:
+	print("Deleting everything")
+	MapManager.map.free_all_hex_tiles()
+	MapManager.map.free_all_geometry_inputs()
+
+
+########################################################
+########################################################
+########################################################
+# TESTING - STEP 3 MERGE ALL TERRAIN
+# var instance := MeshInstance3D.new()
+# var st_combined: SurfaceTool = SurfaceTool.new()
+
+# for hex_pos in coordinates:
+# 	var tile: HexTile = MapManager.map.get_hex_tile(hex_pos)
+# 	st_combined.append_from(tile.geometry.mesh, 0, tile.global_transform)
+
+# instance.set_mesh(st_combined.commit())
+# const DEFAULT_GEOM_MATERIAL: Material = preload('res://assets/materials/default_geom_material.tres')
+# const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
+# instance.material_override = DEFAULT_GEOM_MATERIAL
+# instance.material_overlay = HIGHLIGHT_MAT
+# add_child(instance, true)
+
+# # ROCKS
+# var instance_rocks := MeshInstance3D.new()
+# st_combined = SurfaceTool.new()
+
+# for hex_pos in coordinates:
+# 	var tile: HexTile = MapManager.map.get_hex_tile(hex_pos)
+# 	st_combined.append_from(tile.rocksMesh, 0, tile.global_transform)
+
+# instance_rocks.set_mesh(st_combined.commit())
+# const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.tres')
+# instance_rocks.material_override = ROCKS_MATERIAL
+# add_child(instance_rocks, true)
