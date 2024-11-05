@@ -57,25 +57,6 @@ func _process(delta: float) -> void:
 		MapManager.map.print_debug_stats()
 
 
-# func generate_complete_map() -> void:
-# 	# MAP GENERATION STEP 1
-# 	# Create and instantiate empty hex-tiles, add as child and set world position
-# 	# Only done ONCE and expects map to be empty
-# 	MapManager.map.free_all_hex_tiles()
-# 	MapManager.map.free_all_geometry_inputs()
-	
-# 	var coordinates := MapManager.get_all_hex_coordinates(HexConst.MAP_SIZE)
-# 	for hex_pos in coordinates:
-# 		var height: int = MapGenerationData.determine_height(hex_pos)
-# 		create_empty_hex_tile(hex_pos, height)
-
-# 	# MAP GENERATION STEP 2
-# 	# Generate hex-tiles (= Geometry, Plants...). This is done by the hex tile and we only call it for every tile
-# 	# This allows this to be parallelized later on
-# 	generate_all_hex_tile_geometry()
-# 	MapManager.map.print_debug_stats()
-
-
 # For STEP 1
 func create_empty_hex_tile(hex_pos: HexPos) -> void:
 	# Verify that this hex_pos does not contain a tile yet
@@ -90,20 +71,6 @@ func create_empty_hex_tile(hex_pos: HexPos) -> void:
 
 	# Add to the current scene
 	add_child(hex_tile, true)
-
-
-# # STEP 2
-# func generate_all_hex_tile_geometry() -> void:
-# 	var t_start := Time.get_ticks_msec()
-
-# 	# Get coordinates
-# 	var coordinates := MapManager.get_all_hex_coordinates(HexConst.MAP_SIZE)
-# 	for hex_pos in coordinates:
-# 		MapManager.map.get_hex_tile(hex_pos).generate()
-
-# 	# Finish
-# 	var t := (Time.get_ticks_msec() - t_start) / 1000.0
-# 	print("Generated %d hex tiles in %.3f sec" % [coordinates.size(), t])
 
 
 ##############################
