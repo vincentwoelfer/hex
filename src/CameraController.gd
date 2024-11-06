@@ -34,6 +34,10 @@ func _ready() -> void:
 	actual_curr_rotation = compute_target_forward_angle(orientation)
 
 
+func get_follow_point() -> Vector3:
+	return followPoint
+
+
 func _input(event: InputEvent) -> void:
 	# Rotate
 	if event.is_action_pressed("rotate_cam_left"):

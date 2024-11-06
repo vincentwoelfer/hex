@@ -22,7 +22,6 @@ config/icon="res://assets/ui/icons/gameart_icon.png"
 
 EventBus="*res://src/autoload/EventBus.gd"
 HexConst="*res://src/autoload/HexConst.gd"
-MapManager="*res://src/autoload/MapManager.gd"
 
 [debug]
 

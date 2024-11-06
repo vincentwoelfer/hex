@@ -1,4 +1,4 @@
-@tool
+@tool # Must be tool because static variables are used in editor
 class_name MapGenerationData
 
 # HEIGHT GENERATION

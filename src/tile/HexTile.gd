@@ -20,7 +20,6 @@ var params: HexTileParams
 var label: HexTileLabel
 
 # Visual Representation
-var geometry: HexGeometry
 var terrainMesh: MeshInstance3D
 var terrainOccluderInstance: OccluderInstance3D
 var plant: SurfacePlant
@@ -37,7 +36,6 @@ func _init(hex_pos_: HexPos, height_: int) -> void:
 	else:
 		self.name = 'HexTile-Invalid'
 
-	self.geometry = null
 	self.plant = null
 	self.rocks = null
 	self.terrainMesh = null
@@ -62,10 +60,11 @@ func _ready() -> void:
 		label.set_label_world_pos(global_position)
 
 
-func generate() -> void:
+func generate(geometry_input: HexGeometryInput) -> void:
+	assert(geometry_input != null)
+	assert(geometry_input.generation_stage == HexGeometryInput.GenerationStage.COMPLETE)
+	
 	# Delete old stuff
-	if geometry != null:
-		geometry.free()
 	if terrainMesh != null:
 		terrainMesh.free()
 	if plant != null:
@@ -78,10 +77,8 @@ func generate() -> void:
 	for c in self.get_children():
 		c.free()
 
-	# Add geometry - Get relevant parameters from Map (read-only).
-	# this is expensive -> multithread
-	var hex_input := MapManager.create_complete_hex_geometry_input(hex_pos)
-	geometry = HexGeometry.new(hex_input) # directly calls generate
+	# Create geometry from geometry input
+	var geometry := HexGeometry.new(geometry_input)
 
 	terrainMesh = MeshInstance3D.new()
 	terrainMesh.name = "terrain"
@@ -99,7 +96,7 @@ func generate() -> void:
 	add_child(terrainOccluderInstance, false)
 
 	if DebugSettings.visualize_hex_input:
-		hex_input.create_debug_visualization(self)
+		geometry_input.create_debug_visualization(self)
 
 	if DebugSettings.generate_collision and self.height > 0:
 		terrainMesh.create_convex_collision(true, true)
