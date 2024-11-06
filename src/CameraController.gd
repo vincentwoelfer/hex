@@ -1,4 +1,5 @@
 extends Camera3D
+class_name CameraController
 
 var debugSphere: MeshInstance3D
 
@@ -14,6 +15,7 @@ var zoomTarget: float = currZoom
 var zoom_min: float = 0.075
 var zoom_max: float = 12.0
 
+var look_at_height := 4.0
 var lookAtPoint: Vector3
 var followPoint: Vector3 # = target, also used for movement
 var orientation: int = 4 # from north looking south (to see the sun moving best)
@@ -27,8 +29,8 @@ var lerpSpeed: float = 8.5 # almost instant, otherwise camera control feels slug
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	lookAtPoint = Vector3(0, 4, 0)
-	followPoint = Vector3(0, 4, 0)
+	lookAtPoint = Vector3(0, look_at_height, 0)
+	followPoint = Vector3(0, look_at_height, 0)
 	actual_curr_rotation = compute_target_forward_angle(orientation)
 
 
@@ -108,7 +110,8 @@ func _process(delta: float) -> void:
 
 func check_for_selection() -> void:
 	var hit: Dictionary = self.raycast_into_world()
-	var hit_pos := Vector3(9999, 0, 0)
+	# 99999 is a placeholder for no hit, required to deselect tiles if none is selected
+	var hit_pos := Vector3(99999, 0, 0)
 	if not hit.is_empty():
 		hit_pos = hit['position']
 

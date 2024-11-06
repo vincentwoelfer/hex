@@ -1,4 +1,4 @@
-@tool
+#@tool
 extends Node3D
 
 # Regeneration
@@ -19,9 +19,10 @@ var threads: Array[Thread] = []
 var num_threads: int = 1
 var is_running: bool = true
 
-
 # Misc
-var generation_dist_hex_tiles := 12
+var generation_dist_hex_tiles := 8
+@onready var camera_controller: CameraController = %Camera3D as CameraController
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -55,17 +56,15 @@ func _process(delta: float) -> void:
 		delete_everything()
 
 	# Empty generated queue and add to scene
-	add_generated_tiles()
+	fetch_and_add_all_generated_tiles()
 
 	# Add tiles near player to queue
-	queue_new_tiles()
+	queue_new_tiles_for_generation()
 
 	
-func add_generated_tiles() -> void:
+func fetch_and_add_all_generated_tiles() -> void:
 	var t_start := Time.get_ticks_msec()
 
-	# TODO might stall if tiles are being generated right now
-	# -> use semaphore or similar
 	generated_mutex.lock()
 	
 	var num_added := 0
@@ -87,42 +86,41 @@ func add_generated_tiles() -> void:
 		#MapManager.map.print_debug_stats()
 	
 	
-func queue_new_tiles() -> void:
-	var t_start := Time.get_ticks_msec()
+func queue_new_tiles_for_generation() -> void:
+	# var t_start := Time.get_ticks_msec()
 
-	var camera_position: Vector3 = get_viewport().get_camera_3d().global_transform.origin
+	var camera_position: Vector3 = camera_controller.followPoint
 	var camera_hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(camera_position).round()
+	var hashes_in_range: PackedInt32Array = camera_hex_pos.get_all_coordinates_in_range_hash(generation_dist_hex_tiles, true)
 
-	var coords_in_range := camera_hex_pos.get_all_coordinates_in_range(generation_dist_hex_tiles, true)
+	# Remove any hashes which are already presend in the map. No mutex needed here
+	var hashes_filtered: PackedInt32Array
+	for key in hashes_in_range:
+		if MapManager.map.get_hex_tile_hash(key) == null:
+			hashes_filtered.push_back(key)
+
+	# MUTEX LOCK
 	var num_queued := 0
-
 	to_generate_mutex.lock()
-	for hex_pos in coords_in_range:
-		var key: int = hex_pos.hash()
-
-		# Check if hextile is either existing or queued 
+	for key in hashes_filtered:
+		# Check if hextile is not already queued
 		if to_generate_queue.has(key):
 			continue
 
-		var tile: HexTile = MapManager.map.get_hex_tile_hash(key)
-		if tile == null:
-			to_generate_queue.append(key)
-			num_queued += 1
+		# Add to queue
+		to_generate_queue.push_back(key)
+		num_queued += 1
 
-			# create_empty_hex_tile(hex_pos)
-			# tile = MapManager.map.get_hex_tile(hex_pos)
-			# tile.generate()
-			# num_generated += 1
-
+	# MUTEX UNLOCK
 	to_generate_mutex.unlock()
 
 	if num_queued > 0:
 		# Notify thread
 		to_generate_semaphore.post(num_queued)
 
-	var t := (Time.get_ticks_msec() - t_start) / 1000.0
-	if num_queued > 0:
-		print("MAIN: Queued %d tiles in %.3f sec" % [num_queued, t])
+	# var t := (Time.get_ticks_msec() - t_start) / 1000.0
+	# if num_queued > 0:
+	# 	print("MAIN: Queued %d tiles in %.3f sec" % [num_queued, t])
 
 
 func thread_generation_func() -> void:
@@ -133,41 +131,37 @@ func thread_generation_func() -> void:
 			print("THREAD: Exiting")
 			break
 
-		var t_start := Time.get_ticks_msec()
+		# var t_start := Time.get_ticks_msec()
 
 		to_generate_mutex.lock()
 		var has_key: bool = not to_generate_queue.is_empty()
 		var key: int = 0
 		if has_key:
-			key = to_generate_queue[0]
+			key = to_generate_queue.back()
 		to_generate_mutex.unlock()
 
 		if not has_key:
-			# print("THREAD: Queue empty")
 			continue
 
 		# Generate tile for this hex_pos
 		var hex_pos: HexPos = HexPos.unhash(key)
 		create_empty_hex_tile(hex_pos)
 		var tile: HexTile = MapManager.map.get_hex_tile(hex_pos)
+		assert(tile != null)
 
-		if tile != null:
-			tile.generate()
+		tile.generate()
 
-			generated_mutex.lock()
-			generated_queue.append(tile)
-			generated_mutex.unlock()
+		generated_mutex.lock()
+		generated_queue.push_back(tile)
+		generated_mutex.unlock()
 
-			# Only now remove this key from the to_generate_queue
-			to_generate_mutex.lock()
-			to_generate_queue.erase(key)
-			to_generate_mutex.unlock()
+		# Only now remove this key from the to_generate_queue because otherwise its getting queued again by the main thread
+		to_generate_mutex.lock()
+		to_generate_queue.erase(key)
+		to_generate_mutex.unlock()
 
-			var t := (Time.get_ticks_msec() - t_start) / 1000.0
-			print("THREAD: Generated 1 tile in %.3f sec (incl. mutex wait time) : %s" % [t, hex_pos._to_string()])
-		else:
-			# WTF
-			print("THREAD: Tile is null after generation: %s" % hex_pos._to_string())
+		# var t := (Time.get_ticks_msec() - t_start) / 1000.0
+		# print("THREAD: Generated 1 tile in %.3f sec (incl. mutex wait time) : %s" % [t, hex_pos._to_string()])
 
 
 # For STEP 1

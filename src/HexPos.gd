@@ -86,8 +86,27 @@ func get_all_coordinates_in_range(N: int, include_self: bool = false) -> Array[H
 			if include_self or (q != q_ or r != r_ or s != s_):
 				coordinates[i] = HexPos.new(q + q_, r + r_, s + s_)
 			i += 1
-
 	return coordinates
+
+
+func get_all_coordinates_in_range_hash(N: int, include_self: bool = false) -> PackedInt32Array:
+	assert(N >= 0)
+	
+	var num := compute_num_tiles_in_range(N, include_self)
+
+	var hashes: PackedInt32Array
+	hashes.resize(num)
+	var i := 0
+
+	for q_ in range(-N, N + 1):
+		var r1: int = max(-N, -q_ - N)
+		var r2: int = min(N, -q_ + N)
+		for r_ in range(r1, r2 + 1):
+			var s_ := -q_ - r_
+			if include_self or (q != q_ or r != r_ or s != s_):
+				hashes[i] = HexPos.new(q + q_, r + r_, s + s_).hash()
+			i += 1
+	return hashes
 
 
 #########################################
