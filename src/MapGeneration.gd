@@ -1,4 +1,4 @@
-#@tool # No static vars but actually runs in editor
+@tool # No static vars but actually runs in editor
 extends Node3D
 class_name MapGeneration
 
