@@ -63,9 +63,12 @@ static func _create_basic_hex_geometry_input(hex_pos: HexPos) -> HexGeometryInpu
 static func _fetch_or_create_geometry_input(hex_pos: HexPos) -> HexGeometryInput:
 	var key: int = hex_pos.hash()
 
-	# Create new entry if not existing. This is the ONLY place HexGeometryInput is ever created
-	var geometry_input: HexGeometryInput = geometry_inputs.get_or_add(key, HexGeometryInput.new(hex_pos, MapGenerationData.determine_height(hex_pos)))
+	# Search for key or create new entry if not existing. This is the ONLY place HexGeometryInput is ever created
+	if geometry_inputs.has(key):
+		return geometry_inputs[key]
 
+	var geometry_input: HexGeometryInput = HexGeometryInput.new(hex_pos, MapGenerationData.determine_height(hex_pos))
+	geometry_inputs[key] = geometry_input
 	return geometry_input
 
 #################################################################

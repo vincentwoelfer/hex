@@ -50,12 +50,12 @@ func _init(hex_pos_: HexPos, height_: int) -> void:
 		label = HexTileLabel.new(params)
 		add_child(label)
 
+
+func _ready() -> void:
 	# Signals
 	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
 	EventBus.Signal_WorldStep.connect(processWorldStep)
 
-
-func _ready() -> void:
 	if label != null:
 		label.set_label_world_pos(global_position)
 
@@ -91,9 +91,10 @@ func generate(geometry_input: HexGeometryInput) -> void:
 	add_child(terrainMesh, false)
 
 	# Occluder
-	terrainOccluderInstance = OccluderInstance3D.new()
-	terrainOccluderInstance.occluder = geometry.occluder
-	add_child(terrainOccluderInstance, false)
+	if DebugSettings.generate_terrain_occluder:
+		terrainOccluderInstance = OccluderInstance3D.new()
+		terrainOccluderInstance.occluder = geometry.occluder
+		add_child(terrainOccluderInstance, false)
 
 	if DebugSettings.visualize_hex_input:
 		geometry_input.create_debug_visualization(self)

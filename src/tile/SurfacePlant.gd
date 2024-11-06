@@ -40,6 +40,8 @@ func _init() -> void:
 	set_shader_value(get_curr_color(), 'tip_color')
 	set_shader_value(curr_height, 'height_mod')
 
+
+func _ready() -> void:
 	EventBus.Signal_TriggerLod.connect(recalculate_lod)
 
 
@@ -204,6 +206,7 @@ func get_shader_value_float(key: String) -> float:
 	if value is not float:
 		return 0.0
 	return value
+
 
 func add_custom_aabb_visualization() -> void:
 	var vis := MeshInstance3D.new()

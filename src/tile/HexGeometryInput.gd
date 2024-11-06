@@ -203,6 +203,7 @@ static func get_neighbour_corner_idx(dir: int, start: bool) -> int:
 
 	return start_idx
 
+
 ########################################################################
 func create_debug_visualization(parent: Node3D) -> void:
 	# Corner vertices

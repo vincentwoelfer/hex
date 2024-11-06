@@ -10,21 +10,31 @@ static var mutex: Mutex = Mutex.new()
 #################################################################
 static func add_by_hash(key: int, height: int) -> HexTile:
 	var hex_pos: HexPos = HexPos.unhash(key)
-
-	mutex.lock()
-	var tile: HexTile = tiles.get_or_add(key, HexTile.new(hex_pos, height))
-	mutex.unlock()
-
-	return tile
+	return _add(hex_pos, key, height)
 
 
 static func add_by_pos(hex_pos: HexPos, height: int) -> HexTile:
 	var key := hex_pos.hash()
+	return _add(hex_pos, key, height)
 
-	mutex.lock()
-	var tile: HexTile = tiles.get_or_add(key, HexTile.new(hex_pos, height))
-	mutex.unlock()
 	
+static func _add(hex_pos: HexPos, key: int, height: int) -> HexTile:
+	mutex.lock()
+
+	# Create var
+	var tile: HexTile
+
+	# Existing
+	if tiles.has(key):
+		tile = tiles.get(key)
+		mutex.unlock()
+		return tile
+
+	# Add new
+	tiles[key] = HexTile.new(hex_pos, height)
+	tile = tiles.get(key)
+
+	mutex.unlock()
 	return tile
 
 #################################################################
@@ -32,26 +42,13 @@ static func add_by_pos(hex_pos: HexPos, height: int) -> HexTile:
 #################################################################
 static func get_by_hash(key: int) -> HexTile:
 	mutex.lock()
-	if not tiles.has(key):
-		mutex.unlock()
-		return null
-
-	var tile: HexTile = tiles[key]
+	var tile: HexTile = tiles.get(key)
 	mutex.unlock()
 	return tile
 
 
 static func get_by_pos(hex_pos: HexPos) -> HexTile:
-	var key: int = hex_pos.hash()
-
-	mutex.lock()
-	if not tiles.has(key):
-		mutex.unlock()
-		return null
-
-	var tile: HexTile = tiles[key]
-	mutex.unlock()
-	return tile
+	return get_by_hash(hex_pos.hash())
 
 
 #################################################################

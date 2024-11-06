@@ -1,4 +1,4 @@
-@tool # No static vars but actually runs in editor
+#@tool # No static vars but actually runs in editor
 extends Node3D
 class_name MapGeneration
 
@@ -17,26 +17,41 @@ var generated_mutex: Mutex = Mutex.new()
 
 # Threads
 var threads: Array[Thread] = []
-var num_threads: int = 2
-var is_running: bool = true
+# 3-4 is sweet spot on my machine
+var num_threads: int = 3
+var threads_running: bool = true
+var fetch_tiles_count := 4
 
 # Misc
 var generation_dist_hex_tiles := 8
 @onready var camera_controller: CameraController = %Camera3D as CameraController
 
+# Testing
+var t_start_: int
+var testing_complete: bool = false
+
+# TODO:
+# Find our why sometimes tiles are missing. Happens more with more threads
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	#delete_everything()
+	# This is required for the LSP to work (since this script is a tool script)
+	if OS.has_feature("Server"):
+		print("Detected headless, not starting map generation!")
+		num_threads = 0
+		return
 
 	# Create thread
-	print("Starting %d threads" % num_threads)
+	print("MAIN: Starting %d threads with %d fetch_tiles_count" % [num_threads, fetch_tiles_count])
 	for i in range(num_threads):
 		threads.append(Thread.new())
-		threads[i].start(thread_generation_func.bind(i))
+		threads[i].start(thread_generation_loop.bind(i))
 
 	# Signals
 	EventBus.Signal_HexConstChanged.connect(set_regenerate)
+
+	# Start testing timer
+	t_start_ = Time.get_ticks_usec()
 
 
 func _process(delta: float) -> void:
@@ -52,42 +67,57 @@ func _process(delta: float) -> void:
 	# Add tiles near player to queue
 	queue_new_tiles_for_generation()
 
+	# Testing
+	if not testing_complete:
+		var expected := HexPos.compute_num_tiles_in_range(generation_dist_hex_tiles, true)
+		if HexTileMap.tiles.size() >= expected:
+			var t := (Time.get_ticks_usec() - t_start_) / 1000.0
+			print("=======================================================")
+			print("MAIN: Process took %4.0f ms to generate %d tiles (N=%d)" % [t, expected, generation_dist_hex_tiles])
+			print("MAIN: Thread count: %d, fetch_tiles_count: %d" % [num_threads, fetch_tiles_count])
+			print("=======================================================")
+			testing_complete = true
+
 
 # Fetch all generated tile hashes, get the tile from the HexTileMap and add them to the scene
 func fetch_and_add_all_generated_tiles() -> void:
-	var t_start := Time.get_ticks_usec()
-
-	generated_mutex.lock()
-	
+	# var t_start := Time.get_ticks_usec()
 	var num_added := 0
-	for key: int in generated_queue:
+
+	# MUTEX LOCK
+	generated_mutex.lock()
+	var generated_queue_copy: Array[int] = generated_queue.duplicate()
+	generated_queue.clear()
+	generated_mutex.unlock()
+	# MUTEX UNLOCK
+
+	for key: int in generated_queue_copy:
 		var tile: HexTile = HexTileMap.get_by_hash(key)
+		assert(tile != null)
+		# print("Adding to scene: hex_pos = ", tile.hex_pos._to_string())
+		# Only place where tiles are added to the scene
 		add_child(tile, false)
 		num_added += 1
 
-	generated_queue.clear()
+	# var t := (Time.get_ticks_usec() - t_start) / 1000.0
 
-	generated_mutex.unlock()
-
-	var t := (Time.get_ticks_usec() - t_start) / 1000.0
-
-	if num_added > 1:
-		print("MAIN: Added %d tiles in %4.0f ms" % [num_added, t])
-		HexGeometryInputMap.print_debug_stats()
+	# if num_added > 1:
+		# print("MAIN: Added %d tiles in %4.0f ms" % [num_added, t])
+		# HexGeometryInputMap.print_debug_stats()
 	
 	
 func queue_new_tiles_for_generation() -> void:
-	var t_start := Time.get_ticks_usec()
+	# var t_start := Time.get_ticks_usec()
 
+	# Determine hashes in range
 	var generation_position: Vector3 = Vector3.ZERO
 	if not Engine.is_editor_hint() and camera_controller != null:
 		generation_position = camera_controller.get_follow_point()
-
-
 	var camera_hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(generation_position).round()
 	var hashes_in_range: PackedInt32Array = camera_hex_pos.get_all_coordinates_in_range_hash(generation_dist_hex_tiles, true)
 
-	# Remove any hashes which are already presend in the map. No mutex needed here
+	# Remove any hashes which are already presend in the map. No mutex needed here.
+	# THIS MIGHT MISS SOME TILES SINCE THEY ARE ADDED TO THE MAP AFTER THIS CHECK -> filter again after mutex lock
 	var hashes_filtered: PackedInt32Array
 	for key in hashes_in_range:
 		if HexTileMap.get_by_hash(key) == null:
@@ -98,13 +128,16 @@ func queue_new_tiles_for_generation() -> void:
 	# MUTEX LOCK
 	to_generate_mutex.lock()
 	for key in hashes_filtered:
-		# Check if hextile is not already queued
-		if to_generate_queue.has(key):
+		# Filter again, this time in to_generate_mutex
+		if HexTileMap.get_by_hash(key) != null:
 			continue
 
-		# Add to queue
-		to_generate_queue.push_back(key)
-		num_queued += 1
+		# Queue if hex-tile is not already queued
+		if not to_generate_queue.has(key):
+			# Push front is less effective BUT preserves order. Godot has no fast FIFO container :(
+			to_generate_queue.push_front(key)
+			# print("Queuing: ", HexPos.unhash(key)._to_string())
+			num_queued += 1
 
 	to_generate_mutex.unlock()
 	# MUTEX UNLOCK
@@ -113,66 +146,69 @@ func queue_new_tiles_for_generation() -> void:
 		# Notify threads
 		to_generate_semaphore.post(num_queued)
 
-	var t := (Time.get_ticks_usec() - t_start) / 1000.0
-	if num_queued > 0:
-		print("MAIN: Queued %d tiles in %4.0f ms" % [num_queued, t])
+	# var t := (Time.get_ticks_usec() - t_start) / 1000.0
+	# if num_queued > 0:
+		# print("MAIN: Queued %d tiles in %4.0f ms" % [num_queued, t])
 
 
-func thread_generation_func(thread_id: int) -> void:
-	while is_running:
+func thread_generation_loop(thread_id: int) -> void:
+	while threads_running:
 		to_generate_semaphore.wait()
 
-		if not is_running:
-
+		if not threads_running:
 			print("THREAD %d: Exiting" % thread_id)
 			break
 
-		var t_start := Time.get_ticks_usec()
+		# var t_start := Time.get_ticks_usec()
 
-		var key: int = 0
-		var hex_pos: HexPos
-		var tile: HexTile
+		var keys: Array[int] = []
+		var hex_poses: Array[HexPos] = []
+		var tiles: Array[HexTile] = []
 
 		# Fetch tile hash to generate, remove from queue and already add to HexTileMap to prevent re-queueing
 		# MUTEX LOCK
 		to_generate_mutex.lock()
 
-		var has_key: bool = not to_generate_queue.is_empty()
-		if has_key:
-			key = to_generate_queue.pop_back()
-			hex_pos = HexPos.unhash(key)
+		# Fetch keys
+		for i in range(fetch_tiles_count):
+			# Fetch and pop key, save hex_pos and create empty tile for it
+			var k: Variant = to_generate_queue.pop_back()
+			if k == null:
+				break
 
-			# Generate empty tile in HexTileMap
-			# -> TODO maybe this results in a deadlock since we need both mutexes at the same time?
-			tile = create_empty_hex_tile(hex_pos)
-			assert(tile != null)
+			keys.push_back(k)
+			hex_poses.push_back(HexPos.unhash(keys[i]))
+
+			# Create HexTile here already to prevent re-queueing
+			tiles.push_back(create_empty_hex_tile(hex_poses[i]))
 
 		to_generate_mutex.unlock()
 		# MUTEX UNLOCK
 
-		if not has_key:
+		# Abort if no keys
+		if keys.is_empty():
 			continue
 
-		# Generate geometry input (kinda cheap)
-		var geometry_input := HexGeometryInputMap.create_complete_hex_geometry_input(hex_pos)
+		# Generate geometry input (dirt cheap ~ < 1ms) and HexGeometry itself (expensive ~ 50ms per tile)
+		for i in range(keys.size()):
+			var geometry_input := HexGeometryInputMap.create_complete_hex_geometry_input(hex_poses[i])
+			tiles[i].generate(geometry_input)
 
-		# Generate HexGeometry itself (very expensive)
-		tile.generate(geometry_input)
-
+		# Add to generated queue
 		generated_mutex.lock()
-		generated_queue.push_back(key)
+		for i in range(keys.size()):
+			generated_queue.push_back(keys[i])
 		generated_mutex.unlock()
 
-		var t := (Time.get_ticks_usec() - t_start) / 1000.0
-		print("THREAD %d: Generated 1 tile in %4.0f ms (incl. mutex wait time)" % [thread_id, t])
+		# var t := (Time.get_ticks_usec() - t_start) / 1000.0
+		# print("THREAD %d: Generated %d tile(s) in %4.0f ms" % [thread_id, keys.size(), t])
 
 
 func create_empty_hex_tile(hex_pos: HexPos) -> HexTile:
-	# Verify that this hex_pos does not contain a tile yet
-	# assert(HexTileMap.get_by_pos(hex_pos) == null)
-
+	assert(hex_pos != null)
 	var height: int = MapGenerationData.determine_height(hex_pos)
 	var hex_tile := HexTileMap.add_by_pos(hex_pos, height)
+	assert(hex_tile != null)
 
 	# Set global world position of tile -> TODO move this elsewhere ?
 	var world_pos: Vector2 = HexPos.hexpos_to_xy(hex_pos)
@@ -208,7 +244,7 @@ func delete_everything() -> void:
 ##############################
 func _exit_tree() -> void:
 	print("MAIN: Waiting for %d threads to finish" % num_threads)
-	is_running = false
+	threads_running = false
 
 	# Empty queue
 	to_generate_mutex.lock()
@@ -221,35 +257,3 @@ func _exit_tree() -> void:
 	for thread in threads:
 		thread.wait_to_finish()
 	print("MAIN: %d threads finished" % num_threads)
-
-
-########################################################
-########################################################
-########################################################
-# TESTING - STEP 3 MERGE ALL TERRAIN
-# var instance := MeshInstance3D.new()
-# var st_combined: SurfaceTool = SurfaceTool.new()
-
-# for hex_pos in coordinates:
-# 	var tile: HexTile = MapManager.map.get_by_pos(hex_pos)
-# 	st_combined.append_from(tile.geometry.mesh, 0, tile.global_transform)
-
-# instance.set_mesh(st_combined.commit())
-# const DEFAULT_GEOM_MATERIAL: Material = preload('res://assets/materials/default_geom_material.tres')
-# const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
-# instance.material_override = DEFAULT_GEOM_MATERIAL
-# instance.material_overlay = HIGHLIGHT_MAT
-# add_child(instance, false)
-
-# # ROCKS
-# var instance_rocks := MeshInstance3D.new()
-# st_combined = SurfaceTool.new()
-
-# for hex_pos in coordinates:
-# 	var tile: HexTile = MapManager.map.get_by_pos(hex_pos)
-# 	st_combined.append_from(tile.rocksMesh, 0, tile.global_transform)
-
-# instance_rocks.set_mesh(st_combined.commit())
-# const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.tres')
-# instance_rocks.material_override = ROCKS_MATERIAL
-# add_child(instance_rocks, false)

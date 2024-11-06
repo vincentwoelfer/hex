@@ -76,7 +76,8 @@ func generate() -> void:
 	########################################
 	# Occluder
 	########################################
-	generateOccluder()
+	if DebugSettings.generate_terrain_occluder:
+		generateOccluder()
 
 
 func setInnerAndCenterVertexHeights() -> void:

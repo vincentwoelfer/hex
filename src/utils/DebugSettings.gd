@@ -2,9 +2,10 @@
 class_name DebugSettings
 extends Node
 
-static var enable_grass: bool = false
-static var enable_rocks: bool = false
+static var enable_grass: bool = true
+static var enable_rocks: bool = true
 static var generate_collision: bool = false
+static var generate_terrain_occluder: bool = false
 
 # Visualization
 static var use_distinc_hex_colors: bool = true
