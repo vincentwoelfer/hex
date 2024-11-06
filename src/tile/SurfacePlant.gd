@@ -57,10 +57,10 @@ func recalculate_lod() -> void:
 		new_lod_mesh = 0
 	elif dist <= 32 * 32:
 		new_lod_factor = 0.9
-		new_lod_mesh = 1
+		new_lod_mesh = 0
 	elif dist <= 40 * 40:
 		new_lod_factor = 0.8
-		new_lod_mesh = 2
+		new_lod_mesh = 1
 	elif dist <= 50 * 50:
 		new_lod_factor = 0.5
 		new_lod_mesh = 2
