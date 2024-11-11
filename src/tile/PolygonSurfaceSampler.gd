@@ -41,7 +41,7 @@ func filter_min_incline(min_incline_deg: float) -> void:
 	# 	print("Triangle list in PolygonSurfaceSampler is empty after filtering for min_incline >= %f" % [min_incline_deg])
 	self._calculate_area_weights()
 
-	
+
 func get_random_point() -> Vector3:
 	if not is_valid():
 		push_warning("Tried to get point from PolygonSurfaceSampler but triangle list is empty!")
@@ -90,7 +90,7 @@ func _weighted_random_choice() -> int:
 func compute_custom_aabb(object_height: float) -> AABB:
 	if not is_valid():
 		return AABB()
-		
+
 	var aabb := AABB(triangles[0].a, Vector3.ZERO)
 
 	for tri: Triangle in triangles:

@@ -16,13 +16,14 @@ var zoom_min: float = 0.075
 var zoom_max: float = 12.0
 
 var look_at_height := 4.0
+var look_at_height_above_ground := 1.5
 var lookAtPoint: Vector3
 var followPoint: Vector3 # = target, also used for movement
 var orientation: int = 4 # from north looking south (to see the sun moving best)
 # current rotation in angle
 var actual_curr_rotation: float = 0
 
-var speed: float = 14 * 6
+var speed: float = 14.0
 var rotationLerpSpeed: float = 7.0
 var lerpSpeed: float = 8.5 # almost instant, otherwise camera control feels sluggish
 
@@ -93,8 +94,12 @@ func _process(delta: float) -> void:
 
 	# Move follow point, lookAtPoint follows this
 	followPoint += inputDir * (speed + currZoom / 3.0) * delta
-	lookAtPoint.x = lerpf(lookAtPoint.x, followPoint.x, lerpSpeed * delta)
-	lookAtPoint.z = lerpf(lookAtPoint.z, followPoint.z, lerpSpeed * delta)
+
+	look_at_height = get_map_height() + look_at_height_above_ground
+	followPoint.y = look_at_height
+
+	# Lerp follow point to lookAtPoint
+	lookAtPoint = lerp(lookAtPoint, followPoint, lerpSpeed * delta)
 
 	# Camera position
 	var camPos := lookAtPoint
@@ -107,10 +112,10 @@ func _process(delta: float) -> void:
 	self.check_for_selection()
 
 	RenderingServer.global_shader_parameter_set("global_camera_view_direction", actual_curr_rotation)
+	RenderingServer.global_shader_parameter_set("global_player_position", lookAtPoint)
 
-	# draw_debug_sphere(lookAtPoint, maxf(currZoom * 0.1, 0.025))
-	# RenderingServer.global_shader_parameter_set("global_player_position", lookAtPoint)
-
+	draw_debug_sphere(lookAtPoint, maxf(currZoom * 0.1, 0.025))
+	
 
 func check_for_selection() -> void:
 	var hit: Dictionary = self.raycast_into_world()
@@ -129,7 +134,7 @@ func draw_debug_sphere(location: Vector3, r: float) -> void:
 		debugSphere.name = "DebugSphere"
 		scene_root.add_child(debugSphere)
 
-	debugSphere.mesh = DebugShapes3D.create_sphere(r, Color.RED)
+	debugSphere.mesh = DebugShapes3D.create_sphere(r, Color.RED, true)
 	debugSphere.global_transform.origin = location
 
 
@@ -151,3 +156,13 @@ func compute_target_forward_angle(orientation_: float) -> float:
 	# Thats why we subtract 90°
 	var target_forward_angle := deg_to_rad((60.0 * orientation_ + 30.0) - 90.0) # Actually forward
 	return target_forward_angle
+
+
+func get_map_height() -> float:
+	var hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(get_follow_point()).round()
+	var tile: HexTile = HexTileMap.get_by_pos(hex_pos)
+
+	if tile != null:
+		return tile.height * HexConst.height
+	else:
+		return 0.0
