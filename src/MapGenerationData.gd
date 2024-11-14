@@ -3,6 +3,8 @@ class_name MapGenerationData
 
 # HEIGHT GENERATION
 static var height_noise: Noise = preload("res://assets/noise/TerrainHeightNoiseGenerator.tres")
+static var height_noise_scale: float = 0.1
+static var continentalness_curve: Curve = preload("res://assets/noise/continentalness_curve.tres")
 
 # Only for testing (im high af)
 static var height_map: Dictionary[int, int] = {}
@@ -10,30 +12,27 @@ static var height_map: Dictionary[int, int] = {}
 # Globally pure (= indepentend of anything else), this is the ground truth.
 # Does NOT require any prior info in map / geometry_inputs
 static func determine_height(hex_pos: HexPos) -> int:
-	var max_height := HexConst.MAP_MAX_HEIGHT
-
-	# Add randomness
-	if hex_pos.q < 0:
-		max_height += 16
-
 	var pos2D: Vector2 = HexPos.hexpos_to_xy(hex_pos)
+
+	# Get continentalness
+	var continentalness: float = 1.0 - clampf(hex_pos.magnitude() / (HexConst.MAP_MAX_SIZE as float), 0.0, 1.0)
+	var continentalness_height := continentalness_curve.sample(continentalness)
+	continentalness_height = remap(continentalness_height, 0.0, 1.0, HexConst.MAP_MIN_HEIGHT, HexConst.MAP_MAX_HEIGHT)
+
+	# Get random height noise
+	#var noise: float = remap(height_noise.get_noise_2d(pos2D.x, pos2D.y), -1.0, 1.0, 0.0, 1.0) # Remap noise to [0, 1]
 	var noise: float = height_noise.get_noise_2d(pos2D.x, pos2D.y)
-	noise = remap(noise, -1.0, 1.0, 0.0, 1.0)
+	var noise_height: float = remap(noise * height_noise_scale, -1.0, 1.0, -HexConst.MAP_MAX_HEIGHT, HexConst.MAP_MAX_HEIGHT)
 
-	var height_f: float = remap(noise, 0.0, 1.0, HexConst.MAP_MIN_HEIGHT, max_height)
-	var height: int = roundf(height_f) as int
-
-	# Modify further (away from noise map)	
-	height = clampi(height, HexConst.MAP_MIN_HEIGHT + 4, max_height) + 1
-
-	if height > max_height * 0.85:
-		height += 6
+	# Combine
+	var height: float = continentalness_height + noise_height
+	var height_int: int = clampi(roundi(height), HexConst.MAP_MIN_HEIGHT, HexConst.MAP_MAX_HEIGHT)
 
 	# Border
 	if hex_pos.magnitude() >= HexConst.MAP_MAX_SIZE:
-		height = HexConst.MAP_OCEAN_HEIGHT
+		height_int = HexConst.MAP_OCEAN_HEIGHT
 
-	return height
+	return height_int
 
 # Only here to have this class actually decide all the relevant information for map generation
 # THIS must be bidirectional, the type must be the same for for both hex-tiles it connects!

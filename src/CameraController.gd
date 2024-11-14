@@ -13,7 +13,7 @@ var zoomTarget: float = currZoom
 
 # higher value = further away
 var zoom_min: float = 0.075
-var zoom_max: float = 12.0
+var zoom_max: float = 20.0
 
 var look_at_height := 4.0
 var lookAtPoint: Vector3
@@ -22,7 +22,10 @@ var orientation: int = 4 # from north looking south (to see the sun moving best)
 # current rotation in angle
 var actual_curr_rotation: float = 0
 
-var speed: float = 14 * 6
+var currSpeed: float = 14.0
+var minSpeed: float = 12.0
+var maxSpeed: float = 80.0
+
 var rotationLerpSpeed: float = 7.0
 var lerpSpeed: float = 8.5 # almost instant, otherwise camera control feels sluggish
 
@@ -83,6 +86,9 @@ func _process(delta: float) -> void:
 
 	currZoom = lerpf(currZoom, zoomTarget, rotationLerpSpeed * delta)
 
+	# upadte currSpeed based on zoom
+	currSpeed = lerp(minSpeed, maxSpeed, (currZoom - zoom_min) / (zoom_max - zoom_min))
+
 	var target_forward_angle := compute_target_forward_angle(orientation)
 
 	actual_curr_rotation = lerp_angle(actual_curr_rotation, target_forward_angle, rotationLerpSpeed * delta)
@@ -92,7 +98,7 @@ func _process(delta: float) -> void:
 	var inputDir := inputDirRaw.rotated(Vector3.UP, target_forward_angle)
 
 	# Move follow point, lookAtPoint follows this
-	followPoint += inputDir * (speed + currZoom / 3.0) * delta
+	followPoint += inputDir * (currSpeed + currZoom / 3.0) * delta
 	lookAtPoint.x = lerpf(lookAtPoint.x, followPoint.x, lerpSpeed * delta)
 	lookAtPoint.z = lerpf(lookAtPoint.z, followPoint.z, lerpSpeed * delta)
 

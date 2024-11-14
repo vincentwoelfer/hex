@@ -20,7 +20,6 @@ sdfgi_enabled = true
 fog_enabled = true
 fog_mode = 1
 fog_sun_scatter = 1.0
-#fog_density = 0.5
 fog_density = 0.1
 fog_aerial_perspective = 1.0
 fog_depth_curve = 3.86374

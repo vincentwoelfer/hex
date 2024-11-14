@@ -49,15 +49,16 @@ var smooth_vertex_normals: bool = false
 # ========================================================
 # ==================== Actual Constants ==================
 # ========================================================
-const MAP_MIN_HEIGHT: int = 1
-const MAP_MAX_HEIGHT: int = 20
-
+const MAP_MIN_HEIGHT: int = 2
+const MAP_MAX_HEIGHT: int = 100
 const MAP_OCEAN_HEIGHT: int = 0
+
 const MAP_INVALID_HEIGHT: int = -999
 
 # Includes one circle of ocean
 # Size = n means n circles around the map origin. So n=1 means 7 tiles (one origin tile and 6 additional tiles)
 const MAP_MAX_SIZE: int = 40
+const MAP_OCEAN_BORDER_SIZE: int = 4
 
 
 # ========================================================

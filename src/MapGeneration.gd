@@ -47,7 +47,7 @@ func sample_pixel(x: int, y: int, image_size: int, sample_region_N: int) -> Colo
 		return Color(0.05, 0.05, 0.05)
 
 	var h: int = MapGenerationData.height_map[key]
-	var intensity: float = float(h) / float(HexConst.MAP_MAX_HEIGHT + 16)
+	var intensity: float = float(h - HexConst.MAP_MIN_HEIGHT) / float(HexConst.MAP_MAX_HEIGHT - HexConst.MAP_MIN_HEIGHT)
 	return Color(intensity, 0.0, 0.0)
 
 
@@ -66,10 +66,10 @@ func generate_image(image_size: int, sample_region_N: int, filename: String) -> 
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	############################
+	########################################################
 	# generate heightmap
 	var center := HexPos.new(0, 0, 0)
-	var sample_region_N := 41
+	var sample_region_N := HexConst.MAP_MAX_SIZE + HexConst.MAP_OCEAN_BORDER_SIZE
 	var coords: PackedInt32Array = center.get_all_coordinates_in_range_hash(sample_region_N, true)
 	for key in coords:
 		var hex_pos: HexPos = HexPos.unhash(key)
@@ -81,7 +81,7 @@ func _ready() -> void:
 	# get_tree().quit()
 	# return
 
-	############################
+	########################################################	
 
 	# This is required for the LSP to work (since this script is a tool script)
 	if OS.has_feature("Server"):
@@ -164,12 +164,17 @@ func queue_new_tiles_for_generation() -> void:
 	var camera_hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(generation_position).round()
 	var hashes_in_range: PackedInt32Array = camera_hex_pos.get_all_coordinates_in_range_hash(generation_dist_hex_tiles, true)
 
-	# Remove any hashes which are already presend in the map. No mutex needed here.
-	# THIS MIGHT MISS SOME TILES SINCE THEY ARE ADDED TO THE MAP AFTER THIS CHECK -> filter again after mutex lock
+	# Remove any hashes which are already presend in the map. Mutex for to_generate NOT needed here.
+	# Since this might miss some tiles since they are added after this check -> filter again after mutex lock
 	var hashes_filtered: PackedInt32Array
 	for key in hashes_in_range:
-		if HexTileMap.get_by_hash(key) == null:
-			hashes_filtered.push_back(key)
+		if HexTileMap.get_by_hash(key) != null:
+			continue
+
+		if HexPos.unhash(key).magnitude() >= HexConst.MAP_MAX_SIZE + HexConst.MAP_OCEAN_BORDER_SIZE:
+			continue
+
+		hashes_filtered.push_back(key)
 
 	var num_queued := 0
 
