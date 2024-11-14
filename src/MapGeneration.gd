@@ -31,22 +31,29 @@ var t_start_: int
 var testing_complete: bool = false
 
 
+const color_ocean: Color = Color(0.05, 0.05, 0.25)
+const color_background = color_ocean
+#const color_background: Color = Color(0.05, 0.05, 0.05)
+
 func sample_pixel(x: int, y: int, image_size: int, sample_region_N: int) -> Color:
 	# World is centered around 0,0 -> move that to width/height / 2
 	var origin := Vector2(image_size / 2.0, image_size / 2.0)
 
-	# Scale hexagon display size to fit the image
-	var pixel_per_hex_vertical := floori(image_size / (sample_region_N * 2.0 + 1))
-	var hexagon_outer_radius := pixel_per_hex_vertical / sqrt(3.0)
+	# Scale hexagon display size to fit the image. Add 1 for the center hexagon, 2 for margin
+	var pixel_per_hex_vertical: float = (image_size / (sample_region_N * 2.0 + 1 + 2))
+	var hexagon_outer_radius := (pixel_per_hex_vertical / sqrt(3.0))
 
 	# Mirror x/y around 0/0 to match starting orientaton of camera
 	var hex_pos_frac := HexPos.pixel_to_hexpos_frac(image_size - x, image_size - y, hexagon_outer_radius, origin)
 	var key: int = hex_pos_frac.round().hash()
 
 	if not MapGenerationData.height_map.has(key):
-		return Color(0.05, 0.05, 0.05)
+		return color_background
 
 	var h: int = MapGenerationData.height_map[key]
+	if h <= HexConst.MAP_OCEAN_HEIGHT:
+		return color_ocean
+
 	var intensity: float = float(h - HexConst.MAP_MIN_HEIGHT) / float(HexConst.MAP_MAX_HEIGHT - HexConst.MAP_MIN_HEIGHT)
 	return Color(intensity, 0.0, 0.0)
 
@@ -69,7 +76,7 @@ func _ready() -> void:
 	########################################################
 	# generate heightmap
 	var center := HexPos.new(0, 0, 0)
-	var sample_region_N := HexConst.MAP_MAX_SIZE + HexConst.MAP_OCEAN_BORDER_SIZE
+	var sample_region_N := HexConst.MAP_MAX_SIZE + roundi(HexConst.MAP_OCEAN_BORDER_SIZE / 2.0)
 	var coords: PackedInt32Array = center.get_all_coordinates_in_range_hash(sample_region_N, true)
 	for key in coords:
 		var hex_pos: HexPos = HexPos.unhash(key)

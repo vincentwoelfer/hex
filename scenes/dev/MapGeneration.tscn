@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://bi8xpy2pdq81q"]
+[gd_scene load_steps=20 format=3 uid="uid://bi8xpy2pdq81q"]
 
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://assets/misc/DefaultEnvironment.tres" id="2_2n06e"]
 [ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://assets/misc/CameraAttributes.tres" id="3_lr7o2"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://src/control-nodes/WorldTimeManager.gd" id="9_pfdia"]
 [ext_resource type="PackedScene" uid="uid://gefdglv0vl5e" path="res://scenes/control-nodes/WeatherControl.tscn" id="9_ukl4i"]
 [ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://dev-utility/USE_THIS_HexConstantsModifier.tscn" id="12_e2267"]
+[ext_resource type="Shader" path="res://assets/shaders/spatial/ocean_stylized.gdshader" id="12_mefgp"]
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_t12eh"]
 auto_exposure_enabled = true
@@ -18,6 +19,53 @@ auto_exposure_scale = 0.3
 dof_blur_far_distance = 50.0
 dof_blur_far_transition = 50.0
 auto_exposure_min_sensitivity = 100.0
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_mefgp"]
+frequency = 0.0025
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_ohfct"]
+seamless = true
+noise = SubResource("FastNoiseLite_mefgp")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_ohfct"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_73e4e"]
+noise = SubResource("FastNoiseLite_ohfct")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ohfct"]
+render_priority = 1
+shader = ExtResource("12_mefgp")
+shader_parameter/absorption_color = Color(0.997824, 0.97652, 0.956233, 1)
+shader_parameter/fresnel_radius = 2.0
+shader_parameter/fresnel_color = Color(0, 0.57, 0.72, 1)
+shader_parameter/roughness = 0.15
+shader_parameter/specular = 0.25
+shader_parameter/depth_distance = 25.0
+shader_parameter/beers_law = 4.5
+shader_parameter/displacement_strength = 2.0
+shader_parameter/displacement_scroll_speed = 0.1
+shader_parameter/displacement_scroll_offset = Vector2(-0.2, 0.3)
+shader_parameter/displacement_scale_offset = 0.5
+shader_parameter/displacement_scale = Vector2(0.04, 0.04)
+shader_parameter/displacement_texture = SubResource("NoiseTexture2D_ohfct")
+shader_parameter/edge_thickness = 0.3
+shader_parameter/edge_speed = 0.35
+shader_parameter/edge_noise_scale = Vector2(0.4, 0.4)
+shader_parameter/edge_noise = SubResource("NoiseTexture2D_73e4e")
+shader_parameter/caustic_size = 2.0
+shader_parameter/caustic_range = 40.0
+shader_parameter/caustic_strength = 0.08
+shader_parameter/refraction_strength = 1.25
+shader_parameter/normal_map_strength = 1.0
+shader_parameter/scroll_speed = 0.1
+shader_parameter/scroll_offset = Vector2(0.1, -0.3)
+shader_parameter/scale_offset = 0.5
+shader_parameter/normal_map_scale = Vector2(0.1, 0.1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_mefgp"]
+size = Vector2(700, 700)
+subdivide_width = 512
+subdivide_depth = 512
 
 [node name="TestScene" type="Node3D"]
 
@@ -97,3 +145,8 @@ offset_top = -231.0
 offset_right = 475.0
 offset_bottom = -25.0
 grow_vertical = 0
+
+[node name="stylized_ocean" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+material_override = SubResource("ShaderMaterial_ohfct")
+mesh = SubResource("PlaneMesh_mefgp")

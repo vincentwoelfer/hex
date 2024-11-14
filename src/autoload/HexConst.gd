@@ -58,7 +58,7 @@ const MAP_INVALID_HEIGHT: int = -999
 # Includes one circle of ocean
 # Size = n means n circles around the map origin. So n=1 means 7 tiles (one origin tile and 6 additional tiles)
 const MAP_MAX_SIZE: int = 40
-const MAP_OCEAN_BORDER_SIZE: int = 4
+const MAP_OCEAN_BORDER_SIZE: int = 8
 
 
 # ========================================================

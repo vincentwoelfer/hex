@@ -3,7 +3,7 @@ class_name MapGenerationData
 
 # HEIGHT GENERATION
 static var height_noise: Noise = preload("res://assets/noise/TerrainHeightNoiseGenerator.tres")
-static var height_noise_scale: float = 0.1
+static var height_noise_scale: float = 0.15
 static var continentalness_curve: Curve = preload("res://assets/noise/continentalness_curve.tres")
 
 # Only for testing (im high af)
@@ -26,10 +26,16 @@ static func determine_height(hex_pos: HexPos) -> int:
 
 	# Combine
 	var height: float = continentalness_height + noise_height
-	var height_int: int = clampi(roundi(height), HexConst.MAP_MIN_HEIGHT, HexConst.MAP_MAX_HEIGHT)
+
+	# Clamp & check for ocean
+	var height_int: int
+	if height < HexConst.MAP_MIN_HEIGHT:
+		height_int = HexConst.MAP_OCEAN_HEIGHT
+	else:
+		height_int = clampi(roundi(height), HexConst.MAP_MIN_HEIGHT, HexConst.MAP_MAX_HEIGHT)
 
 	# Border
-	if hex_pos.magnitude() >= HexConst.MAP_MAX_SIZE:
+	if hex_pos.magnitude() >= HexConst.MAP_MAX_SIZE + HexConst.MAP_OCEAN_BORDER_SIZE / 2.0:
 		height_int = HexConst.MAP_OCEAN_HEIGHT
 
 	return height_int

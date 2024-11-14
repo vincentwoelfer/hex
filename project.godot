@@ -179,3 +179,7 @@ global_camera_view_direction={
 "type": "float",
 "value": 0.0
 }
+global_wind_direction_vec={
+"type": "vec3",
+"value": Vector3(0.6, 0, 0.3)
+}
