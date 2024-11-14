@@ -4,6 +4,9 @@ class_name MapGenerationData
 # HEIGHT GENERATION
 static var height_noise: Noise = preload("res://assets/noise/TerrainHeightNoiseGenerator.tres")
 
+# Only for testing (im high af)
+static var height_map: Dictionary[int, int] = {}
+
 # Globally pure (= indepentend of anything else), this is the ground truth.
 # Does NOT require any prior info in map / geometry_inputs
 static func determine_height(hex_pos: HexPos) -> int:
@@ -27,8 +30,8 @@ static func determine_height(hex_pos: HexPos) -> int:
 		height += 6
 
 	# Border
-	# if hex_pos.magnitude() >= HexConst.MAP_SIZE:
-	# 	height = HexConst.MAP_OCEAN_HEIGHT
+	if hex_pos.magnitude() >= HexConst.MAP_MAX_SIZE:
+		height = HexConst.MAP_OCEAN_HEIGHT
 
 	return height
 

@@ -30,11 +30,59 @@ var generation_dist_hex_tiles := 8
 var t_start_: int
 var testing_complete: bool = false
 
-# TODO:
-# Find our why sometimes tiles are missing. Happens more with more threads
+
+func sample_pixel(x: int, y: int, image_size: int, sample_region_N: int) -> Color:
+	# World is centered around 0,0 -> move that to width/height / 2
+	var origin := Vector2(image_size / 2.0, image_size / 2.0)
+
+	# Scale hexagon display size to fit the image
+	var pixel_per_hex_vertical := floori(image_size / (sample_region_N * 2.0 + 1))
+	var hexagon_outer_radius := pixel_per_hex_vertical / sqrt(3.0)
+
+	# Mirror x/y around 0/0 to match starting orientaton of camera
+	var hex_pos_frac := HexPos.pixel_to_hexpos_frac(image_size - x, image_size - y, hexagon_outer_radius, origin)
+	var key: int = hex_pos_frac.round().hash()
+
+	if not MapGenerationData.height_map.has(key):
+		return Color(0.05, 0.05, 0.05)
+
+	var h: int = MapGenerationData.height_map[key]
+	var intensity: float = float(h) / float(HexConst.MAP_MAX_HEIGHT + 16)
+	return Color(intensity, 0.0, 0.0)
+
+
+func generate_image(image_size: int, sample_region_N: int, filename: String) -> void:
+	# Create a new Image with specified width, height, and format
+	var image: Image = Image.create(image_size, image_size, false, Image.FORMAT_RGB8)
+	
+	# Set each pixel using the sample_pixel function
+	for y in range(image_size):
+		for x in range(image_size):
+			image.set_pixel(x, y, sample_pixel(x, y, image_size, sample_region_N))
+
+	# Save the image as PNG to disk
+	image.save_png(filename)
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	############################
+	# generate heightmap
+	var center := HexPos.new(0, 0, 0)
+	var sample_region_N := 41
+	var coords: PackedInt32Array = center.get_all_coordinates_in_range_hash(sample_region_N, true)
+	for key in coords:
+		var hex_pos: HexPos = HexPos.unhash(key)
+		var height: int = MapGenerationData.determine_height(hex_pos)
+		MapGenerationData.height_map[key] = height
+
+
+	generate_image(756, sample_region_N, "res://generated/heightmap.png")
+	# get_tree().quit()
+	# return
+
+	############################
+
 	# This is required for the LSP to work (since this script is a tool script)
 	if OS.has_feature("Server"):
 		print("Detected headless, not starting map generation!")

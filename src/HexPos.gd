@@ -202,3 +202,18 @@ static func xy_to_hexpos_frac(world_pos: Vector2) -> HexPosFrac:
 	var r_: float = b2 * pt.x + b3 * pt.y
 
 	return HexPosFrac.new(q_, r_, -q_ - r_)
+
+# Same but for pixels
+static func pixel_to_hexpos_frac(x: int, y: int, scale: float, origin: Vector2 = Vector2.ZERO) -> HexPosFrac:
+	var size: Vector2 = Vector2(scale, scale)
+
+	var b0: float = 2.0 / 3.0
+	var b1: float = 0.0
+	var b2: float = -1.0 / 3.0
+	var b3: float = sqrt(3.0) / 3.0
+
+	var pt: Vector2 = Vector2((x - origin.x) / size.x, (y - origin.y) / size.y)
+	var q_: float = b0 * pt.x + b1 * pt.y
+	var r_: float = b2 * pt.x + b3 * pt.y
+
+	return HexPosFrac.new(q_, r_, -q_ - r_)
