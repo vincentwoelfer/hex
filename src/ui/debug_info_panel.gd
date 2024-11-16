@@ -12,7 +12,7 @@ func _process(delta: float) -> void:
 
 
 func update_infotext() -> void:
-	# Todo
+
 	var hour := floorf(world_light_control.current_time)
 	var minutes := floorf((world_light_control.current_time - hour) * 6)
 
