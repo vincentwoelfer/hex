@@ -1,15 +1,19 @@
 class_name SurfacePlant
 extends Node3D
 
-const GRASS_MESH_HIGH := preload('res://assets/meshes/plants/grass_hres.obj')
-const GRASS_MESH_MED := preload('res://assets/meshes/plants/grass_mres.obj')
-const GRASS_MESH_LOW := preload('res://assets/meshes/plants/grass_lres.obj')
+# const GRASS_MESH_HIGH := preload('res://assets/meshes/plants/grass_hres.obj')
+# const GRASS_MESH_MED := preload('res://assets/meshes/plants/grass_mres.obj')
+# const GRASS_MESH_LOW := preload('res://assets/meshes/plants/grass_lres.obj')
 const GRASS_MAT: ShaderMaterial = preload('res://assets/materials/grass_material.tres')
+
+const GRASS_MESH_HRES := preload('res://assets/meshes/basic_grass/basic_grass_hres.res')
+const GRASS_MESH_MRES := preload('res://assets/meshes/basic_grass/basic_grass_mres.res')
+const GRASS_MESH_LRES := preload('res://assets/meshes/basic_grass/basic_grass_lres.res')
 
 var mesh_instance: MultiMeshInstance3D
 
 # In m
-var min_height := 0.01
+var min_height := 0.2
 var max_height := 1.2
 
 # Only tip colors
@@ -91,11 +95,11 @@ func recalculate_lod() -> void:
 		current_lod_mesh = new_lod_mesh
 
 		if current_lod_mesh == 0:
-			mesh_instance.multimesh.mesh = GRASS_MESH_HIGH
+			mesh_instance.multimesh.mesh = GRASS_MESH_HRES
 		elif current_lod_mesh == 1:
-			mesh_instance.multimesh.mesh = GRASS_MESH_MED
+			mesh_instance.multimesh.mesh = GRASS_MESH_MRES
 		else:
-			mesh_instance.multimesh.mesh = GRASS_MESH_LOW
+			mesh_instance.multimesh.mesh = GRASS_MESH_LRES
 
 
 func get_curr_color() -> Color:
@@ -142,7 +146,7 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	# Square density to get 2d -> weight by area
 	num_blades_total = round(density_1d * density_1d * area)
 
-	var mesh_to_use: Mesh = GRASS_MESH_HIGH
+	var mesh_to_use: Mesh = GRASS_MESH_HRES
 
 	# Reduce in editor
 	if Engine.is_editor_hint():
@@ -153,7 +157,7 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	if RenderingServer.get_video_adapter_type() != RenderingDevice.DEVICE_TYPE_DISCRETE_GPU:
 		var bad_gpu_reduction := 0.3
 		num_blades_total = round(num_blades_total * bad_gpu_reduction)
-		#mesh_to_use = GRASS_MESH_LOW
+		#mesh_to_use = GRASS_MESH_LRES
 
 	# Compute custom aabb
 	mesh_instance.custom_aabb = surface_sampler.compute_custom_aabb(max_height)
