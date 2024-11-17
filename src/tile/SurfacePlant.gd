@@ -22,9 +22,6 @@ var tween: Tween
 
 var num_blades_total: int
 
-# Store Transform3Ds as 4 Vectors each
-var transforms: Array[Transform3D]
-
 #
 var current_lod_factor: float = 1.0
 var current_lod_mesh: int = 0
@@ -85,7 +82,7 @@ func recalculate_lod() -> void:
 
 	if current_lod_factor != new_lod_factor:
 		current_lod_factor = new_lod_factor
-		set_instance_count(current_lod_factor)
+		mesh_instance.multimesh.visible_instance_count = floori(num_blades_total * current_lod_factor)
 
 	if current_lod_mesh != new_lod_mesh:
 		current_lod_mesh = new_lod_mesh
@@ -96,16 +93,6 @@ func recalculate_lod() -> void:
 			mesh_instance.multimesh.mesh = GRASS_MESH_MED
 		else:
 			mesh_instance.multimesh.mesh = GRASS_MESH_LOW
-
-
-func set_instance_count(factor: float) -> void:
-	var new_instance_count: int = floor(num_blades_total * factor)
-	var multi_mesh: MultiMesh = mesh_instance.multimesh
-	multi_mesh.instance_count = new_instance_count
-
-	for i in range(new_instance_count):
-		var t: Transform3D = transforms[i]
-		multi_mesh.set_instance_transform(i, t)
 
 
 func get_curr_color() -> Color:
@@ -177,14 +164,9 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
 	multi_mesh.instance_count = num_blades_total
 
-	transforms.clear()
-	transforms.resize(num_blades_total)
 	for i in range(num_blades_total):
 		var t := surface_sampler.get_random_point_transform()
 		multi_mesh.set_instance_transform(i, t)
-
-		# Store transform
-		transforms[i] = t
 
 
 	mesh_instance.multimesh = multi_mesh
