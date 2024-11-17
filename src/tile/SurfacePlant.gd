@@ -8,8 +8,9 @@ const GRASS_MAT: ShaderMaterial = preload('res://assets/materials/grass_material
 
 var mesh_instance: MultiMeshInstance3D
 
-var min_height := 0.2
-var max_height := 3.0
+# In m
+var min_height := 0.01
+var max_height := 1.2
 
 # Only tip colors
 var color_healthy := Color(0.15, 0.4, 0.1)
@@ -79,6 +80,8 @@ func recalculate_lod() -> void:
 		new_lod_factor = 0.02
 		new_lod_mesh = 2
 
+	#new_lod_mesh = 2
+
 
 	if current_lod_factor != new_lod_factor:
 		current_lod_factor = new_lod_factor
@@ -143,7 +146,6 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 
 	# Reduce in editor
 	if Engine.is_editor_hint():
-		# var in_editor_density_reduction := 0.5
 		var in_editor_density_reduction := 1.0
 		num_blades_total = round(num_blades_total * in_editor_density_reduction)
 
@@ -154,7 +156,7 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 		#mesh_to_use = GRASS_MESH_LOW
 
 	# Compute custom aabb
-	mesh_instance.custom_aabb = surface_sampler.compute_custom_aabb(1.0)
+	mesh_instance.custom_aabb = surface_sampler.compute_custom_aabb(max_height)
 	if DebugSettings.visualize_plant_custom_aabb:
 		add_custom_aabb_visualization()
 
