@@ -9,8 +9,11 @@ extends Node3D
 const DEFAULT_TERRAIN_MAT: Material = preload('res://assets/materials/default_geom_material.tres')
 const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
 const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.tres')
+const PINE_TREE_V_1: PackedScene = preload("res://assets/blender/objects/trees/pine_tree_v1.obj")
 
 var allAvailRockMeshes: Array[ArrayMesh]
+var allAvailTreeMeshes: Array[PackedScene]
+
 
 # Core Variables
 var hex_pos: HexPos
@@ -24,8 +27,11 @@ var terrainMesh: MeshInstance3D
 var terrainOccluderInstance: OccluderInstance3D
 var plant: SurfacePlant
 var rocks: MeshInstance3D
+var trees: MeshInstance3D
+
 
 var rocksMesh: Mesh
+var treeScene: PackedScene
 
 # Does not much, only actual constructor
 func _init(hex_pos_: HexPos, height_: int) -> void:
@@ -38,12 +44,16 @@ func _init(hex_pos_: HexPos, height_: int) -> void:
 
 	self.plant = null
 	self.rocks = null
+	self.trees = null
 	self.terrainMesh = null
 
-	# Load Rocks - hardcoded numbers for now
+	# Load Rocks and Trees - hardcoded numbers for now
 	for i in range(1, 10):
-		allAvailRockMeshes.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as Mesh)
-
+		allAvailRockMeshes.append(load('res://assets/blender/objects/rocks/rock_collection_1_' + str(i) + '.res') as Mesh)
+	for i in range(1, 3):
+		allAvailTreeMeshes.append(load("res://assets/blender/objects/trees/pine_tree_v" + str(i) + ".obj"))
+	
+	
 	self.params = HexTileParams.new() # Randomizes everything
 
 	if height > 0:
@@ -71,7 +81,8 @@ func generate(geometry_input: HexGeometryInput) -> void:
 		plant.free()
 	if rocks != null:
 		rocks.free()
-
+	if trees != null:
+		trees.free()
 	# Does this solve everything?
 	# For now, it deletes debug visuals
 	for c in self.get_children():
@@ -120,6 +131,17 @@ func generate(geometry_input: HexGeometryInput) -> void:
 				rocks.mesh = rocksMesh
 				add_child(rocks, false)
 
+		# Add trees
+		if DebugSettings.enable_trees:
+			if randf() < 0.02:
+				addTree(geometry.samplerHorizontal)
+			#if treesMesh != null:
+				#trees = MeshInstance3D.new()
+				#trees.name = "Trees"
+				##trees.material_override = TREE_MATERIAL
+				##trees.set_surface_override_material(0, )
+				#trees.mesh = treesMesh
+				#add_child(trees, false)
 
 func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 	if not sampler.is_valid():
@@ -138,6 +160,25 @@ func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 		var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
 		st_combined.append_from(mesh, 0, t)
 	return st_combined.commit()
+
+
+func addTree(sampler: PolygonSurfaceSampler) -> void:
+	if not sampler.is_valid():
+		return
+		
+	var t: Transform3D = sampler.get_random_point_transform()
+	t = t.rotated_local(Vector3.UP, randf_range(0.0, TAU))
+
+	# Randomize large trees
+	t = t.scaled_local(Vector3.ONE * 0.05)
+
+	# Pick a random tree scene and instance it
+	var tree_scene: PackedScene = allAvailTreeMeshes.pick_random()
+	var tree_instance: Node3D = tree_scene.instantiate() as Node3D
+	tree_instance.transform = t
+
+	# Add to the scene tree
+	add_child(tree_instance)
 
 
 func processWorldStep() -> void:

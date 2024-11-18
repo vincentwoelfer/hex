@@ -1,0 +1,8 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://dh5yac8scgk6p"]
+
+[ext_resource type="Texture2D" uid="uid://1jpb7lpi7d0j" path="res://assets/blender/objects/trees/bark08.png" id="1_jlqvf"]
+
+[resource]
+resource_name = "bark08"
+vertex_color_is_srgb = true
+albedo_texture = ExtResource("1_jlqvf")
