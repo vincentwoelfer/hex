@@ -33,19 +33,37 @@ extends Node
 		HexConst.core_circle_smooth_strength = value
 		EventBus.emit_signal("Signal_HexConstChanged")
 
-@export_range(0, 6, 1) var extra_verts_per_side: int = HexConst.extra_verts_per_side:
+@export_range(0, 8, 1) var extra_verts_per_side: int = HexConst.extra_verts_per_side:
 	set(value):
 		extra_verts_per_side = value
 		HexConst.extra_verts_per_side = value
 		EventBus.emit_signal("Signal_HexConstChanged")
 
-@export_range(0, 10, 1) var extra_verts_per_center: int = HexConst.extra_verts_per_center:
+@export_range(0, 12, 1) var extra_verts_per_center: int = HexConst.extra_verts_per_center:
 	set(value):
 		extra_verts_per_center = value
 		HexConst.extra_verts_per_center = value
 		EventBus.emit_signal("Signal_HexConstChanged")
 
-@export_range(0, 1, 0.1) var grass_density: float = HexConst.grass_density:
+@export_range(0.0, 1.0, 0.1) var smooth_height_factor_inner: float = HexConst.smooth_height_factor_inner:
+	set(value):
+		smooth_height_factor_inner = value
+		HexConst.smooth_height_factor_inner = value
+		EventBus.emit_signal("Signal_HexConstChanged")
+
+@export_range(0.0, 1.0, 0.1) var smooth_height_factor_outer: float = HexConst.smooth_height_factor_outer:
+	set(value):
+		smooth_height_factor_outer = value
+		HexConst.smooth_height_factor_outer = value
+		EventBus.emit_signal("Signal_HexConstChanged")
+
+@export_range(0, 40, 1) var trans_type_max_height_diff: int = HexConst.trans_type_max_height_diff:
+	set(value):
+		trans_type_max_height_diff = value
+		HexConst.trans_type_max_height_diff = value
+		EventBus.emit_signal("Signal_HexConstChanged")
+
+@export_range(0, 100.0, 1.0) var grass_density: float = HexConst.grass_density:
 	set(value):
 		grass_density = value
 		HexConst.grass_density = value

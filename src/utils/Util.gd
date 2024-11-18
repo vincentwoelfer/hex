@@ -1,9 +1,9 @@
+@tool
 class_name Util
 
 ######################################################
 # Randomness
 ######################################################
-
 static func randCircularOffset(r_max: float) -> Vector3:
 	var angle := randf_range(0.0, 2.0 * PI)
 	var r := randf_range(0.0, r_max)
@@ -15,12 +15,21 @@ static func randCircularOffsetNormalDist(r_max: float) -> Vector3:
 	var r := clampf(randfn(r_max, 1.0), 0.0, r_max)
 	return vec3FromRadiusAngle(r, angle)
 
+
 ######################################################
 # ANGLES + VECTORS (Geometry)
 ######################################################
+
+# Ensures value is always [0, 5], even if suplying negative number
+static func as_dir(dir: int) -> int:
+	return (dir + 6) % 6
+
+static var HEX_ANGLES: Array[float] = [0.0, PI / 3.0, 2.0 * PI / 3.0, PI, 4.0 * PI / 3.0, 5.0 * PI / 3.0, 6.0 * PI / 3.0]
 static func getSixHexAngles() -> Array[float]:
-	var pi_third := PI / 3.0
-	return [0.0, pi_third, 2.0 * pi_third, PI, 4.0 * pi_third, 5.0 * pi_third, 6.0 * pi_third]
+	return HEX_ANGLES
+
+static func getHexAngle(dir: int) -> float:
+	return HEX_ANGLES[as_dir(dir)]
 
 
 static func vec3FromRadiusAngle(r: float, angle: float) -> Vector3:
@@ -66,6 +75,15 @@ static func sortVecAccordingToAngles(vecs: Array[Vector3]) -> Array[Vector3]:
 	# Need to invert the result to have the vectors in ascending angle-order 
 	vecs.sort_custom(func(a: Vector3, b: Vector3) -> bool: return !isClockwiseOrder(a, b))
 	return vecs
+
+
+######################################################
+# Misc
+######################################################
+
+# Like clamp but ensures values is between a,b , even if a > b
+static func clampf(val: float, a: float, b: float) -> float:
+	return clampf(val, minf(a, b), maxf(a, b))
 
 
 ######################################################

@@ -1,0 +1,68 @@
+[gd_scene load_steps=10 format=3 uid="uid://bvdnootccqycb"]
+
+[ext_resource type="Shader" path="res://assets/shaders/spatial/ocean.gdshader" id="1_qqh4e"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_rcqox"]
+noise_type = 3
+fractal_type = 2
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_1ddn7"]
+seamless = true
+as_normal_map = true
+bump_strength = 4.0
+noise = SubResource("FastNoiseLite_rcqox")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_8fxfn"]
+noise_type = 3
+fractal_type = 2
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_i843n"]
+seamless = true
+as_normal_map = true
+bump_strength = 4.0
+noise = SubResource("FastNoiseLite_8fxfn")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_v77xq"]
+noise_type = 3
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_7i573"]
+seamless = true
+noise = SubResource("FastNoiseLite_v77xq")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_r4wyp"]
+render_priority = 1
+shader = ExtResource("1_qqh4e")
+shader_parameter/albedo = Color(0, 0.321569, 0.431373, 1)
+shader_parameter/albedo2 = Color(0, 0.47451, 0.764706, 1)
+shader_parameter/metallic = 0.0
+shader_parameter/roughness = 0.02
+shader_parameter/wave = SubResource("NoiseTexture2D_7i573")
+shader_parameter/texture_normal = SubResource("NoiseTexture2D_1ddn7")
+shader_parameter/texture_normal2 = SubResource("NoiseTexture2D_i843n")
+shader_parameter/wave_direction = Vector2(2, 0)
+shader_parameter/wave_direction2 = Vector2(0, 1)
+shader_parameter/time_scale = 0.025
+shader_parameter/noise_scale = 15.0
+shader_parameter/height_scale = 1.0
+shader_parameter/color_deep = Color(0.105882, 0.294118, 0.329412, 1)
+shader_parameter/color_shallow = Color(0, 0.552941, 0.65098, 1)
+shader_parameter/beers_law = 2.0
+shader_parameter/depth_offset = -0.75
+shader_parameter/edge_scale = 1e+08
+shader_parameter/near = 1.0
+shader_parameter/far = 100.0
+shader_parameter/edge_color = Color(1, 1, 1, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_7uc3w"]
+lightmap_size_hint = Vector2i(502, 502)
+material = SubResource("ShaderMaterial_r4wyp")
+size = Vector2(100, 100)
+subdivide_width = 300
+subdivide_depth = 300
+center_offset = Vector3(0, 1, 0)
+
+[node name="Ocean" type="MeshInstance3D"]
+visible = false
+cast_shadow = 0
+custom_aabb = AABB(-50, -5, -50, 100, 10, 100)
+mesh = SubResource("PlaneMesh_7uc3w")

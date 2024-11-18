@@ -1,0 +1,44 @@
+[gd_scene load_steps=4 format=3 uid="uid://i5fes5afbict"]
+
+[ext_resource type="Script" path="res://src/ui/TooltipPanel.gd" id="1_ru8qa"]
+[ext_resource type="Theme" uid="uid://cb56p5o3gc754" path="res://assets/ui/themes/ui_theme.tres" id="1_v8han"]
+[ext_resource type="FontFile" uid="uid://cc3o3alnxgy3i" path="res://assets/ui/fonts/Ubuntu_Mono/UbuntuMono-Bold.ttf" id="3_fuqjc"]
+
+[node name="Tooltip" type="PanelContainer"]
+offset_right = 600.0
+offset_bottom = 400.0
+script = ExtResource("1_ru8qa")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 2
+theme = ExtResource("1_v8han")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 50
+theme_override_constants/margin_bottom = 50
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="HeaderLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme = ExtResource("1_v8han")
+theme_override_fonts/font = ExtResource("3_fuqjc")
+text = "Hex Title"
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+
+[node name="TooltipLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme = ExtResource("1_v8han")
+bbcode_enabled = true
+text = "- List
+- dsda"
+fit_content = true

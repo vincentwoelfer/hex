@@ -1,0 +1,264 @@
+@tool
+class_name WorldLightControl
+extends Node
+
+const HOURS_PER_DAY := 24.0
+
+@onready var sun: DirectionalLight3D = %SunLight as DirectionalLight3D
+@onready var world_environment: WorldEnvironment = %WorldEnvironment as WorldEnvironment
+@onready var world_time_manager: WorldTimeManager = %WorldTimeManager as WorldTimeManager
+@onready var weather_control: WeatherControl = %WeatherControl as WeatherControl
+@onready var sky: PanoramaSkyMaterial = (%WorldEnvironment as WorldEnvironment).environment.sky.sky_material
+
+enum PhaseOfDay {Night, Sunrise, Day, Sunset}
+
+@export_range(0.0, HOURS_PER_DAY, 0.2) var current_time: float = WorldTimeManager.get_start_time():
+	set(value):
+		current_time = value
+		if Engine.is_editor_hint():
+			jump_to_time(current_time)
+
+
+@export_category("Sunshine hours")
+@export var sunrise: float = 4.9
+@export var sunset: float = 23.1
+
+@export_category("Light parameters")
+# Hours after sunrise / before sunset where the light is beeing interpolated
+@export var sunrise_effect_hours: float = 3.0
+@export var sunset_effect_hours: float = 3.0
+
+# TODO interpolate energy differently. Color change needs to happen ~2-3 hours, light intensity change only within 30min
+@export var min_sun_light_energy: float = 0.0
+@export var max_sun_light_energy: float = 3.0
+@export var min_sky_light_energy: float = 0.5
+@export var max_sky_light_energy: float = 1.5
+
+@export var daytime_light_color: Color = Color(1, 1, 0.85)
+@export var sunrise_light_color: Color = Color(1, 0.412, 0.235)
+@export var sunset_light_color: Color = Color(1, 0.412, 0.235)
+
+@export_category("Fog parameters")
+@export var daytime_fog_density: float = 0.002
+@export var sunrise_fog_density: float = 0.01
+@export var sunset_fog_density: float = 0.009
+@export var nighttime_fog_density: float = 0.013
+
+@export_category("Weather parameters")
+@export var weather_impact_factor: float = 0.6
+
+# Actual tween duration may be limited further if time is auto-advancing
+var tween: Tween
+var desired_tween_duration := 0.5
+
+# Height. -90 = Zenith.
+var sun_rotation_x_down := -10.0
+var sun_rotation_x_zenith := -50.0 # Can be matched to breitengrad on earth
+# down -> zenith -> down
+
+# East -> West, 0.0 = from South
+var sun_rotation_y_start := 90.0
+var sun_rotation_y_finish := -90.0
+
+func _ready() -> void:
+	# Get actual starting time from world_time_manager
+	# Should be same as in world_time_manager but reading it here gives an error
+	if not Engine.is_editor_hint():
+		current_time = fmod(world_time_manager.current_world_time, HOURS_PER_DAY)
+	else:
+		current_time = WorldTimeManager.get_start_time()
+
+	EventBus.Signal_SetVisualLightTime.connect(change_time)
+	EventBus.Signal_WeatherChanged.connect(_on_weather_change)
+
+	jump_to_time(current_time)
+
+
+func _process(delta: float) -> void:
+	pass
+
+
+func change_time(new_time: float) -> void:
+	if current_time != new_time:
+		current_time = new_time
+		self.tween_to_time(current_time)
+
+
+func _on_weather_change(new_weather: WeatherControl.WeatherType) -> void:
+	if not world_time_manager.auto_advance:
+		self.tween_to_time(world_time_manager.current_time_of_day)
+
+
+func jump_to_time(time: float) -> void:
+	if sun == null or world_environment == null or sky == null:
+		return
+
+	var properties := interpolate_properties_for_time(time)
+
+	# Adapt with weather properties
+	if weather_control != null:
+		var weather_properties := weather_control.weather_properties[weather_control.current_weather]
+		for weather_property: String in weather_properties:
+			# Lerp between time-of-day and weather value
+			if properties.has(weather_property):
+				# Dont mix to sunlight at night
+				if weather_property == "sun_light_energy" and properties["sun_light_energy"] <= 0.05:
+					pass
+				else:
+					properties[weather_property] = lerp(properties[weather_property], weather_properties[weather_property], weather_impact_factor)
+
+			# Only use weather value if key is not existent in time-of-day properties
+			else:
+				push_warning("Setting weather property ", weather_property, " which is not presend in time-of-day properties")
+				properties[weather_property] = weather_properties[weather_property]
+
+	for property: String in properties.keys():
+		if property.begins_with('sun_'):
+			sun.set(property.trim_prefix('sun_'), properties[property])
+		elif property.begins_with('sky_'):
+			sky.set(property.trim_prefix('sky_'), properties[property])
+		elif property.begins_with('env_'):
+			world_environment.environment.set(property.trim_prefix('env_'), properties[property])
+
+
+# TODO this only works per hour. Example: If tweening from mid of day to sunset, the tween will instantly (during day) reduce light linerily instead of waiting till start of sunset
+func tween_to_time(time: float) -> void:
+	if sun == null or world_environment == null or sky == null:
+		return
+
+	# Delete previous tween if still existing
+	if tween:
+		tween.kill()
+
+	# Get property values only dependent on time of day
+	var properties := interpolate_properties_for_time(time)
+
+	# Adapt with weather properties
+	if weather_control != null:
+		var weather_properties := weather_control.weather_properties[weather_control.current_weather]
+		for weather_property: String in weather_properties:
+			# Lerp between time-of-day and weather value
+			if properties.has(weather_property):
+				# Dont mix to sunlight at night
+				if weather_property == "sun_light_energy" and properties["sun_light_energy"] <= 0.05:
+					pass
+				else:
+					properties[weather_property] = lerp(properties[weather_property], weather_properties[weather_property], weather_impact_factor)
+
+			# Only use weather value if key is not existent in time-of-day properties
+			else:
+				push_warning("Setting weather property ", weather_property, " which is not presend in time-of-day properties")
+				properties[weather_property] = weather_properties[weather_property]
+
+	# Create Tween
+	tween = create_tween().set_parallel(true)
+
+	# Dont tween for longer than one hour lasts when auto-forwarding time
+	var current_tween_duration := minf(desired_tween_duration, world_time_manager.get_max_tween_time())
+
+	for property: String in properties.keys():
+		if property.begins_with('sun_'):
+			tween.tween_property(sun, property.trim_prefix('sun_'), properties[property], current_tween_duration)
+		elif property.begins_with('sky_'):
+			tween.tween_property(sky, property.trim_prefix('sky_'), properties[property], current_tween_duration)
+		elif property.begins_with('env_'):
+			tween.tween_property(world_environment.environment, property.trim_prefix('env_'), properties[property], current_tween_duration)
+
+
+func interpolate_properties_for_time(time: float) -> Dictionary[String, Variant]:
+	var time_from_sunrise := time - sunrise
+	var time_to_sunset := sunset - time
+
+	# Determine interpolation factor. 1 = full day, 0 = full night
+	var interpolation_factor: float
+
+	var color_lerp_from: Color = daytime_light_color
+	var fog_density_lerp_from: float = daytime_fog_density
+
+	var phase := get_PhaseOfDay(time)
+	match phase:
+		PhaseOfDay.Sunrise:
+			interpolation_factor = clampf(time_from_sunrise / sunrise_effect_hours, 0.0, 1.0)
+			color_lerp_from = sunrise_light_color
+			fog_density_lerp_from = sunrise_fog_density
+
+		PhaseOfDay.Day:
+			interpolation_factor = 1.0
+			color_lerp_from = daytime_light_color
+			fog_density_lerp_from = daytime_fog_density
+
+		PhaseOfDay.Sunset:
+			interpolation_factor = clampf(time_to_sunset / sunset_effect_hours, 0.0, 1.0)
+			color_lerp_from = sunset_light_color
+			fog_density_lerp_from = sunset_fog_density
+		
+		PhaseOfDay.Night:
+			interpolation_factor = 0.0
+			fog_density_lerp_from = nighttime_fog_density
+			#color_lerp_from = nighttime_light_color -> Color irrelevant, energy is 0
+		
+
+	# Actually interpolate light intensity
+	# Ease light energy so it fades slowly and changes apruptly the moment the sun sets/rises.
+	# ease-factor 1 = linear, < 1 = more abrupt close to 0.0
+	var light_energy_factor := ease(interpolation_factor, 0.4)
+	var sun_light_energy: float = lerpf(min_sun_light_energy, max_sun_light_energy, light_energy_factor)
+	var sky_light_energy: float = lerpf(min_sky_light_energy, max_sky_light_energy, light_energy_factor)
+
+	var light_color: Color = color_lerp_from.lerp(daytime_light_color, interpolation_factor)
+
+	# Fog
+	var fog_density: float = lerpf(fog_density_lerp_from, daytime_fog_density, interpolation_factor)
+
+	# ---- SUN ANGLE ----
+	var sun_x: float
+	var sun_y: float
+
+	# Ping-Pong lerp sun altitude from 0 to zenith(max) back to 0
+	var sun_hours_per_day := HOURS_PER_DAY - sunrise - (HOURS_PER_DAY - sunset)
+	var day_time_frac := clampf(time_from_sunrise / sun_hours_per_day, 0.0, 1.0) # 0 at sunrise -> 1 at sunset
+
+	# Dirty hack to keep sun from fliping to "morning" at end of night
+	if time_from_sunrise <= -2:
+		day_time_frac = 1.0
+	
+	if day_time_frac <= 0.5:
+		sun_x = deg_to_rad(lerpf(sun_rotation_x_down, sun_rotation_x_zenith, day_time_frac * 2.0))
+	else:
+		sun_x = deg_to_rad(lerpf(sun_rotation_x_zenith, sun_rotation_x_down, (day_time_frac - 0.5) * 2.0))
+	sun_y = deg_to_rad(lerpf(sun_rotation_y_start, sun_rotation_y_finish, day_time_frac))
+
+	# ---- Put everything together ----
+	if DebugSettings.fixed_sun_energy:
+		sun_light_energy = 1.0
+
+	var properties: Dictionary[String, Variant] = {
+		"sun_light_energy": sun_light_energy,
+		"sun_light_color": light_color,
+		"sun_rotation": Vector3(sun_x, sun_y, 0.0),
+		"sky_energy_multiplier": sky_light_energy,
+		"env_volumetric_fog_density": fog_density,
+		}
+
+	return properties
+
+func get_PhaseOfDay(time: float) -> PhaseOfDay:
+	if is_time_in_range(time, sunrise, sunrise + sunrise_effect_hours):
+		return PhaseOfDay.Sunrise
+	elif is_time_in_range(time, sunrise + sunrise_effect_hours, sunset - sunset_effect_hours):
+		return PhaseOfDay.Day
+	elif is_time_in_range(time, sunset - sunset_effect_hours, sunset):
+		return PhaseOfDay.Sunset
+	elif is_time_in_range(time, sunset, sunrise):
+		return PhaseOfDay.Night
+	push_error("PhaseOfDay could not be determined for time =", time)
+	return PhaseOfDay.Day
+
+
+# Helper function to handle wrapping time comparisons
+func is_time_in_range(time: float, start: float, end: float) -> bool:
+	if start < end:
+		return time >= start and time < end
+	else:
+		# Handle wrapping around 24 -> 0
+		return time >= start or time < end

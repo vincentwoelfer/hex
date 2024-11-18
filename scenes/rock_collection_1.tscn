@@ -1,5 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://dqcot0iaixe8s"]
-
-[ext_resource type="PackedScene" uid="uid://l6m3psp5h8gs" path="res://assets/blender/rock_collection_1.blend" id="1_0oabr"]
-
-[node name="rock_collection_1" instance=ExtResource("1_0oabr")]

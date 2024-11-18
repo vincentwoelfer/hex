@@ -13,7 +13,7 @@ var outer_radius: float = 4.0
 
 # Radius of the workable Regular area.
 # Must be smaller than outer_radius * 0.86 (size of largest circle in outer hex)
-var inner_radius: float = 3.5
+var inner_radius: float = 3.3
 
 # Height of one hex cell
 var height: float = 0.5
@@ -30,11 +30,35 @@ var core_circle_smooth_strength := 0.35
 var extra_verts_per_side := 4
 
 # Extra vertices per hexagon center
-var extra_verts_per_center := 5
+var extra_verts_per_center := 7
+
+# Interpolation for vertex height between 0 / border height and Barycentric Coords
+var smooth_height_factor_inner := 1.0
+var smooth_height_factor_outer := 1.0
+
+var trans_type_max_height_diff := 4
 
 
 # NOT HEX CONST - here for editing in edior and hex-geom regeneration triggering
-var grass_density := 0.8
+# 1D-Density. Instances per meter
+var grass_density := 10.0
+
+
+# Use smooth groups
+var smooth_vertex_normals: bool = false
+# ========================================================
+# ==================== Actual Constants ==================
+# ========================================================
+const MAP_MIN_HEIGHT: int = 1
+const MAP_MAX_HEIGHT: int = 20
+
+const MAP_OCEAN_HEIGHT: int = 0
+const MAP_INVALID_HEIGHT: int = -999
+
+# Includes one circle of ocean
+# Size = n means n circles around the map origin. So n=1 means 7 tiles (one origin tile and 6 additional tiles)
+const MAP_SIZE: int = 3
+
 
 # ========================================================
 # ==================== Derived values ====================
@@ -65,3 +89,8 @@ func transition_height(adjacent: float) -> float:
         return height * transition_height_factor * adjacent
     else:
         return 0.0
+
+# +3 because each corner hast 2 extra verts but we only want
+# the first 2 from the starting corner and the one missing from the enxt corner
+func total_verts_per_side() -> int:
+    return 3 + HexConst.extra_verts_per_side

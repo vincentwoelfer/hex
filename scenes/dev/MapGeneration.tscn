@@ -1,20 +1,38 @@
 [gd_scene load_steps=13 format=3 uid="uid://bi8xpy2pdq81q"]
 
-[ext_resource type="Script" path="res://src/GenerateMap.gd" id="1_2h4g3"]
-[ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://DefaultEnvironment.tres" id="2_2n06e"]
-[ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://CameraAttributes.tres" id="3_lr7o2"]
+[ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://assets/misc/DefaultEnvironment.tres" id="2_2n06e"]
+[ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://assets/misc/CameraAttributes.tres" id="3_lr7o2"]
 [ext_resource type="Script" path="res://src/CameraController.gd" id="4_j2ckc"]
-[ext_resource type="Script" path="res://src/SelectionManager.gd" id="6_x1kdg"]
-[ext_resource type="PackedScene" uid="uid://gefdglv0vl5e" path="res://scenes/WeatherControl.tscn" id="7_2klec"]
-[ext_resource type="PackedScene" uid="uid://i5fes5afbict" path="res://scenes/ui/Tooltip.tscn" id="7_molft"]
-[ext_resource type="Script" path="res://src/WorldLightControl.gd" id="8_4pj04"]
-[ext_resource type="Resource" uid="uid://bnxebmq3574k0" path="res://assets/weather/RainyWeatherProfile.tres" id="8_lckjd"]
-[ext_resource type="Script" path="res://src/WorldTimeManager.gd" id="8_q81ch"]
-[ext_resource type="PackedScene" uid="uid://b3ol067ntho4v" path="res://scenes/ui/debug_info_panel.tscn" id="9_1vbi7"]
+[ext_resource type="Script" path="res://src/MapGeneration.gd" id="5_apmm8"]
+[ext_resource type="Script" path="res://src/control-nodes/SelectionManager.gd" id="6_x1kdg"]
+[ext_resource type="PackedScene" uid="uid://i5fes5afbict" path="res://scenes/ui/TooltipPanel.tscn" id="7_molft"]
+[ext_resource type="Script" path="res://src/control-nodes/WorldLightControl.gd" id="8_4pj04"]
+[ext_resource type="PackedScene" uid="uid://b3ol067ntho4v" path="res://scenes/ui/DebugInfoPanel.tscn" id="9_1vbi7"]
+[ext_resource type="Script" path="res://src/control-nodes/WorldTimeManager.gd" id="9_pfdia"]
+[ext_resource type="PackedScene" uid="uid://gefdglv0vl5e" path="res://scenes/control-nodes/WeatherControl.tscn" id="9_ukl4i"]
+[ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://dev-utility/USE_THIS_HexConstantsModifier.tscn" id="12_e2267"]
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_t12eh"]
+auto_exposure_enabled = true
+auto_exposure_scale = 0.3
+dof_blur_far_distance = 50.0
+dof_blur_far_transition = 50.0
+auto_exposure_min_sensitivity = 100.0
 
 [node name="TestScene" type="Node3D"]
+
+[node name="HexConstModifier" parent="." instance=ExtResource("12_e2267")]
+outer_radius = 4.0
+inner_radius = 3.3
+height = 0.7
+transition_height_factor = 0.5
+core_circle_smooth_strength = 0.5
+extra_verts_per_side = 3
+extra_verts_per_center = 11
+smooth_height_factor_inner = 1.0
+smooth_height_factor_outer = 1.0
+trans_type_max_height_diff = 6
+grass_density = 10.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 unique_name_in_owner = true
@@ -22,7 +40,8 @@ environment = ExtResource("2_2n06e")
 camera_attributes = ExtResource("3_lr7o2")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 8, 6)
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 22, 6)
 attributes = SubResource("CameraAttributesPractical_t12eh")
 current = true
 fov = 80.0
@@ -30,17 +49,17 @@ script = ExtResource("4_j2ckc")
 
 [node name="SunLight" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true
-transform = Transform3D(0.19509, -0.212281, 0.957536, 0, 0.976296, 0.216439, -0.980786, -0.0422253, 0.190466, 0, 50, 0)
-light_color = Color(1, 0.785621, 0.424837, 1)
-light_energy = 1.91134
+transform = Transform3D(0.650103, -0.356982, 0.670764, 0, 0.882765, 0.469809, -0.759844, -0.305425, 0.573889, 0, 50, 0)
+light_color = Color(1, 0.94, 0.88, 1)
+light_energy = 3.6
 light_angular_distance = 2.0
 shadow_enabled = true
 directional_shadow_blend_splits = true
 directional_shadow_max_distance = 300.0
 
 [node name="MapGeneration" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-script = ExtResource("1_2h4g3")
+top_level = true
+script = ExtResource("5_apmm8")
 
 [node name="SelectionManager" type="Node3D" parent="."]
 script = ExtResource("6_x1kdg")
@@ -48,16 +67,14 @@ script = ExtResource("6_x1kdg")
 [node name="WorldLightControl" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("8_4pj04")
-sunrise_light_color = Color(1, 0.678431, 0.235294, 1)
-sunset_light_color = Color(1, 0.678431, 0.235294, 1)
+current_time = 9.0
 
-[node name="WeatherControl" parent="." instance=ExtResource("7_2klec")]
+[node name="WeatherControl" parent="." instance=ExtResource("9_ukl4i")]
 unique_name_in_owner = true
-weather_profile = ExtResource("8_lckjd")
 
 [node name="WorldTimeManager" type="Node" parent="."]
 unique_name_in_owner = true
-script = ExtResource("8_q81ch")
+script = ExtResource("9_pfdia")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 

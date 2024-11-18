@@ -6,167 +6,155 @@ extends Node3D
 # Parent / Struct class holding everything a hex tile can be/posess
 ######################################################
 
+const DEFAULT_TERRAIN_MAT: Material = preload('res://assets/materials/default_geom_material.tres')
+const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
+const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.tres')
+
+var allAvailRockMeshes: Array[ArrayMesh]
+
 # Core Variables
-var hexpos: HexPos
+var hex_pos: HexPos
 var height: int
 
+var params: HexTileParams
+var label: HexTileLabel
+
 # Visual Representation
-var geometry: HexGeometry
-var label := RichTextLabel.new()
-var is_label_visible := false
+var terrainMesh: MeshInstance3D
+var terrainOccluderInstance: OccluderInstance3D
+var plant: SurfacePlant
+var rocks: MeshInstance3D
 
-# Field conditions
-var humidity: float
-var shade: float
-var nutrition: float
-var is_secret_stash: bool # Just a gimmick
-var tile_type: String = "Meadow"
+var rocksMesh: Mesh
 
-
-var color_humidity: Color = Color.BLUE.lightened(0.2)
-var color_shade: Color = Color.BLACK.lightened(0.1)
-var color_nutrition: Color = Color.DARK_OLIVE_GREEN
-
-func _init(hexpos_: HexPos, height_: int) -> void:
-	self.hexpos = hexpos_
+# Does not much, only actual constructor
+func _init(hex_pos_: HexPos, height_: int) -> void:
+	self.hex_pos = hex_pos_
 	self.height = height_
-	if self.hexpos != null:
-		self.name = 'HexTile' + hexpos._to_string()
+	if self.hex_pos != null:
+		self.name = 'HexTile' + hex_pos._to_string()
 	else:
 		self.name = 'HexTile-Invalid'
 
-	self.geometry = null
+	self.plant = null
+	self.rocks = null
+	self.terrainMesh = null
 
-	self.humidity = randf()
-	self.shade = randf()
-	self.nutrition = randf()
-	self.is_secret_stash = randf() < 0.1
+	# Load Rocks - hardcoded numbers for now
+	for i in range(1, 10):
+		allAvailRockMeshes.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as Mesh)
 
-	# Doesnt do anything, surprise Nek
-	if self.humidity <= 0.1:
-		self.tile_type = "Dry Meadow"
+	self.params = HexTileParams.new() # Randomizes everything
 
-	add_child(label)
+	if height > 0:
+		label = HexTileLabel.new(params)
+		add_child(label)
 
+
+func _ready() -> void:
 	# Signals
 	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
+	EventBus.Signal_WorldStep.connect(processWorldStep)
+
+	if label != null:
+		label.set_label_world_pos(global_position)
 
 
-func toogleTileUi(_is_label_visible: bool) -> void:
-	self.is_label_visible = _is_label_visible
+func generate(geometry_input: HexGeometryInput) -> void:
+	assert(geometry_input != null)
+	assert(geometry_input.generation_stage == HexGeometryInput.GenerationStage.COMPLETE)
+	
+	# Delete old stuff
+	if terrainMesh != null:
+		terrainMesh.free()
+	if plant != null:
+		plant.free()
+	if rocks != null:
+		rocks.free()
+
+	# Does this solve everything?
+	# For now, it deletes debug visuals
+	for c in self.get_children():
+		c.free()
+
+	# Create geometry from geometry input
+	var geometry := HexGeometry.new(geometry_input)
+
+	terrainMesh = MeshInstance3D.new()
+	terrainMesh.name = "terrain"
+	terrainMesh.mesh = geometry.mesh
+	terrainMesh.material_override = DEFAULT_TERRAIN_MAT
+	terrainMesh.material_overlay = HIGHLIGHT_MAT
+	#terrainMesh.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+	# terrainMesh.visibility_range_end = 100
+	# terrainMesh.visibility_range_end_margin = 20
+	add_child(terrainMesh, false)
+
+	# Occluder
+	if DebugSettings.generate_terrain_occluder:
+		terrainOccluderInstance = OccluderInstance3D.new()
+		terrainOccluderInstance.occluder = geometry.occluder
+		add_child(terrainOccluderInstance, false)
+
+	if DebugSettings.visualize_hex_input:
+		geometry_input.create_debug_visualization(self)
+
+	if DebugSettings.generate_collision and self.height > 0:
+		terrainMesh.create_convex_collision(true, true)
+
+	if self.height > 0 and geometry.samplerHorizontal.is_valid():
+		# Add plants
+		if DebugSettings.enable_grass:
+			plant = SurfacePlant.new()
+			plant.name = "Grass"
+			plant.populate_multimesh(geometry.samplerHorizontal)
+			add_child(plant, false)
+
+		# Add rocks
+		if DebugSettings.enable_rocks:
+			rocksMesh = addRocks(geometry.samplerHorizontal)
+			if rocksMesh != null:
+				rocks = MeshInstance3D.new()
+				rocks.name = "Rocks"
+				rocks.material_override = ROCKS_MATERIAL
+				rocks.mesh = rocksMesh
+				add_child(rocks, false)
+
+
+func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
+	if not sampler.is_valid():
+		return null
+
+	var st_combined: SurfaceTool = SurfaceTool.new()
+	for i in range(1, 8):
+		var t: Transform3D = sampler.get_random_point_transform()
+		t = t.rotated_local(Vector3.UP, randf_range(0.0, TAU))
+
+		# Random large rocks
+		if randf() <= 0.05:
+			t = t.scaled_local(Vector3.ONE * randf_range(6.0, 8.0))
+			t = t.translated_local(Vector3.UP * -0.1) # Move down a bit
+
+		var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
+		st_combined.append_from(mesh, 0, t)
+	return st_combined.commit()
+
+
+func processWorldStep() -> void:
+	# For now just end data here, this is not good!
+	if plant != null:
+		plant.processWorldStep(params.humidity, params.shade, params.nutrition)
+
+
+func toogleTileUi() -> void:
+	if label != null:
+		label.is_label_visible = !label.is_label_visible
+
 
 func _process(delta: float) -> void:
-	update_label()
-
-
-func get_scale_from_3d_distance_to_cam(global_pos: Vector3) -> float:
-	const near_dist := 10.0
-	const far_dist := 30.0
-	const min_scale := 0.4
-	const max_scale := 1.0
-
-	var cam := get_viewport().get_camera_3d()
-	var dist: float = cam.global_position.distance_to(global_pos)
-	var factor: float = remap(dist, near_dist, far_dist, max_scale, min_scale)
-	return clampf(factor, min_scale, max_scale)
-
-
-func get_alpha_from_3d_distance_to_cam(global_pos: Vector3) -> float:
-	const near_dist := 30.0
-	const far_dist := 45.0
-	const min_scale := 0.3
-	const max_scale := 1.0
-
-	var cam := get_viewport().get_camera_3d()
-	var dist: float = cam.global_position.distance_to(global_pos)
-	var factor: float = remap(dist, near_dist, far_dist, max_scale, min_scale)
-	return clampf(factor, min_scale, max_scale)
-
-
-func update_label() -> void:
-	var label_pos: Vector3 = global_position + Vector3(0.0, 0.1, 0.0)
-	var scale_factor := get_scale_from_3d_distance_to_cam(label_pos)
-
-	# Colors
-	var alpha := get_alpha_from_3d_distance_to_cam(label_pos)
-	color_humidity.a = alpha
-	color_shade.a = alpha
-	color_nutrition.a = alpha
-
-	label.scale = Vector2.ONE * scale_factor
-
-	label.position = get_viewport().get_camera_3d().unproject_position(label_pos)
-
-	label.visible = is_label_visible and not get_viewport().get_camera_3d().is_position_behind(label_pos)
-
-	label.bbcode_enabled = true
-	label.fit_content = true
-	label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	label.scroll_active = false
-
-	var text_size := 60
-	label.clear()
-	label.text = ""
-	label.append_text('[center]')
-	label.push_font_size(text_size)
-	label.push_outline_size(18)
-	label.push_outline_color(Color(1, 1, 1, alpha))
-	#label.append_text('[font bottom_spacing=-20]')
-	#label.push_bgcolor(Color(0,0,0,0.2))
-
-	# Humidity
-	label.push_color(color_humidity)
-	label.append_text(str(snappedf(self.humidity, 0.1)) + ' ')
-	label.append_text('[img height=' + str(text_size) + ' color=#' + color_humidity.to_html() + ']res://assets/icons/raindrop.png[/img]\n')
-
-	# Shade
-	label.push_color(color_shade)
-	label.append_text(str(snappedf(1.0 - self.shade, 0.1)) + ' ')
-	label.append_text('[img height=' + str(text_size) + ' color=#' + color_shade.to_html() + ']res://assets/icons/shade_white.png[/img]\n')
-
-	# Nutrition
-	label.push_color(color_nutrition)
-	label.append_text(str(snappedf(self.nutrition, 0.1)) + ' ')
-	label.append_text('[img height=' + str(text_size) + ' color=#' + color_nutrition.to_html() + ']res://assets/icons/nutrition.png[/img]\n')
-
-
-	label.pop_all()
-
-	# Use size (including scale) to center position in 2d correctly
-	label.position -= Vector2(label.size * 0.5 * scale_factor)
-
-
-func assign_geometry(geom: HexGeometry) -> void:
-	if self.geometry != null:
-		remove_child(self.geometry)
-
-	self.geometry = geom
-	add_child(self.geometry, true)
+	if label != null:
+		label.update_label_position()
 
 
 func is_valid() -> bool:
-	return hexpos != null
-
-
-func calculate_shadow(sun_intensity: float) -> float:
-	return sun_intensity * shade
-
-
-#######################
-####################### Feld:
-# klima-bedingungen
-# humidity
-# Schatten  (wie viele Bäume)
-# nutrition = wie gut wachsen sachen, erde vs sand/stein
-
-# Was da drauf ist.
-#
-
-# Derived
-# => aktuellen lichteinfall = Sonne - Schatten
-
-#######################
-####################### Allgemeint Wetter:
-# Temperatur
-# Aktueller Regenfall -> mehr wasser
-# Aktuelle Sonne -> weniger wasser, mehr licht
+	return hex_pos != null

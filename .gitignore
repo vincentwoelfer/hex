@@ -26,9 +26,10 @@ cache/
 .tmp
 export.cfg
 export_presets.cfg
+.editorconfig
 
 # Blender
-.blend1
+*.blend?
 
 # Imported translations (automatically generated from CSV files)
 *.translation

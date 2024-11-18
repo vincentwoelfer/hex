@@ -1,0 +1,15 @@
+[gd_resource type="ShaderMaterial" load_steps=4 format=3 uid="uid://y6fsll8cbpbu"]
+
+[ext_resource type="Shader" path="res://assets/shaders/spatial/grass.gdshader" id="1_a5h3b"]
+[ext_resource type="Texture2D" uid="uid://byeg5o8vgy14b" path="res://assets/noise/GrassClumpNoise.tres" id="2_di1jo"]
+[ext_resource type="Texture2D" uid="uid://cho05a0o3bybh" path="res://assets/noise/WindNoise.tres" id="2_dl7us"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_a5h3b")
+shader_parameter/clumping_factor = 0.5
+shader_parameter/clump_noise = ExtResource("2_di1jo")
+shader_parameter/wind_speed = 2.0
+shader_parameter/wind_noise = ExtResource("2_dl7us")
+shader_parameter/subsurface_scattering_color = Color(1, 0.75, 0.1, 1)
+shader_parameter/rand_color_variation_target = Color(0.7, 0.45, 0.1, 1)
