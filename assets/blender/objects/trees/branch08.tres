@@ -1,9 +1,0 @@
-[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://gen05dovb0rr"]
-
-[ext_resource type="Texture2D" uid="uid://cy6qjimhmvg8g" path="res://assets/blender/objects/trees/branch08.png" id="1_8vdoi"]
-
-[resource]
-resource_name = "branch08"
-transparency = 1
-vertex_color_is_srgb = true
-albedo_texture = ExtResource("1_8vdoi")

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dmw5de4rtul5l"
-path="res://.godot/imported/branch08_roughness.png-e7de8ae18fc0e0a1835b0bd5f0eaae91.ctex"
+uid="uid://divhrsbu136nn"
+path="res://.godot/imported/bark_1_normal.png-876d9744ba2499cb6200658a36803f35.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/blender/objects/trees/branch08_roughness.png"
-dest_files=["res://.godot/imported/branch08_roughness.png-e7de8ae18fc0e0a1835b0bd5f0eaae91.ctex"]
+source_file="res://assets/materials/trees/bark_1_normal.png"
+dest_files=["res://.godot/imported/bark_1_normal.png-876d9744ba2499cb6200658a36803f35.ctex"]
 
 [params]
 

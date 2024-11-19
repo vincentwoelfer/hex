@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cy6qjimhmvg8g"
-path.s3tc="res://.godot/imported/branch08.png-b5caea71161570d827b6ad84225a1160.s3tc.ctex"
+uid="uid://bqge7sgttvx2m"
+path.s3tc="res://.godot/imported/needles_normal.png-97b164541d19db3e883d45cbe3a60482.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/blender/objects/trees/branch08.png"
-dest_files=["res://.godot/imported/branch08.png-b5caea71161570d827b6ad84225a1160.s3tc.ctex"]
+source_file="res://assets/materials/trees/needles_normal.png"
+dest_files=["res://.godot/imported/needles_normal.png-97b164541d19db3e883d45cbe3a60482.s3tc.ctex"]
 
 [params]
 
@@ -20,12 +20,12 @@ compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1
-roughness/mode=0
-roughness/src_normal=""
+roughness/mode=1
+roughness/src_normal="res://assets/blender/objects/trees/branch08_normal.png"
 process/fix_alpha_border=true
 process/premult_alpha=false
 process/normal_map_invert_y=false

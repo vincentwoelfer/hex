@@ -2,26 +2,27 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bqge7sgttvx2m"
-path="res://.godot/imported/branch08_normal.png-3162312428a0cec971058f5de75ddc89.ctex"
+uid="uid://djgkccq0irlim"
+path.s3tc="res://.godot/imported/needles_albedo_drawn_fine.png-3099ca099de47143e265a2324e3cfd97.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
-source_file="res://assets/blender/objects/trees/branch08_normal.png"
-dest_files=["res://.godot/imported/branch08_normal.png-3162312428a0cec971058f5de75ddc89.ctex"]
+source_file="res://assets/materials/trees/needles_albedo_drawn_fine.png"
+dest_files=["res://.godot/imported/needles_albedo_drawn_fine.png-3099ca099de47143e265a2324e3cfd97.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
@@ -31,4 +32,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

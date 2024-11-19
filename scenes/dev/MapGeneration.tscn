@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://bi8xpy2pdq81q"]
+[gd_scene load_steps=12 format=3 uid="uid://bi8xpy2pdq81q"]
 
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://assets/misc/DefaultEnvironment.tres" id="2_2n06e"]
 [ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://assets/misc/CameraAttributes.tres" id="3_lr7o2"]
@@ -7,7 +7,6 @@
 [ext_resource type="Script" path="res://src/control-nodes/SelectionManager.gd" id="6_x1kdg"]
 [ext_resource type="PackedScene" uid="uid://i5fes5afbict" path="res://scenes/ui/TooltipPanel.tscn" id="7_molft"]
 [ext_resource type="Script" path="res://src/control-nodes/WorldLightControl.gd" id="8_4pj04"]
-[ext_resource type="PackedScene" uid="uid://b3ol067ntho4v" path="res://scenes/ui/DebugInfoPanel.tscn" id="9_1vbi7"]
 [ext_resource type="Script" path="res://src/control-nodes/WorldTimeManager.gd" id="9_pfdia"]
 [ext_resource type="PackedScene" uid="uid://gefdglv0vl5e" path="res://scenes/control-nodes/WeatherControl.tscn" id="9_ukl4i"]
 [ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://dev-utility/USE_THIS_HexConstantsModifier.tscn" id="12_e2267"]
@@ -20,6 +19,7 @@ dof_blur_far_transition = 50.0
 auto_exposure_min_sensitivity = 100.0
 
 [node name="TestScene" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0752335, 1.90735e-06, 0.0633602)
 
 [node name="HexConstModifier" parent="." instance=ExtResource("12_e2267")]
 outer_radius = 4.0
@@ -87,13 +87,3 @@ offset_top = 40.0
 offset_right = -40.0
 offset_bottom = 340.0
 grow_horizontal = 0
-
-[node name="DebugInfoPanel" parent="CanvasLayer" instance=ExtResource("9_1vbi7")]
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 25.0
-offset_top = -231.0
-offset_right = 475.0
-offset_bottom = -25.0
-grow_vertical = 0

@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://1jpb7lpi7d0j"
-path.s3tc="res://.godot/imported/bark08.png-2052be6f9fd6aea0cbbc5da5eb7932d0.s3tc.ctex"
+uid="uid://cfc33wod2mo5x"
+path.s3tc="res://.godot/imported/bark_1_roughness.png-4f83b45419e1fd6515033e145ab6d490.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/blender/objects/trees/bark08.png"
-dest_files=["res://.godot/imported/bark08.png-2052be6f9fd6aea0cbbc5da5eb7932d0.s3tc.ctex"]
+source_file="res://assets/materials/trees/bark_1_roughness.png"
+dest_files=["res://.godot/imported/bark_1_roughness.png-4f83b45419e1fd6515033e145ab6d490.s3tc.ctex"]
 
 [params]
 
