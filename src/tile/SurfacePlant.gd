@@ -53,37 +53,46 @@ func recalculate_lod(cam_pos_global: Vector3) -> void:
 	
 	var dist := cam_pos_global.distance_squared_to(mesh_instance.global_position)
 
+	# Cheaper mesh is barely visible but safes a lot of performance -> switch very fast
+
 	var new_lod_factor: float
 	var new_lod_mesh: int
-	if dist <= 25 * 25:
+	var new_is_visible: bool = true
+	if dist <= pow(25, 2):
 		new_lod_factor = 1.0
 		new_lod_mesh = 0
-	elif dist <= 32 * 32:
+	elif dist <= pow(32, 2):
 		new_lod_factor = 0.9
-		new_lod_mesh = 0
-	elif dist <= 40 * 40:
-		new_lod_factor = 0.8
 		new_lod_mesh = 1
-	elif dist <= 50 * 50:
+	elif dist <= pow(40, 2):
+		new_lod_factor = 0.8
+		new_lod_mesh = 2
+	elif dist <= pow(50, 2):
 		new_lod_factor = 0.5
 		new_lod_mesh = 2
-	elif dist <= 60 * 60:
+	elif dist <= pow(60, 2):
 		new_lod_factor = 0.3
 		new_lod_mesh = 2
-	elif dist <= 70 * 70:
+	elif dist <= pow(70, 2):
 		new_lod_factor = 0.2
 		new_lod_mesh = 2
-	elif dist <= 90 * 90:
+	elif dist <= pow(90, 2):
 		new_lod_factor = 0.1
 		new_lod_mesh = 2
-	elif dist <= 120 * 120:
+	elif dist <= pow(120, 2):
 		new_lod_factor = 0.05
 		new_lod_mesh = 2
-	else:
+	elif dist <= pow(200, 2):
 		new_lod_factor = 0.02
 		new_lod_mesh = 2
+	else:
+		new_is_visible = false
 
-	#new_lod_mesh = 2
+	if not new_is_visible:
+		mesh_instance.visible = false
+		return
+	else:
+		mesh_instance.visible = true
 
 
 	if current_lod_factor != new_lod_factor:
