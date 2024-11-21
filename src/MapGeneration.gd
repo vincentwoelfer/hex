@@ -25,6 +25,7 @@ var fetch_tiles_count := 4
 # Misc
 var generation_dist_hex_tiles := 8
 @onready var camera_controller: CameraController = %Camera3D as CameraController
+var last_generation_position: HexPos = HexPos.invalid()
 
 # Testing
 var t_start_: int
@@ -101,6 +102,12 @@ func queue_new_tiles_for_generation() -> void:
 	if not Engine.is_editor_hint() and camera_controller != null:
 		generation_position = camera_controller.get_follow_point()
 	var camera_hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(generation_position).round()
+
+	# Abort if fiels has not changed
+	if camera_hex_pos.equals(last_generation_position):
+		return
+
+	last_generation_position = camera_hex_pos
 	var hashes_in_range: PackedInt32Array = camera_hex_pos.get_neighbours_in_range_as_hash(generation_dist_hex_tiles, true)
 
 	# Remove any hashes which are already presend in the map. No mutex needed here.

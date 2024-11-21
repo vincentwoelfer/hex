@@ -70,9 +70,11 @@ func magnitude() -> int:
 func distance_to(other: HexPos) -> int:
 	return (subtract(other)).magnitude()
 
-
 func get_neighbour(dir: int) -> HexPos:
 	return add(hexpos_direction(dir))
+
+func equals(other: HexPos) -> bool:
+	return q == other.q and r == other.r and s == other.s
 
 
 ##########################################################################################
@@ -130,7 +132,7 @@ func get_neighbours_in_range(N: int, include_self: bool = false) -> Array[HexPos
 	coordinates.resize(compute_num_tiles_in_range(N, include_self))
 	var array_idx := 0
 
-	for i in range(0 if include_self else 1, N+1):
+	for i in range(0 if include_self else 1, N + 1):
 		var ring: Array[HexPos] = get_neighbours_in_ring(i)
 		for hex in ring:
 			coordinates[array_idx] = hex
@@ -146,7 +148,7 @@ func get_neighbours_in_range_as_hash(N: int, include_self: bool = false) -> Pack
 	hashes.resize(compute_num_tiles_in_range(N, include_self))
 	var array_idx := 0
 
-	for i in range(0 if include_self else 1, N+1):
+	for i in range(0 if include_self else 1, N + 1):
 		var ring: PackedInt32Array = get_neighbours_in_ring_as_hash(i)
 		for hex_key in ring:
 			hashes[array_idx] = hex_key
@@ -216,6 +218,11 @@ static func compute_num_tiles_for_ring(radius: int) -> int:
 		return 1
 
 	return 6 * radius
+
+static func invalid() -> HexPos:
+	var invalid := HexPos.new(0, 0, 0)
+	invalid.s = -1
+	return invalid
 
 ##########################################################################################
 # Conversion functions between x/y/z world space and hex coordinates
