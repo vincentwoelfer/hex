@@ -1,15 +1,20 @@
 class_name SurfacePlant
 extends Node3D
 
-const GRASS_MESH_HIGH := preload('res://assets/meshes/plants/grass_hres.obj')
-const GRASS_MESH_MED := preload('res://assets/meshes/plants/grass_mres.obj')
-const GRASS_MESH_LOW := preload('res://assets/meshes/plants/grass_lres.obj')
+# const GRASS_MESH_HIGH := preload('res://assets/meshes/plants/grass_hres.obj')
+# const GRASS_MESH_MED := preload('res://assets/meshes/plants/grass_mres.obj')
+# const GRASS_MESH_LOW := preload('res://assets/meshes/plants/grass_lres.obj')
 const GRASS_MAT: ShaderMaterial = preload('res://assets/materials/grass_material.tres')
+
+const GRASS_MESH_HRES := preload('res://assets/meshes/basic_grass/basic_grass_hres.res')
+const GRASS_MESH_MRES := preload('res://assets/meshes/basic_grass/basic_grass_mres.res')
+const GRASS_MESH_LRES := preload('res://assets/meshes/basic_grass/basic_grass_lres.res')
 
 var mesh_instance: MultiMeshInstance3D
 
+# In m
 var min_height := 0.2
-var max_height := 3.0
+var max_height := 1.2
 
 # Only tip colors
 var color_healthy := Color(0.15, 0.4, 0.1)
@@ -21,9 +26,6 @@ var curr_health: float = 1.0
 var tween: Tween
 
 var num_blades_total: int
-
-# Store Transform3Ds as 4 Vectors each
-var transforms: Array[Transform3D]
 
 #
 var current_lod_factor: float = 1.0
@@ -45,67 +47,67 @@ func _ready() -> void:
 	EventBus.Signal_TriggerLod.connect(recalculate_lod)
 
 
-func recalculate_lod() -> void:
-	if not is_inside_tree():
+func recalculate_lod(cam_pos_global: Vector3) -> void:
+	if not is_inside_tree() or is_queued_for_deletion():
 		return
+	
+	var dist := cam_pos_global.distance_squared_to(mesh_instance.global_position)
 
-	var camera_position: Vector3 = get_viewport().get_camera_3d().global_transform.origin
-	var dist := camera_position.distance_squared_to(mesh_instance.global_position)
+	# Cheaper mesh is barely visible but safes a lot of performance -> switch very fast
 
 	var new_lod_factor: float
 	var new_lod_mesh: int
-	if dist <= 25 * 25:
+	var new_is_visible: bool = true
+	if dist <= pow(25, 2):
 		new_lod_factor = 1.0
 		new_lod_mesh = 0
-	elif dist <= 32 * 32:
+	elif dist <= pow(32, 2):
 		new_lod_factor = 0.9
-		new_lod_mesh = 0
-	elif dist <= 40 * 40:
-		new_lod_factor = 0.8
 		new_lod_mesh = 1
-	elif dist <= 50 * 50:
+	elif dist <= pow(40, 2):
+		new_lod_factor = 0.8
+		new_lod_mesh = 2
+	elif dist <= pow(50, 2):
 		new_lod_factor = 0.5
 		new_lod_mesh = 2
-	elif dist <= 60 * 60:
+	elif dist <= pow(60, 2):
 		new_lod_factor = 0.3
 		new_lod_mesh = 2
-	elif dist <= 70 * 70:
+	elif dist <= pow(70, 2):
 		new_lod_factor = 0.2
 		new_lod_mesh = 2
-	elif dist <= 90 * 90:
+	elif dist <= pow(90, 2):
 		new_lod_factor = 0.1
 		new_lod_mesh = 2
-	elif dist <= 120 * 120:
+	elif dist <= pow(120, 2):
 		new_lod_factor = 0.05
 		new_lod_mesh = 2
-	else:
+	elif dist <= pow(200, 2):
 		new_lod_factor = 0.02
 		new_lod_mesh = 2
+	else:
+		new_is_visible = false
+
+	if not new_is_visible:
+		mesh_instance.visible = false
+		return
+	else:
+		mesh_instance.visible = true
 
 
 	if current_lod_factor != new_lod_factor:
 		current_lod_factor = new_lod_factor
-		set_instance_count(current_lod_factor)
+		mesh_instance.multimesh.visible_instance_count = floori(num_blades_total * current_lod_factor)
 
 	if current_lod_mesh != new_lod_mesh:
 		current_lod_mesh = new_lod_mesh
 
 		if current_lod_mesh == 0:
-			mesh_instance.multimesh.mesh = GRASS_MESH_HIGH
+			mesh_instance.multimesh.mesh = GRASS_MESH_HRES
 		elif current_lod_mesh == 1:
-			mesh_instance.multimesh.mesh = GRASS_MESH_MED
+			mesh_instance.multimesh.mesh = GRASS_MESH_MRES
 		else:
-			mesh_instance.multimesh.mesh = GRASS_MESH_LOW
-
-
-func set_instance_count(factor: float) -> void:
-	var new_instance_count: int = floor(num_blades_total * factor)
-	var multi_mesh: MultiMesh = mesh_instance.multimesh
-	multi_mesh.instance_count = new_instance_count
-
-	for i in range(new_instance_count):
-		var t: Transform3D = transforms[i]
-		multi_mesh.set_instance_transform(i, t)
+			mesh_instance.multimesh.mesh = GRASS_MESH_LRES
 
 
 func get_curr_color() -> Color:
@@ -152,11 +154,10 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	# Square density to get 2d -> weight by area
 	num_blades_total = round(density_1d * density_1d * area)
 
-	var mesh_to_use: Mesh = GRASS_MESH_HIGH
+	var mesh_to_use: Mesh = GRASS_MESH_HRES
 
 	# Reduce in editor
 	if Engine.is_editor_hint():
-		# var in_editor_density_reduction := 0.5
 		var in_editor_density_reduction := 1.0
 		num_blades_total = round(num_blades_total * in_editor_density_reduction)
 
@@ -164,10 +165,10 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	if RenderingServer.get_video_adapter_type() != RenderingDevice.DEVICE_TYPE_DISCRETE_GPU:
 		var bad_gpu_reduction := 0.3
 		num_blades_total = round(num_blades_total * bad_gpu_reduction)
-		#mesh_to_use = GRASS_MESH_LOW
+		#mesh_to_use = GRASS_MESH_LRES
 
 	# Compute custom aabb
-	mesh_instance.custom_aabb = surface_sampler.compute_custom_aabb(1.0)
+	mesh_instance.custom_aabb = surface_sampler.compute_custom_aabb(max_height)
 	if DebugSettings.visualize_plant_custom_aabb:
 		add_custom_aabb_visualization()
 
@@ -177,14 +178,9 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
 	multi_mesh.instance_count = num_blades_total
 
-	transforms.clear()
-	transforms.resize(num_blades_total)
 	for i in range(num_blades_total):
 		var t := surface_sampler.get_random_point_transform()
 		multi_mesh.set_instance_transform(i, t)
-
-		# Store transform
-		transforms[i] = t
 
 
 	mesh_instance.multimesh = multi_mesh

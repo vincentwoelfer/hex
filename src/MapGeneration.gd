@@ -23,8 +23,10 @@ var threads_running: bool = true
 var fetch_tiles_count := 4
 
 # Misc
-var generation_dist_hex_tiles := 8
+var tile_generation_distance := 8
+var tile_deletion_distance := 35
 @onready var camera_controller: CameraController = %Camera3D as CameraController
+var generation_position: HexPos = HexPos.invalid()
 
 # Testing
 var t_start_: int
@@ -116,29 +118,47 @@ func _process(delta: float) -> void:
 		self.regenerate = false
 		delete_everything()
 
-	# Empty generated queue and add to scene
+	# Empty generated queue and add to scene, regardless of player position
 	fetch_and_add_all_generated_tiles()
 
-	# Add tiles near player to queue
-	queue_new_tiles_for_generation()
+	# Add tiles near player to queue and delete far away
+	var generation_position_changed := update_generation_position()
+	if generation_position_changed:
+		queue_new_tiles_for_generation()
+		remove_far_away_tiles()
 
 	# Testing
 	if not testing_complete:
-		var expected := HexPos.compute_num_tiles_in_range(generation_dist_hex_tiles, true)
+		var expected := HexPos.compute_num_tiles_in_range(tile_generation_distance, true)
 		if HexTileMap.tiles.size() >= expected:
 			var t := (Time.get_ticks_usec() - t_start_) / 1000.0
 			print("=======================================================")
-			print("MAIN: Process took %4.0f ms to generate %d tiles (N=%d)" % [t, expected, generation_dist_hex_tiles])
+			print("MAIN: Process took %4.0f ms to generate %d tiles (N=%d)" % [t, expected, tile_generation_distance])
 			print("MAIN: Thread count: %d, fetch_tiles_count: %d" % [num_threads, fetch_tiles_count])
 			print("=======================================================")
 			testing_complete = true
 
 
+# Returns true if the player has moved and we need to regenerate
+func update_generation_position() -> bool:
+	# Default to ZERO if camera not existing/found
+	var new_generation_position_world: Vector3 = Vector3.ZERO
+
+	if not Engine.is_editor_hint() and camera_controller != null:
+		new_generation_position_world = camera_controller.get_follow_point()
+	var new_generation_position_hexpos: HexPos = HexPos.xyz_to_hexpos_frac(new_generation_position_world).round()
+
+	# Abort if fiels has not changed
+	if new_generation_position_hexpos.equals(generation_position):
+		return false
+
+	# Update pos and return true
+	generation_position = new_generation_position_hexpos
+	return true
+
+
 # Fetch all generated tile hashes, get the tile from the HexTileMap and add them to the scene
 func fetch_and_add_all_generated_tiles() -> void:
-	# var t_start := Time.get_ticks_usec()
-	var num_added := 0
-
 	# MUTEX LOCK
 	generated_mutex.lock()
 	var generated_queue_copy: Array[int] = generated_queue.duplicate()
@@ -149,27 +169,27 @@ func fetch_and_add_all_generated_tiles() -> void:
 	for key: int in generated_queue_copy:
 		var tile: HexTile = HexTileMap.get_by_hash(key)
 		assert(tile != null)
-		# print("Adding to scene: hex_pos = ", tile.hex_pos._to_string())
 		# Only place where tiles are added to the scene
 		add_child(tile, false)
-		num_added += 1
 
-	# var t := (Time.get_ticks_usec() - t_start) / 1000.0
 
-	# if num_added > 1:
-		# print("MAIN: Added %d tiles in %4.0f ms" % [num_added, t])
-		# HexGeometryInputMap.print_debug_stats()
-	
-	
+func remove_far_away_tiles() -> void:
+	# No mutex needed here
+	var child_count := get_child_count()
+
+	for i in range(child_count - 1, -1, -1):
+		var node: Node = get_child(i)
+		if node is HexTile and is_instance_valid(node) and not node.is_queued_for_deletion() and (node as HexTile).is_valid():
+			var tile: HexTile = node as HexTile
+			var distance := generation_position.distance_to(tile.hex_pos)
+			if distance > tile_deletion_distance:
+				# This is the only place where tiles are removed
+				HexTileMap.delete_by_hash(tile.hex_pos.hash())
+				node.queue_free()
+
+
 func queue_new_tiles_for_generation() -> void:
-	# var t_start := Time.get_ticks_usec()
-
-	# Determine hashes in range
-	var generation_position: Vector3 = Vector3.ZERO
-	if not Engine.is_editor_hint() and camera_controller != null:
-		generation_position = camera_controller.get_follow_point()
-	var camera_hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(generation_position).round()
-	var hashes_in_range: PackedInt32Array = camera_hex_pos.get_all_coordinates_in_range_hash(generation_dist_hex_tiles, true)
+	var hashes_in_range: PackedInt32Array = generation_position.get_neighbours_in_range_as_hash(tile_generation_distance, true)
 
 	# Remove any hashes which are already presend in the map. Mutex for to_generate NOT needed here.
 	# Since this might miss some tiles since they are added after this check -> filter again after mutex lock
@@ -205,10 +225,6 @@ func queue_new_tiles_for_generation() -> void:
 	if num_queued > 0:
 		# Notify threads
 		to_generate_semaphore.post(num_queued)
-
-	# var t := (Time.get_ticks_usec() - t_start) / 1000.0
-	# if num_queued > 0:
-		# print("MAIN: Queued %d tiles in %4.0f ms" % [num_queued, t])
 
 
 func thread_generation_loop(thread_id: int) -> void:
@@ -285,7 +301,7 @@ func set_regenerate() -> void:
 
 
 func delete_everything() -> void:
-	print("Deleting everything")
+	print("Deleting everything!")
 
 	generated_mutex.lock()
 	generated_queue.clear()
