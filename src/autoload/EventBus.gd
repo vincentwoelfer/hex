@@ -51,6 +51,9 @@ func _ready() -> void:
 
 	timer.timeout.connect(func() -> void: Signal_TriggerLod.emit())
 
+	# Set occlusion culling on startup
+	get_tree().root.use_occlusion_culling = DebugSettings.generate_terrain_occluder
+
 
 # React to keyboard inputs to directly trigger events
 func _input(event: InputEvent) -> void:
@@ -85,6 +88,10 @@ func _input(event: InputEvent) -> void:
 			get_tree().quit()
 
 		if event.is_action_pressed("toogle_occlusion_culling"):
+			if not DebugSettings.generate_terrain_occluder:
+				print("Occlusion Culling not available without terrain occluders, can't enble it with this hotkey!")
+				return
+
 			get_tree().root.use_occlusion_culling = !get_tree().root.use_occlusion_culling
 			print("Occlusion Culling set to ", get_tree().root.use_occlusion_culling)
 
