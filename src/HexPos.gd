@@ -17,7 +17,9 @@ func _init(q_: int, r_: int, s_: int) -> void:
 func _to_string() -> String:
 	return '(' + str(q) + ', ' + str(r) + ', ' + str(s) + ')'
 
-
+##########################################################################################
+# Hash / Unhash functions
+##########################################################################################
 func hash() -> int:
 	# Maps [q,r] -> N, works bidirectionally and for signed integers
 	# Based on signed Szudzik pairing but without /2 in the end (no "improved packing")
@@ -47,71 +49,117 @@ static func unhash(z: int) -> HexPos:
 	var r_: int = b / 2 if b % 2 == 0 else (b + 1) / -2
 	return HexPos.new(q_, r_, -q_ - r_)
 
-
+##########################################################################################
+# Basic operations
+##########################################################################################
 func add(other: HexPos) -> HexPos:
 	return HexPos.new(q + other.q, r + other.r, s + other.s)
 
 func subtract(other: HexPos) -> HexPos:
 	return HexPos.new(q - other.q, r - other.r, s - other.s)
 
+# Only makes sense if hexpos represents a distance/direction
+func scale(factor: int) -> HexPos:
+	return HexPos.new(q * factor, r * factor, s * factor)
 
 # Distance to (0,0,0) aka "length"
 func magnitude() -> int:
 	return roundi((absi(q) + absi(r) + absi(s)) / 2.0)
 
-
 # Actual distance function (in hex tiles)
 func distance_to(other: HexPos) -> int:
 	return (subtract(other)).magnitude()
 
-
 func get_neighbour(dir: int) -> HexPos:
 	return add(hexpos_direction(dir))
 
+func equals(other: HexPos) -> bool:
+	return q == other.q and r == other.r and s == other.s
 
-func get_all_coordinates_in_range(N: int, include_self: bool = false) -> Array[HexPos]:
-	assert(N >= 0)
+
+##########################################################################################
+# Neighbours / Area functions
+##########################################################################################
+# See https://www.redblobgames.com/grids/hexagons/#rings
+func get_neighbours_in_ring(radius: int) -> Array[HexPos]:
+	assert(radius >= 0)
+
+	# Special case of radius = 0 -> only center
+	if radius == 0:
+		return [self]
 	
-	var num := compute_num_tiles_in_range(N, include_self)
-
 	var coordinates: Array[HexPos] = []
-	coordinates.resize(num)
-	var i := 0
+	coordinates.resize(HexPos.compute_num_tiles_for_ring(radius))
+	var array_idx := 0
 
-	for q_ in range(-N, N + 1):
-		var r1: int = max(-N, -q_ - N)
-		var r2: int = min(N, -q_ + N)
-		for r_ in range(r1, r2 + 1):
-			var s_ := -q_ - r_
-			if include_self or (q != q_ or r != r_ or s != s_):
-				coordinates[i] = HexPos.new(q + q_, r + r_, s + s_)
-			i += 1
+	# start pos for the ring, use direction 4 as starting point
+	var hex: HexPos = self.add(hexpos_direction(4).scale(radius))
+
+	for i in range(0, 6):
+		for j in range(0, radius):
+			coordinates[array_idx] = hex
+			array_idx += 1
+			hex = hex.add(hexpos_direction(i))
 	return coordinates
 
+# Same as above but returns a hash instead of HexPos and is optimized for that case
+func get_neighbours_in_ring_as_hash(radius: int) -> PackedInt32Array:
+	assert(radius >= 0)
 
-func get_all_coordinates_in_range_hash(N: int, include_self: bool = false) -> PackedInt32Array:
-	assert(N >= 0)
+	# Special case of radius = 0 -> only center
+	if radius == 0:
+		return PackedInt32Array([self.hash()])
 	
-	var num := compute_num_tiles_in_range(N, include_self)
-
 	var hashes: PackedInt32Array
-	hashes.resize(num)
-	var i := 0
+	hashes.resize(HexPos.compute_num_tiles_for_ring(radius))
+	var array_idx := 0
 
-	for q_ in range(-N, N + 1):
-		var r1: int = max(-N, -q_ - N)
-		var r2: int = min(N, -q_ + N)
-		for r_ in range(r1, r2 + 1):
-			var s_ := -q_ - r_
-			if include_self or (q != q_ or r != r_ or s != s_):
-				hashes[i] = HexPos.new(q + q_, r + r_, s + s_).hash()
-			i += 1
+	# start pos for the ring, use direction 4 as starting point
+	var hex: HexPos = self.add(hexpos_direction(4).scale(radius))
+
+	for i in range(0, 6):
+		for j in range(0, radius):
+			hashes[array_idx] = hex.hash()
+			array_idx += 1
+			hex = hex.add(hexpos_direction(i))
 	return hashes
 
 
-#########################################
+func get_neighbours_in_range(N: int, include_self: bool = false) -> Array[HexPos]:
+	assert(N >= 0)
+	
+	var coordinates: Array[HexPos] = []
+	coordinates.resize(compute_num_tiles_in_range(N, include_self))
+	var array_idx := 0
+
+	for i in range(0 if include_self else 1, N + 1):
+		var ring: Array[HexPos] = get_neighbours_in_ring(i)
+		for hex in ring:
+			coordinates[array_idx] = hex
+			array_idx += 1
+
+	return coordinates
+
+# Same as above but returns a hash instead of HexPos and is optimized for that case
+func get_neighbours_in_range_as_hash(N: int, include_self: bool = false) -> PackedInt32Array:
+	assert(N >= 0)
+	
+	var hashes: PackedInt32Array
+	hashes.resize(compute_num_tiles_in_range(N, include_self))
+	var array_idx := 0
+
+	for i in range(0 if include_self else 1, N + 1):
+		var ring: PackedInt32Array = get_neighbours_in_ring_as_hash(i)
+		for hex_key in ring:
+			hashes[array_idx] = hex_key
+			array_idx += 1
+
+	return hashes
+
+
+##########################################################################################
 # Static functions
-#########################################
+##########################################################################################
 # +X = right = 0
 static var hexpos_directions: Array[HexPos] = [
 	HexPos.new(1, 0, -1), # 0: +X, bot-right   | r=0
@@ -153,22 +201,32 @@ static func hexpos_direction(direction: int) -> HexPos:
 
 # N = range/radius with 0 being the origin tile
 static func compute_num_tiles_in_range(N: int, include_self: bool) -> int:
-	# Only origin tile. Necessary for range 0 because of how range() works
-	var self_count: int = 1 if include_self else 0
-	if N == 0:
-		return self_count
+	assert(N >= 0)
+
+	# Start with self (if include_self) or 0
+	var num := 1 if include_self else 0
 
 	# per layer: 6 * (layer_size)
 	# Runs for [1, ..., N] 
-	var num := 0
-	for n in range(0, N + 1):
-		if n == 0:
-			num += self_count
-		else:
-			num += 6 * n
+	for n in range(1, N + 1):
+		num += compute_num_tiles_for_ring(n)
 	return num
 
+static func compute_num_tiles_for_ring(radius: int) -> int:
+	# Special case for only the center tile
+	if radius == 0:
+		return 1
 
+	return 6 * radius
+
+static func invalid() -> HexPos:
+	var invalid := HexPos.new(0, 0, 0)
+	invalid.s = -1
+	return invalid
+
+##########################################################################################
+# Conversion functions between x/y/z world space and hex coordinates
+##########################################################################################
 static func hexpos_to_xy(hex_pos: HexPos) -> Vector2:
 	var size: Vector2 = Vector2(HexConst.outer_radius, HexConst.outer_radius)
 	var origin: Vector2 = Vector2(0, 0)
@@ -178,7 +236,7 @@ static func hexpos_to_xy(hex_pos: HexPos) -> Vector2:
 	var f2: float = sqrt(3.0) / 2.0
 	var f3: float = sqrt(3.0)
 	
-	var x: float = (f0 * hex_pos.q) * size.x
+	var x: float = (f0 * hex_pos.q) * size.x # included f1 * hex_pos.r but this is always zero
 	var y: float = (f2 * hex_pos.q + f3 * hex_pos.r) * size.y
 
 	return Vector2(x + origin.x, y + origin.y)
@@ -193,12 +251,12 @@ static func xy_to_hexpos_frac(world_pos: Vector2) -> HexPosFrac:
 	var origin: Vector2 = Vector2(0, 0)
 
 	var b0: float = 2.0 / 3.0
-	var b1: float = 0.0
+	#var b1: float = 0.0
 	var b2: float = -1.0 / 3.0
 	var b3: float = sqrt(3.0) / 3.0
 
 	var pt: Vector2 = Vector2((world_pos.x - origin.x) / size.x, (world_pos.y - origin.y) / size.y)
-	var q_: float = b0 * pt.x + b1 * pt.y
+	var q_: float = b0 * pt.x # + b1 * pt.y
 	var r_: float = b2 * pt.x + b3 * pt.y
 
 	return HexPosFrac.new(q_, r_, -q_ - r_)

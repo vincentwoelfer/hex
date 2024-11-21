@@ -1,7 +1,7 @@
 @tool # Must be tool because static variables are used in editor
 class_name HexTileMap
 
-# Hash-Map of Hexes. Key = int (HexPos.has()), Value = HexTile
+# Hash-Map of Hexes. Key = int (HexPos.hash()), Value = HexTile
 static var tiles: Dictionary[int, HexTile] = {}
 static var mutex: Mutex = Mutex.new()
 
@@ -64,6 +64,19 @@ static func is_empty() -> bool:
 #################################################################
 # DELETE
 #################################################################
+
+# DOES NOT FREE
+static func delete_by_hash(key: int) -> void:
+	mutex.lock()
+	if tiles.has(key):
+		#tiles[key].free()
+		tiles.erase(key)
+	mutex.unlock()
+
+static func delete_by_pos(hex_pos: HexPos) -> void:
+	delete_by_hash(hex_pos.hash())
+
+
 static func free_all() -> void:
 	mutex.lock()
 	for i: int in tiles:
