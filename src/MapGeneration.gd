@@ -81,9 +81,6 @@ func _process(delta: float) -> void:
 
 # Fetch all generated tile hashes, get the tile from the HexTileMap and add them to the scene
 func fetch_and_add_all_generated_tiles() -> void:
-	# var t_start := Time.get_ticks_usec()
-	var num_added := 0
-
 	# MUTEX LOCK
 	generated_mutex.lock()
 	var generated_queue_copy: Array[int] = generated_queue.duplicate()
@@ -94,27 +91,17 @@ func fetch_and_add_all_generated_tiles() -> void:
 	for key: int in generated_queue_copy:
 		var tile: HexTile = HexTileMap.get_by_hash(key)
 		assert(tile != null)
-		# print("Adding to scene: hex_pos = ", tile.hex_pos._to_string())
 		# Only place where tiles are added to the scene
 		add_child(tile, false)
-		num_added += 1
 
-	# var t := (Time.get_ticks_usec() - t_start) / 1000.0
-
-	# if num_added > 1:
-		# print("MAIN: Added %d tiles in %4.0f ms" % [num_added, t])
-		# HexGeometryInputMap.print_debug_stats()
-	
 	
 func queue_new_tiles_for_generation() -> void:
-	# var t_start := Time.get_ticks_usec()
-
-	# Determine hashes in range
+	# Determine tiles/hashes in range
 	var generation_position: Vector3 = Vector3.ZERO
 	if not Engine.is_editor_hint() and camera_controller != null:
 		generation_position = camera_controller.get_follow_point()
 	var camera_hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(generation_position).round()
-	var hashes_in_range: PackedInt32Array = camera_hex_pos.get_all_coordinates_in_range_hash(generation_dist_hex_tiles, true)
+	var hashes_in_range: PackedInt32Array = camera_hex_pos.get_neighbours_in_range_as_hash(generation_dist_hex_tiles, true)
 
 	# Remove any hashes which are already presend in the map. No mutex needed here.
 	# THIS MIGHT MISS SOME TILES SINCE THEY ARE ADDED TO THE MAP AFTER THIS CHECK -> filter again after mutex lock
@@ -145,10 +132,6 @@ func queue_new_tiles_for_generation() -> void:
 	if num_queued > 0:
 		# Notify threads
 		to_generate_semaphore.post(num_queued)
-
-	# var t := (Time.get_ticks_usec() - t_start) / 1000.0
-	# if num_queued > 0:
-		# print("MAIN: Queued %d tiles in %4.0f ms" % [num_queued, t])
 
 
 func thread_generation_loop(thread_id: int) -> void:
