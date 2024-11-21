@@ -35,6 +35,7 @@ weather_profile = ExtResource("2_sfkr4")
 
 [node name="RainParticles" type="GPUParticles3D" parent="."]
 unique_name_in_owner = true
+visible = false
 sorting_offset = 100.0
 sorting_use_aabb_center = false
 cast_shadow = 0

@@ -1,4 +1,4 @@
-@tool
+@tool # Must be tool because static variables are used in editor
 class_name MapGenerationData
 
 # HEIGHT GENERATION
@@ -12,7 +12,6 @@ static func determine_height(hex_pos: HexPos) -> int:
 	# Add randomness
 	if hex_pos.q < 0:
 		max_height += 16
-
 
 	var pos2D: Vector2 = HexPos.hexpos_to_xy(hex_pos)
 	var noise: float = height_noise.get_noise_2d(pos2D.x, pos2D.y)

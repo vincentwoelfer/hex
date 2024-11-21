@@ -26,3 +26,19 @@ func round() -> HexPos:
     else:
         si = -qi - ri
     return HexPos.new(qi, ri, si)
+
+
+# static func hexpos_lerp(a: HexPosFrac, b: HexPosFrac, t: float) -> HexPosFrac:
+#     return HexPosFrac.new(a.q * (1.0 - t) + b.q * t, a.r * (1.0 - t) + b.r * t, a.s * (1.0 - t) + b.s * t)
+
+
+# static func hexpos_linedraw(a: HexPos, b: HexPos) -> Array[HexPos]:
+#     var N: int = hexpos_distance(a, b)
+#     const eps := 0.000001
+#     var a_nudge: HexPosFrac = HexPosFrac.new(a.q + eps, a.r + eps, a.s - 2.0 * eps)
+#     var b_nudge: HexPosFrac = HexPosFrac.new(b.q + eps, b.r + eps, b.s - 2.0 * eps)
+#     var results: Array[HexPos] = []
+#     var step: float = 1.0 / max(N, 1)
+#     for i in range(N + 1):
+#         results.append(hexpos_round(hexpos_lerp(a_nudge, b_nudge, step * i)))
+#     return results

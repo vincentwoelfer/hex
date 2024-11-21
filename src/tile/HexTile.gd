@@ -20,8 +20,8 @@ var params: HexTileParams
 var label: HexTileLabel
 
 # Visual Representation
-var geometry: HexGeometry
 var terrainMesh: MeshInstance3D
+var terrainOccluderInstance: OccluderInstance3D
 var plant: SurfacePlant
 var rocks: MeshInstance3D
 
@@ -36,7 +36,6 @@ func _init(hex_pos_: HexPos, height_: int) -> void:
 	else:
 		self.name = 'HexTile-Invalid'
 
-	self.geometry = null
 	self.plant = null
 	self.rocks = null
 	self.terrainMesh = null
@@ -51,20 +50,21 @@ func _init(hex_pos_: HexPos, height_: int) -> void:
 		label = HexTileLabel.new(params)
 		add_child(label)
 
+
+func _ready() -> void:
 	# Signals
 	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
 	EventBus.Signal_WorldStep.connect(processWorldStep)
 
-
-func _ready() -> void:
 	if label != null:
 		label.set_label_world_pos(global_position)
 
 
-func generate() -> void:
+func generate(geometry_input: HexGeometryInput) -> void:
+	assert(geometry_input != null)
+	assert(geometry_input.generation_stage == HexGeometryInput.GenerationStage.COMPLETE)
+	
 	# Delete old stuff
-	if geometry != null:
-		geometry.free()
 	if terrainMesh != null:
 		terrainMesh.free()
 	if plant != null:
@@ -77,18 +77,24 @@ func generate() -> void:
 	for c in self.get_children():
 		c.free()
 
-	# Add geometry - Get relevant parameters from Map (read-only)
-	var hex_input := MapManager.create_complete_hex_geometry_input(hex_pos)
-	geometry = HexGeometry.new(hex_input)
+	# Create geometry from geometry input
+	var geometry := HexGeometry.new(geometry_input)
+
 	terrainMesh = MeshInstance3D.new()
 	terrainMesh.name = "terrain"
 	terrainMesh.mesh = geometry.mesh
 	terrainMesh.material_override = DEFAULT_TERRAIN_MAT
 	terrainMesh.material_overlay = HIGHLIGHT_MAT
-	add_child(terrainMesh, true)
+	add_child(terrainMesh, false)
+
+	# Occluder
+	if DebugSettings.generate_terrain_occluder:
+		terrainOccluderInstance = OccluderInstance3D.new()
+		terrainOccluderInstance.occluder = geometry.occluder
+		add_child(terrainOccluderInstance, false)
 
 	if DebugSettings.visualize_hex_input:
-		hex_input.create_debug_visualization(self)
+		geometry_input.create_debug_visualization(self)
 
 	if DebugSettings.generate_collision and self.height > 0:
 		terrainMesh.create_convex_collision(true, true)
@@ -99,7 +105,7 @@ func generate() -> void:
 			plant = SurfacePlant.new()
 			plant.name = "Grass"
 			plant.populate_multimesh(geometry.samplerHorizontal)
-			add_child(plant, true)
+			add_child(plant, false)
 
 		# Add rocks
 		if DebugSettings.enable_rocks:
@@ -109,7 +115,7 @@ func generate() -> void:
 				rocks.name = "Rocks"
 				rocks.material_override = ROCKS_MATERIAL
 				rocks.mesh = rocksMesh
-				add_child(rocks, true)
+				add_child(rocks, false)
 
 
 func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:

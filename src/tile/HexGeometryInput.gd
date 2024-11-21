@@ -43,11 +43,11 @@ func generate_basic(neighbours_height: Array[int]) -> void:
 	assert(neighbours_height.size() == 6)
 	assert(self.generation_stage == GenerationStage.NEW)
 	self.generation_stage = GenerationStage.BASIC
-	
+
 	# Transitions
 	for dir in range(6):
 		transitions[dir] = create_transition_between_tiles(height, neighbours_height[dir], dir)
-		
+
 	# Corner vertices
 	for dir in range(6):
 		var angle := Util.getHexAngle(dir)
@@ -74,11 +74,11 @@ func generate_complete(neighbour_input: Array[HexGeometryInput]) -> void:
 	for dir in range(6):
 		compute_smoothed_transition_vertices(dir, neighbour_input[dir])
 
-		
+
 func compute_smoothed_transition_vertices(dir: int, n: HexGeometryInput) -> void:
 	assert(n.generation_stage >= GenerationStage.BASIC)
 
-	# Shortcuts	
+	# Shortcuts
 	var type := transitions[dir].type
 	var start: float
 	var end: float
@@ -94,7 +94,7 @@ func compute_smoothed_transition_vertices(dir: int, n: HexGeometryInput) -> void
 	if type == TransitionType.SHARP or type == TransitionType.INVALID:
 		start = corner_vertices[dir].y
 		end = corner_vertices[Util.as_dir(dir + 1)].y
-		
+
 		# Clamp height between smoothed vertex corners heights
 		start = Util.clampf(start, corner_vertices_smoothing[dir].y, n_start_height)
 		end = Util.clampf(end, corner_vertices_smoothing[Util.as_dir(dir + 1)].y, n_end_height)
@@ -131,7 +131,7 @@ func determine_corner_vertex_smoothing_height(own_height: int, own_strict_corner
 		elif trans[0].type == TransitionType.INVALID:
 			# Use normal (strict) corner vertex
 			return own_strict_corner_height # Already global height
-		
+
 		# Should never happen
 		assert(false)
 		return 0.0
@@ -147,7 +147,7 @@ func determine_corner_vertex_smoothing_height(own_height: int, own_strict_corner
 
 		var avg := (height_other + own_height) / 2.0
 		return (avg - own_height) * HexConst.height
-		
+
 
 # Computes the height of the corner vertex bordering these two transitions.
 # Relative = already as float and minus own height -> as vertex coordinates
@@ -202,6 +202,7 @@ static func get_neighbour_corner_idx(dir: int, start: bool) -> int:
 		start_idx = Util.as_dir(start_idx - 1)
 
 	return start_idx
+
 
 ########################################################################
 func create_debug_visualization(parent: Node3D) -> void:

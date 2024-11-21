@@ -39,7 +39,7 @@ enum PhaseOfDay {Night, Sunrise, Day, Sunset}
 @export var sunset_light_color: Color = Color(1, 0.412, 0.235)
 
 @export_category("Fog parameters")
-@export var daytime_fog_density: float = 0.005
+@export var daytime_fog_density: float = 0.002
 @export var sunrise_fog_density: float = 0.01
 @export var sunset_fog_density: float = 0.009
 @export var nighttime_fog_density: float = 0.013

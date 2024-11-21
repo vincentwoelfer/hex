@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode cull_disabled, ensure_correct_normals;
+render_mode cull_disabled, ensure_correct_normals, blend_mix;
 
 global uniform float global_wind_direction;
 global uniform float global_wind_strength;
@@ -74,10 +74,15 @@ void vertex() {
 	float height_factor = 1.0 - UV.y;
 	float hash0 = hash12(NODE_POSITION_WORLD.xz);
 	float hash1 = hash12(-NODE_POSITION_WORLD.zx);
-	float clump0 = texture(clump_noise, NODE_POSITION_WORLD.zx*0.01).x; // -> rand_height_factor
-	float clump1 = texture(clump_noise, NODE_POSITION_WORLD.xz*0.5).x;   // -> wind_strength_turbulence
-	float clump2 = texture(clump_noise,-NODE_POSITION_WORLD.zx*0.035).x; // -> turn_angle_base
-	float clump3 = texture(clump_noise,-NODE_POSITION_WORLD.xz*0.03).x; // -> color
+	// float clump0 = texture(clump_noise, NODE_POSITION_WORLD.zx*0.01).x;   // -> rand_height_factor
+	// float clump1 = texture(clump_noise, NODE_POSITION_WORLD.zx*0.5).x;   // -> wind_strength_turbulence
+	// float clump2 = texture(clump_noise,-NODE_POSITION_WORLD.xz*0.035).x; // -> turn_angle_base
+	// float clump3 = texture(clump_noise,-NODE_POSITION_WORLD.xz*0.03).x;  // -> color
+
+	float clump0 = texture(clump_noise, NODE_POSITION_WORLD.zx*0.03).x;   // -> rand_height_factor
+	float clump1 = clump0;
+	float clump2 = clump0;
+	float clump3 = 1.0 - clump0;
 
 	// Random color variation
 	rand_col_factor = ease_in_quartic(smoothstep(0.4, 0.8, clump3)) * 0.15 * step(0.6, hash1);
@@ -89,20 +94,24 @@ void vertex() {
 	// Random height offset factor between 0.4 and 2.0
 	// hash0 = pure random, clump = clump texture
 	// the last value interpolates the random factor between hash0 and clump
-	float rand_height_factor = mix(0.25, 2.0, mix(hash0, clump0, 0.5));
+	//float rand_height_factor = mix(0.2, 2.0, mix(hash0, clump0, 0.5));
+	float rand_height_factor = mix(0.2, 2.0, clump0);
 
 	// Offset width by random factor
 	float rand_width_factor = mix(0.5, 1.2, hash1);
 
 	// The further the distance from the camera, the thicker the grass blade will
 	// appear to account for decreasing density with LOD
-	const float max_dist_thicken_factor = 8.0;
-	VERTEX.x *= 1.0 + min(ease_in_quartic(0.0225*camera_distance), max_dist_thicken_factor);
+	const float max_dist_thicken_factor = 18.0;
+	const float thicken_dist_scaling = 0.028; // Higher -> thicker earlier. OG = 0.033
+	VERTEX.x *= 1.0 + min(ease_in_quartic(thicken_dist_scaling * camera_distance), max_dist_thicken_factor);
 
-	// Apply offsets and scale everything down by 0.5
-	VERTEX.y *= 0.5 * height_mod * rand_height_factor;
-	VERTEX.x *= 0.65 * rand_width_factor; // Thickness
+	// Height
+	VERTEX.y *= height_mod * rand_height_factor;
+	 // Thickness
+	VERTEX.x *= 1.0 * rand_width_factor;
 	// Z should have no effect since grass is flat
+
 	vec3 vertex_model = VERTEX; // Vertex in model space before any rotations are applied
 
 	// --- Player crushing grass --- -> DISABLED For now
@@ -115,14 +124,14 @@ void vertex() {
 	float turn_angle_base = (mix(-0.15, 0.15, hash0) + clump2*clumping_factor)*TAU;
 
 	// Modify base angle to not point at camera
-	float angle_diff = turn_angle_base - global_camera_view_direction;
-    angle_diff = mod(angle_diff + PI, TAU) - PI; // Normalize the angle between -π and π
-	const float threshold = PI / 6.0;
-	if (abs(angle_diff) < threshold) {
-		float force = (threshold - abs(angle_diff)) * sign(hash1);
-		turn_angle_base += force;
-		crushed_factor = 0.25;
-	}
+	// float angle_diff = turn_angle_base - global_camera_view_direction;
+    // angle_diff = mod(angle_diff + PI, TAU) - PI; // Normalize the angle between -π and π
+	// const float threshold = PI / 6.0;
+	// if (abs(angle_diff) < threshold) {
+	// 	float force = (threshold - abs(angle_diff)) * sign(hash1);
+	// 	turn_angle_base += force;
+	// 	crushed_factor = 0.25;
+	// }
 
 	// --- WIND ---
 	float wind_direction = texture(wind_noise, NODE_POSITION_WORLD.zx*0.005/wind_speed + TIME*0.005*wind_speed).x*TAU;
@@ -166,16 +175,9 @@ void vertex() {
 	// sign of the vertex position in model space. We multiply by a large factor
 	// and round to correct for precision errors from positions at x=0.
 	float thicken_direction = sign(round((grass_rotate * vertex_model).x * 1e6));
-
-	// TODO Use thicken-direction to thicken when grass is bending towards view aswell
-	//  TOOD -> Maybe use for bending aswell???
-	// 1  = Looking directly at it            -> 0
-	// 0  = Perpendicular                     -> 1
-	// -1 = Face is facing away from camera   -> 0.75
 	float dot_nv_fac = 1.0 - abs(dot_nv);
-	float thicken_factor = ease_in_quartic(dot_nv_fac) * abs(vertex_model.x) * 1.5;	// Custom factor to make it even thicker
-	//float thicken_factor = ease_in_quartic(1.0 - abs(dot_nv)) * abs(vertex_model.x) * 1.75;
-
+	float thicken_factor = ease_in_quartic(dot_nv_fac) * abs(vertex_model.x);
+	
 	vertex_view.x += thicken_factor * thicken_direction;
 	VERTEX = (modelview_inverse(MODELVIEW_MATRIX) * vec4(vertex_view, 1.0)).xyz;
 }
@@ -198,33 +200,53 @@ void fragment() {
 	// wetness
 	ALBEDO = mix(ALBEDO, ALBEDO * vec3(0.8), global_world_wetness);
 
-	//AO = mix(0.1, 1.0, height_factor*height_factor); // Note: This looks better but is only visible when shadows are enabled!
-
-	// --- ROUGHNESS ---
-	ROUGHNESS = mix(1.0, 0.7, ease_out_quartic(height_factor));
+	// --- ROUGHNESS --- Less rough for upper part, less if wet
+	float roughness_min = 0.7 * (1.0 - global_world_wetness * 0.3);
+	ROUGHNESS = mix(1.0, roughness_min, ease_out_quartic(height_factor));
 
 	// --- SPECULAR --- 
-	SPECULAR = mix (0.6, 0.9, global_world_wetness);
+	SPECULAR = mix(0.5, 0.7, global_world_wetness);
 
-	ANISOTROPY = 0.85;
-
-	// TODO
-	//https://github.com/godotengine/godot/issues/79859
 }
 
 void light() {
 	float sgn = 1.0;
-    if (dot( NORMAL, LIGHT ) <= 0.0)
-    {
-		// reverse the normal if it's facing away from the light
-		sgn = -1.0;
-    }
+	
+    // if (dot( NORMAL, LIGHT ) <= 0.0)
+    // {
+	// 	// reverse the normal if it's facing away from the light
+	// 	sgn = -1.0;
+    // }
 
 	float diffuse_factor = pow(4.0, dot(sgn*NORMAL, LIGHT)) / 4.0; // Diffuse never drops to 0 to simulate ambient bounces
+
 	float sss_factor = max(-dot(VIEW, LIGHT), 0.0) * 0.5;
 
 	DIFFUSE_LIGHT += (diffuse_factor + sss_factor*subsurface_scattering_color) * ATTENUATION * LIGHT_COLOR;
 	SPECULAR_LIGHT *= diffuse_factor;
-
-
 }
+
+// void light() {
+//     // Calculate the diffuse light component
+//     float NdotL = abs(dot(NORMAL, LIGHT));
+
+// 	// Simulate Backlight
+// 	// if (NdotL < 0.0) {
+// 	// 	const float backlight_factor = 0.8;
+// 	// 	NdotL = -NdotL * backlight_factor;
+// 	// }
+// 	// This gets 1 if light shines directly on it, backlight_factor if light shines
+// 	// directly through it and 0 if light comes 90deg from one side
+// 	const float side_support = 0.3;
+// 	float diffuse_factor = side_support + NdotL * (1.0 - side_support);
+
+// 	// Exxagerate diffuse factor
+// 	diffuse_factor = pow(2.0, diffuse_factor) / 4.0;
+
+// 	// Subsurface scattering
+// 	float sss_factor = max(-dot(VIEW, LIGHT), 0.0) * 0.7;
+
+//     // Combine the diffuse and specular components
+//     DIFFUSE_LIGHT += (diffuse_factor + sss_factor * subsurface_scattering_color) * ATTENUATION * LIGHT_COLOR;
+// 	SPECULAR_LIGHT *= diffuse_factor * ATTENUATION * LIGHT_COLOR * 0.5;
+// }

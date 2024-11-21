@@ -17,29 +17,29 @@ var weather_properties: Dictionary[WeatherType, Dictionary] = {
 		"env_volumetric_fog_density": 0.002
 	},
 	WeatherType.CLOUDY: {
-		"sun_light_energy": 2.25,		
-		"env_volumetric_fog_density": 0.003
+		"sun_light_energy": 2.25,
+		"env_volumetric_fog_density": 0.0025
 		# "sun_light_color": Color.SNOW,
 	},
 	WeatherType.DRIZZLE: {
 		# "sun_light_color": Color.GRAY,
 		"sun_light_energy": 2.0,
-		"env_volumetric_fog_density": 0.005
+		"env_volumetric_fog_density": 0.004
 	},
 	WeatherType.RAIN: {
 		# "sun_light_color": Color.GRAY,
 		"sun_light_energy": 1.8,
-		"env_volumetric_fog_density": 0.007
+		"env_volumetric_fog_density": 0.004
 	},
 	WeatherType.HEAVY_RAIN: {
 		# "sun_light_color": Color.GRAY,
 		"sun_light_energy": 1.7,
-		"env_volumetric_fog_density": 0.008
+		"env_volumetric_fog_density": 0.004
 	},
 	WeatherType.FOG: {
 		# "sun_light_color": Color.GRAY,
 		"sun_light_energy": 2.0,
-		"env_volumetric_fog_density": 0.025
+		"env_volumetric_fog_density": 0.02
 	}
 }
 
@@ -150,9 +150,16 @@ func _process(delta: float) -> void:
 	RenderingServer.global_shader_parameter_set("global_wind_strength", current_wind_strength)
 	RenderingServer.global_shader_parameter_set("global_world_wetness", current_wetness)
 
+	# Set rain visibility (saves a lot of performance)
+	rain_particles.visible = rain_particles.amount_ratio > 0
+
+
 func _on_time_progression(day_time: float) -> void:
+	if weather_profile == null:
+		return
+
 	if randf() < weather_profile.weather_change_probability:
-		change_weather(weather_profile.sample_weather_type())
+		change_weather(weather_profile.sample_weather_type() as WeatherType)
 
 
 func force_new_weather() -> void:

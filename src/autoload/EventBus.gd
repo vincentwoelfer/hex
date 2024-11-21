@@ -15,12 +15,13 @@ signal Signal_DayTimeChanged(new_time: float)
 signal Signal_WeatherChanged(new_weather: WeatherControl.WeatherType)
 
 ###################################
-# DIRECTLY FROM INPUT KEYS
+# DIRECTLY FROM INPUT KEYS (default key as comment behind signal)
 ###################################
 signal Signal_TooglePerTileUi() # 1
 signal Signal_ToogleWorldTimeAutoAdvance() # 2
 signal Signal_randomizeSelectedTile() # 3
 signal Signal_TriggerWeatherChange() # 4
+signal Signal_TriggerLod(cam_pos_global: Vector3) # 9
 signal Signal_AdvanceWorldTimeOneStep() # Space
 signal Signal_ToggleSpeedUpTime() # Shift
 
@@ -41,6 +42,20 @@ func _ready() -> void:
 
 	# Connect to events to print debug info
 	Signal_WeatherChanged.connect(_on_Signal_WeatherChanged)
+
+	# Create a timer to trigger LOD updates
+	var timer: Timer = Timer.new()
+	timer.wait_time = 0.1 # Time in seconds
+	timer.one_shot = false # Repeat indefinitely
+	add_child(timer)
+	timer.start()
+	timer.timeout.connect(func() -> void:
+		var camera_position: Vector3 = get_viewport().get_camera_3d().global_transform.origin
+		Signal_TriggerLod.emit(camera_position)
+	)
+
+	# Set occlusion culling on startup
+	get_tree().root.use_occlusion_culling = DebugSettings.generate_terrain_occluder
 
 
 # React to keyboard inputs to directly trigger events
@@ -66,8 +81,22 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_pressed("trigger_weather_change"):
 			Signal_TriggerWeatherChange.emit()
 
+		if event.is_action_pressed("trigger_lod"):
+			Signal_TriggerLod.emit()
+
+	###################################################################
+	# NON-Signal Input Actions
+	###################################################################
 		if event.is_action_pressed("quit_game"):
 			get_tree().quit()
+
+		if event.is_action_pressed("toogle_occlusion_culling"):
+			if not DebugSettings.generate_terrain_occluder:
+				print("Occlusion Culling not available without terrain occluders, can't enble it with this hotkey!")
+				return
+
+			get_tree().root.use_occlusion_culling = !get_tree().root.use_occlusion_culling
+			print("Occlusion Culling set to ", get_tree().root.use_occlusion_culling)
 
 
 func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:

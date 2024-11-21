@@ -5,7 +5,7 @@ var b: Vector3
 var c: Vector3
 var color: Color
 
-func _init(a_: Vector3, b_: Vector3, c_: Vector3, color_: Color = Color()) -> void:
+func _init(a_: Vector3, b_: Vector3, c_: Vector3, color_: Color = Color.BLACK) -> void:
 	if not Geometry2D.is_polygon_clockwise(PackedVector2Array([Util.toVec2(a_), Util.toVec2(b_), Util.toVec2(c_)])):
 		self.a = a_
 		self.b = b_
@@ -23,9 +23,6 @@ func _init(a_: Vector3, b_: Vector3, c_: Vector3, color_: Color = Color()) -> vo
 		# For testing, set color based on incline
 		color = Colors.getColorForIncline(calculateInclineDeg())
 
-	# When using textured, set albedo wo white
-	#color = Color.WHITE
-	
 
 func getArea() -> float:
 	return 0.5 * (b - a).cross(c - a).length()

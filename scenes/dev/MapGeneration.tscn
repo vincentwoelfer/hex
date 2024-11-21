@@ -1,9 +1,9 @@
 [gd_scene load_steps=13 format=3 uid="uid://bi8xpy2pdq81q"]
 
-[ext_resource type="Script" path="res://src/GenerateMap.gd" id="1_2h4g3"]
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://assets/misc/DefaultEnvironment.tres" id="2_2n06e"]
 [ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://assets/misc/CameraAttributes.tres" id="3_lr7o2"]
 [ext_resource type="Script" path="res://src/CameraController.gd" id="4_j2ckc"]
+[ext_resource type="Script" path="res://src/MapGeneration.gd" id="5_apmm8"]
 [ext_resource type="Script" path="res://src/control-nodes/SelectionManager.gd" id="6_x1kdg"]
 [ext_resource type="PackedScene" uid="uid://i5fes5afbict" path="res://scenes/ui/TooltipPanel.tscn" id="7_molft"]
 [ext_resource type="Script" path="res://src/control-nodes/WorldLightControl.gd" id="8_4pj04"]
@@ -13,6 +13,11 @@
 [ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://dev-utility/USE_THIS_HexConstantsModifier.tscn" id="12_e2267"]
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_t12eh"]
+auto_exposure_enabled = true
+auto_exposure_scale = 0.3
+dof_blur_far_distance = 50.0
+dof_blur_far_transition = 50.0
+auto_exposure_min_sensitivity = 100.0
 
 [node name="TestScene" type="Node3D"]
 
@@ -21,8 +26,8 @@ outer_radius = 4.0
 inner_radius = 3.3
 height = 0.7
 transition_height_factor = 0.5
-core_circle_smooth_strength = 0.35
-extra_verts_per_side = 4
+core_circle_smooth_strength = 0.5
+extra_verts_per_side = 3
 extra_verts_per_center = 11
 smooth_height_factor_inner = 1.0
 smooth_height_factor_outer = 1.0
@@ -35,7 +40,8 @@ environment = ExtResource("2_2n06e")
 camera_attributes = ExtResource("3_lr7o2")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 8, 6)
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 22, 6)
 attributes = SubResource("CameraAttributesPractical_t12eh")
 current = true
 fov = 80.0
@@ -43,7 +49,7 @@ script = ExtResource("4_j2ckc")
 
 [node name="SunLight" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true
-transform = Transform3D(0.650104, -0.356983, 0.670764, 0, 0.882767, 0.469809, -0.759845, -0.305425, 0.573889, 0, 50, 0)
+transform = Transform3D(0.650103, -0.356982, 0.670764, 0, 0.882765, 0.469809, -0.759844, -0.305425, 0.573889, 0, 50, 0)
 light_color = Color(1, 0.94, 0.88, 1)
 light_energy = 3.6
 light_angular_distance = 2.0
@@ -52,8 +58,8 @@ directional_shadow_blend_splits = true
 directional_shadow_max_distance = 300.0
 
 [node name="MapGeneration" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-script = ExtResource("1_2h4g3")
+top_level = true
+script = ExtResource("5_apmm8")
 
 [node name="SelectionManager" type="Node3D" parent="."]
 script = ExtResource("6_x1kdg")
