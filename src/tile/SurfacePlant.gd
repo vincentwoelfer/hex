@@ -47,12 +47,11 @@ func _ready() -> void:
 	EventBus.Signal_TriggerLod.connect(recalculate_lod)
 
 
-func recalculate_lod() -> void:
-	if not is_inside_tree():
+func recalculate_lod(cam_pos_global: Vector3) -> void:
+	if not is_inside_tree() or is_queued_for_deletion():
 		return
-
-	var camera_position: Vector3 = get_viewport().get_camera_3d().global_transform.origin
-	var dist := camera_position.distance_squared_to(mesh_instance.global_position)
+	
+	var dist := cam_pos_global.distance_squared_to(mesh_instance.global_position)
 
 	var new_lod_factor: float
 	var new_lod_mesh: int
