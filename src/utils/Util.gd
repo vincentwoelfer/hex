@@ -86,6 +86,20 @@ static func clampf(val: float, a: float, b: float) -> float:
 	return clampf(val, minf(a, b), maxf(a, b))
 
 
+static func get_global_cam_pos(node: Node) -> Vector3:
+	var cam_global_pos := Vector3.ZERO
+
+	if Engine.is_editor_hint():
+		var cam := EditorInterface.get_editor_viewport_3d(0).get_camera_3d()
+		if cam != null:
+			cam_global_pos = cam.global_transform.origin
+	else:
+		var cam := node.get_viewport().get_camera_3d()
+		if cam != null:
+			cam_global_pos = cam.global_transform.origin
+
+	return cam_global_pos
+
 ######################################################
 # 3D Vector Math
 ######################################################
@@ -118,19 +132,6 @@ static func getHexVertex(r: float, angle: float, smooth_strength: float = 0.0) -
 ######################################################
 # Array stuff
 ######################################################
-static func isArrayConsecutive(arr: Array, N: int) -> bool:
-	# Sort the array
-	var sorted_arr := arr.duplicate()
-	sorted_arr.sort()
-
-	# Check consecutive elements considering wrap-around
-	for i in range(1, sorted_arr.size()):
-		if (sorted_arr[i]) % N != (sorted_arr[i - 1] + 1) % N:
-			return false
-
-	return true
-
-
 static func isPointOnEdge(point: Vector2, p1: Vector2, p2: Vector2) -> bool:
 	# Check if point lies on the line segment (p1, p2)
 	if is_equal_approx(point.distance_to(p1) + point.distance_to(p2), p1.distance_to(p2)):

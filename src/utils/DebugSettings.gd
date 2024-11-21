@@ -5,7 +5,7 @@ extends Node
 # Generate stuff. Normal = true
 static var enable_grass: bool = true
 static var enable_rocks: bool = true
-static var generate_collision: bool = false
+static var generate_collision: bool = true
 
 # Performance
 static var generate_terrain_occluder: bool = false

@@ -49,9 +49,9 @@ func _ready() -> void:
 	timer.one_shot = false # Repeat indefinitely
 	add_child(timer)
 	timer.start()
+
 	timer.timeout.connect(func() -> void:
-		var camera_position: Vector3 = get_viewport().get_camera_3d().global_transform.origin
-		Signal_TriggerLod.emit(camera_position)
+		Signal_TriggerLod.emit(Util.get_global_cam_pos(self))
 	)
 
 	# Set occlusion culling on startup
@@ -82,7 +82,7 @@ func _input(event: InputEvent) -> void:
 			Signal_TriggerWeatherChange.emit()
 
 		if event.is_action_pressed("trigger_lod"):
-			Signal_TriggerLod.emit()
+			Signal_TriggerLod.emit(Util.get_global_cam_pos(self))
 
 	###################################################################
 	# NON-Signal Input Actions

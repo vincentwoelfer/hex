@@ -87,10 +87,7 @@ func _process(delta: float) -> void:
 # Returns true if the player has moved and we need to regenerate
 func update_generation_position() -> bool:
 	# Default to ZERO if camera not existing/found
-	var new_generation_position_world: Vector3 = Vector3.ZERO
-
-	if not Engine.is_editor_hint() and camera_controller != null:
-		new_generation_position_world = camera_controller.get_follow_point()
+	var new_generation_position_world: Vector3 = Util.get_global_cam_pos(self)
 	var new_generation_position_hexpos: HexPos = HexPos.xyz_to_hexpos_frac(new_generation_position_world).round()
 
 	# Abort if fiels has not changed
