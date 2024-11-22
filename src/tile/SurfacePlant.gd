@@ -178,16 +178,23 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
 	multi_mesh.instance_count = num_blades_total
 
+	# Default
 	for i in range(num_blades_total):
 		var t := surface_sampler.get_random_point_transform()
 		multi_mesh.set_instance_transform(i, t)
 
+	# 12 floats per transform = 4 x vec3
+	# var buffer := PackedFloat32Array()
+	# buffer.resize(num_blades_total * 12)
 
 	# Example on how to set values directly!!!!
-	# 	# creates a buffer for the transform
-	# var buffer = PackedFloat32Array()
-	# for i in range(25):
-	# 	buffer.append_array([1,0,0,20*randf()-10,0,1,0,0.0,0,0,1,20*randf()-10])
+	# 3 * 4 = 12 elements per instance
+	# buffer.append_array([
+	# 1, 0, 0,
+	# 20 * randf() - 10,0, 1,
+	# 0, 0.0,	0,
+	# 0, 1, 20 * randf() - 10
+	# ])
 	
 	# # instances for the first multimesh
 	# multimesh.set_buffer(buffer)

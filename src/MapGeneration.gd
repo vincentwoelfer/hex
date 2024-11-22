@@ -20,7 +20,8 @@ var threads: Array[Thread] = []
 # 3-4 is sweet spot on my machine
 var num_threads: int = 3
 var threads_running: bool = true
-var fetch_tiles_count := 8
+var threads_running_mutex: Mutex = Mutex.new()
+var fetch_tiles_count := 1
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
 var tile_generation_distance := roundi(50.0 / HexConst.vertical_size())
@@ -32,9 +33,6 @@ var generation_position: HexPos = HexPos.invalid()
 var t_start_: int
 var testing_complete: bool = false
 
-# TODO:
-# Find our why sometimes tiles are missing. Happens more with more threads
-
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	# This is required for the LSP to work (since this script is a tool script)
@@ -45,6 +43,7 @@ func _ready() -> void:
 
 	# Create thread
 	print("MAIN: Starting %d threads with %d fetch_tiles_count" % [num_threads, fetch_tiles_count])
+	threads.clear()
 	for i in range(num_threads):
 		threads.append(Thread.new())
 		threads[i].start(thread_generation_loop.bind(i))
@@ -57,6 +56,13 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	# Check if exiting -> is this even required???
+	threads_running_mutex.lock()
+	var should_exit: bool = !threads_running
+	threads_running_mutex.unlock()
+	if should_exit:
+		return
+
 	# Check regeneration
 	if self.regenerate and (Time.get_unix_time_from_system() - last_regeneration_timestamp) > max_regeneration_delay:
 		last_regeneration_timestamp = Time.get_unix_time_from_system()
@@ -159,20 +165,32 @@ func queue_new_tiles_for_generation() -> void:
 	to_generate_mutex.unlock()
 	# MUTEX UNLOCK
 
+	# Notify threads
 	if num_queued > 0:
-		# Notify threads
 		to_generate_semaphore.post(num_queued)
 
-
+####################################################################################################
+# THREAD FUNCTION
+####################################################################################################
 func thread_generation_loop(thread_id: int) -> void:
-	while threads_running:
+	thread_id = OS.get_thread_caller_id()
+
+	while true:
+		# Wait for new data (also posted on exit signal)
+		print("THREAD %d: Waiting for data" % thread_id)
 		to_generate_semaphore.wait()
+		print("THREAD %d: Got data" % thread_id)
 
-		if not threads_running:
+		# Exit if requested
+		threads_running_mutex.lock()
+		var should_exit: bool = not threads_running
+		threads_running_mutex.unlock()
+		if should_exit:
 			print("THREAD %d: Exiting" % thread_id)
-			break
+			return
 
-		# var t_start := Time.get_ticks_usec()
+
+		print("THREAD %d: Generating" % thread_id)
 
 		var keys: Array[int] = []
 		var hex_poses: Array[HexPos] = []
@@ -197,6 +215,7 @@ func thread_generation_loop(thread_id: int) -> void:
 
 		to_generate_mutex.unlock()
 		# MUTEX UNLOCK
+		print("THREAD %d: Generating %d tiles" % [thread_id, keys.size()])
 
 		# Abort if no keys
 		if keys.is_empty():
@@ -204,17 +223,19 @@ func thread_generation_loop(thread_id: int) -> void:
 
 		# Generate geometry input (dirt cheap ~ < 1ms) and HexGeometry itself (expensive ~ 50ms per tile)
 		for i in range(keys.size()):
+			print("THREAD %d: Generating tile %s" % [thread_id, hex_poses[i]._to_string()])
 			var geometry_input := HexGeometryInputMap.create_complete_hex_geometry_input(hex_poses[i])
+			print("THREAD %d: Finished generating geometry input %s" % [thread_id, hex_poses[i]._to_string()])
 			tiles[i].generate(geometry_input)
+			print("THREAD %d: Finished generating tile %s" % [thread_id, hex_poses[i]._to_string()])
+
+		print("THREAD %d: Finished generating %d tiles" % [thread_id, keys.size()])
 
 		# Add to generated queue
 		generated_mutex.lock()
 		for i in range(keys.size()):
 			generated_queue.push_back(keys[i])
 		generated_mutex.unlock()
-
-		# var t := (Time.get_ticks_usec() - t_start) / 1000.0
-		# print("THREAD %d: Generated %d tile(s) in %4.0f ms" % [thread_id, keys.size(), t])
 
 
 func create_empty_hex_tile(hex_pos: HexPos) -> HexTile:
@@ -255,18 +276,36 @@ func delete_everything() -> void:
 ##############################
 # Cleanup
 ##############################
-func _exit_tree() -> void:
+func join_threads() -> void:
 	print("MAIN: Waiting for %d threads to finish" % num_threads)
+	threads_running_mutex.lock()
 	threads_running = false
+	threads_running_mutex.unlock()
 
-	# Empty queue
-	to_generate_mutex.lock()
-	to_generate_queue.clear()
-	to_generate_mutex.unlock()
+	# delete_everything()
 
-	# Post to the semaphore to unblock any waiting threads so they can exit
-	to_generate_semaphore.post(num_threads * 10)
+	print("MAIN: Actually waiting...")
+	# Wait for threads to finish
+	while threads.size() > 0:
+		# Post to the semaphore to unblock any waiting threads so they can exit
+		to_generate_semaphore.post(threads.size() * 10)
 
-	for thread in threads:
-		thread.wait_to_finish()
+		# print("in loop waiting")
+		# await get_tree().create_timer(0.01).timeout # Sleep for 2 seconds
+
+		var deleted: Array[int] = []
+
+		for i in range(threads.size()):
+			# is_alive == false -> joins immediately
+			if not threads[i].is_alive():
+				print("MAIN: wait for finisdhing thread %d" % i)
+				threads[i].wait_to_finish()
+				deleted.push_back(i)
+				break # delete only one per iteration
+
+		# Actually delete finished
+		for i in deleted:
+			print("MAIN: Deleting thead %d" % i)
+			threads.remove_at(i)
+	
 	print("MAIN: %d threads finished" % num_threads)

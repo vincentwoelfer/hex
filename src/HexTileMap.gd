@@ -79,8 +79,9 @@ static func delete_by_pos(hex_pos: HexPos) -> void:
 
 static func free_all() -> void:
 	mutex.lock()
-	for i: int in tiles:
-		if tiles[i] != null:
-			tiles[i].free()
+	# IS THIS REQUIRED ???
+	# for i: int in tiles:
+	# 	if tiles[i] != null:
+	# 		tiles[i].free()
 	tiles.clear()
 	mutex.unlock()

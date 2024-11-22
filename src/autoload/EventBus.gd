@@ -88,7 +88,7 @@ func _input(event: InputEvent) -> void:
 	# NON-Signal Input Actions
 	###################################################################
 		if event.is_action_pressed("quit_game"):
-			get_tree().quit()
+			call_deferred("quit_game")
 
 		if event.is_action_pressed("toogle_occlusion_culling"):
 			if not DebugSettings.generate_terrain_occluder:
@@ -98,6 +98,12 @@ func _input(event: InputEvent) -> void:
 			get_tree().root.use_occlusion_culling = !get_tree().root.use_occlusion_culling
 			print("Occlusion Culling set to ", get_tree().root.use_occlusion_culling)
 
+
+func quit_game() -> void:
+	print("================================= Quitting game =================================")
+	# Finish threds before quitting tree
+	(get_node('../MainScene/%MapGeneration') as MapGeneration).join_threads()
+	get_tree().quit()
 
 func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:
 	print("EventBus: Weather Changed to ", WeatherControl.WeatherType.keys()[new_weather])
