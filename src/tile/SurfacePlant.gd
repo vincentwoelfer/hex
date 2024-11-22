@@ -183,6 +183,20 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 		multi_mesh.set_instance_transform(i, t)
 
 
+	# Example on how to set values directly!!!!
+	# 	# creates a buffer for the transform
+	# var buffer = PackedFloat32Array()
+	# for i in range(25):
+	# 	buffer.append_array([1,0,0,20*randf()-10,0,1,0,0.0,0,0,1,20*randf()-10])
+	
+	# # instances for the first multimesh
+	# multimesh.set_buffer(buffer)
+	
+	# # instances for the second multimesh
+	# for i in range(25):
+	# 	multimesh2.set_instance_transform(i, Transform3D(Basis(), Vector3(buffer[12*i+3],0,buffer[12*i+11])))
+	
+
 	mesh_instance.multimesh = multi_mesh
 
 # Key as last parameter to allow tween to bind this

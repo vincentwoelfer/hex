@@ -9,11 +9,11 @@ extends Node
 # Distance from center to the corners.
 # This is the same as the length of the sides.
 # Also known as "size"
-var outer_radius: float = 4.0
+var outer_radius: float = 1.5
 
 # Radius of the workable Regular area.
 # Must be smaller than outer_radius * 0.86 (size of largest circle in outer hex)
-var inner_radius: float = 3.3
+var inner_radius: float = 1.1
 
 # Height of one hex cell
 var height: float = 0.5

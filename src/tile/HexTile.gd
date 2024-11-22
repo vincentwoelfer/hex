@@ -97,7 +97,11 @@ func generate(geometry_input: HexGeometryInput) -> void:
 		geometry_input.create_debug_visualization(self)
 
 	if DebugSettings.generate_collision and self.height > 0:
-		terrainMesh.create_convex_collision(true, true)
+		#terrainMesh.create_convex_collision(true, false)
+		#terrainMesh.create_multiple_convex_collisions(null)
+
+		# TODO most accurate but slowest. Maybe manually simplify mesh beforehand?
+		terrainMesh.create_trimesh_collision()
 
 	if self.height > 0 and geometry.samplerHorizontal.is_valid():
 		# Add plants
@@ -122,12 +126,21 @@ func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 	if not sampler.is_valid():
 		return null
 
+	var rock_density_per_square_meter: float = 0.25
+	# Standard deviation = x means:
+	# 66% of samples are within [-x, x] of the mean
+	# 96% of samples are within [-2x, 2x] of the mean
+	var num_rocks: int = round(randfn(rock_density_per_square_meter, rock_density_per_square_meter)) * sampler.get_total_area()
+
+	if num_rocks <= 0:
+		return null
+
 	var st_combined: SurfaceTool = SurfaceTool.new()
-	for i in range(1, 8):
+	for i in range(num_rocks):
 		var t: Transform3D = sampler.get_random_point_transform()
 		t = t.rotated_local(Vector3.UP, randf_range(0.0, TAU))
 
-		# Random large rocks
+		# Random huge rock
 		if randf() <= 0.05:
 			t = t.scaled_local(Vector3.ONE * randf_range(6.0, 8.0))
 			t = t.translated_local(Vector3.UP * -0.1) # Move down a bit

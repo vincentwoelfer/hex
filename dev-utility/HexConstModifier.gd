@@ -3,19 +3,19 @@ extends Node
 
 # See HexConst
 
-@export_range(2.0, 5.0, 0.1) var outer_radius: float = HexConst.outer_radius:
+@export_range(0.5, 5.0, 0.1) var outer_radius: float = HexConst.outer_radius:
 	set(value):
 		outer_radius = value
 		HexConst.outer_radius = value
 		EventBus.emit_signal("Signal_HexConstChanged")
 
-@export_range(1.5, 4.0, 0.1) var inner_radius: float = HexConst.inner_radius:
+@export_range(0.3, 4.0, 0.1) var inner_radius: float = HexConst.inner_radius:
 	set(value):
 		inner_radius = value
 		HexConst.inner_radius = value
 		EventBus.emit_signal("Signal_HexConstChanged")
 
-@export_range(0.4, 5.0, 0.1) var height: float = HexConst.height:
+@export_range(0.1, 5.0, 0.1) var height: float = HexConst.height:
 	set(value):
 		height = value
 		HexConst.height = value
@@ -57,13 +57,13 @@ extends Node
 		HexConst.smooth_height_factor_outer = value
 		EventBus.emit_signal("Signal_HexConstChanged")
 
-@export_range(0, 40, 1) var trans_type_max_height_diff: int = HexConst.trans_type_max_height_diff:
+@export_range(0, 80, 1) var trans_type_max_height_diff: int = HexConst.trans_type_max_height_diff:
 	set(value):
 		trans_type_max_height_diff = value
 		HexConst.trans_type_max_height_diff = value
 		EventBus.emit_signal("Signal_HexConstChanged")
 
-@export_range(0, 100.0, 1.0) var grass_density: float = HexConst.grass_density:
+@export_range(0.0, 50.0, 0.5) var grass_density: float = HexConst.grass_density:
 	set(value):
 		grass_density = value
 		HexConst.grass_density = value

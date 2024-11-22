@@ -22,13 +22,13 @@ auto_exposure_min_sensitivity = 100.0
 [node name="TestScene" type="Node3D"]
 
 [node name="HexConstModifier" parent="." instance=ExtResource("12_e2267")]
-outer_radius = 4.0
-inner_radius = 3.3
-height = 0.7
+outer_radius = 1.5
+inner_radius = 1.0
+height = 0.5
 transition_height_factor = 0.5
 core_circle_smooth_strength = 0.5
-extra_verts_per_side = 3
-extra_verts_per_center = 11
+extra_verts_per_side = 1
+extra_verts_per_center = 4
 smooth_height_factor_inner = 1.0
 smooth_height_factor_outer = 1.0
 trans_type_max_height_diff = 6
