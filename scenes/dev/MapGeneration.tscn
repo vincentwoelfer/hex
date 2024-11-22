@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://bi8xpy2pdq81q"]
+[gd_scene load_steps=14 format=3 uid="uid://bi8xpy2pdq81q"]
 
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://assets/misc/DefaultEnvironment.tres" id="2_2n06e"]
 [ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://assets/misc/CameraAttributes.tres" id="3_lr7o2"]
@@ -9,7 +9,9 @@
 [ext_resource type="Script" path="res://src/control-nodes/WorldLightControl.gd" id="8_4pj04"]
 [ext_resource type="Script" path="res://src/control-nodes/WorldTimeManager.gd" id="9_pfdia"]
 [ext_resource type="PackedScene" uid="uid://gefdglv0vl5e" path="res://scenes/control-nodes/WeatherControl.tscn" id="9_ukl4i"]
+[ext_resource type="PackedScene" uid="uid://ssq7i7inyhan" path="res://scenes/objects/trees/elm_tree_v1.tscn" id="11_mefgp"]
 [ext_resource type="PackedScene" uid="uid://dfndyapevvb2g" path="res://dev-utility/USE_THIS_HexConstantsModifier.tscn" id="12_e2267"]
+[ext_resource type="PackedScene" uid="uid://bj63bvmxl54uy" path="res://scenes/objects/trees/pine_tree_v1.tscn" id="12_ohfct"]
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_t12eh"]
 auto_exposure_enabled = true
@@ -87,3 +89,9 @@ offset_top = 40.0
 offset_right = -40.0
 offset_bottom = 340.0
 grow_horizontal = 0
+
+[node name="elm_tree_v1" parent="." instance=ExtResource("11_mefgp")]
+transform = Transform3D(0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 165.434, 68.545, -240.519)
+
+[node name="pine_tree_v1" parent="." instance=ExtResource("12_ohfct")]
+transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 165.809, 67.9052, -240.928)

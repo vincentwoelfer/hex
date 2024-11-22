@@ -1,0 +1,16 @@
+[gd_resource type="StandardMaterial3D" load_steps=3 format=3 uid="uid://tjr4vtk2ies5"]
+
+[ext_resource type="Texture2D" uid="uid://cco7nn6dwi7hd" path="res://assets/materials/trees/elm_leaf_albedo.png" id="1_cs0x8"]
+[ext_resource type="Texture2D" uid="uid://3dm43rfhr5qe" path="res://assets/materials/trees/elm_leaf_translucency.png" id="2_y51dv"]
+
+[resource]
+resource_name = "elm leaf"
+transparency = 2
+alpha_scissor_threshold = 0.5
+alpha_antialiasing_mode = 0
+vertex_color_is_srgb = true
+albedo_color = Color(0.62, 0.62, 0.62, 1)
+albedo_texture = ExtResource("1_cs0x8")
+backlight_enabled = true
+backlight = Color(0.265846, 0.265846, 0.265846, 1)
+backlight_texture = ExtResource("2_y51dv")

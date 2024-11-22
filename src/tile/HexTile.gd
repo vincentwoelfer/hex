@@ -50,9 +50,18 @@ func _init(hex_pos_: HexPos, height_: int) -> void:
 	# Load Rocks and Trees - hardcoded numbers for now
 	for i in range(1, 10):
 		allAvailRockMeshes.append(load('res://assets/blender/objects/rocks/rock_collection_1_' + str(i) + '.res') as Mesh)
-	for i in range(1, 3):
-		allAvailTreeMeshes.append(load("res://assets/blender/objects/trees/pine_tree_v" + str(i) + ".obj"))
-	
+
+	var tree_path := "res://scenes/objects/trees/" 
+	var dir := DirAccess.open(tree_path)
+	if dir:
+		dir.list_dir_begin()
+		var file_name := dir.get_next()
+		while file_name != "":
+			
+			if "tree" in file_name and file_name.ends_with(".tscn"):
+				var tree_scene : PackedScene = load(tree_path + file_name)
+				allAvailTreeMeshes.append(tree_scene)
+			file_name = dir.get_next()
 	
 	self.params = HexTileParams.new() # Randomizes everything
 
@@ -133,7 +142,7 @@ func generate(geometry_input: HexGeometryInput) -> void:
 
 		# Add trees
 		if DebugSettings.enable_trees:
-			if randf() < 0.02:
+			if randf() < 0.02: #0.02:
 				addTree(geometry.samplerHorizontal)
 			#if treesMesh != null:
 				#trees = MeshInstance3D.new()
@@ -169,13 +178,16 @@ func addTree(sampler: PolygonSurfaceSampler) -> void:
 	var t: Transform3D = sampler.get_random_point_transform()
 	t = t.rotated_local(Vector3.UP, randf_range(0.0, TAU))
 
-	# Randomize large trees
-	t = t.scaled_local(Vector3.ONE * 0.05)
+	#t.scaled(Vector3.ONE * 0.08)
+	#t = t.scaled_local(Vector3.ONE * 0.08) #0.05
 
 	# Pick a random tree scene and instance it
 	var tree_scene: PackedScene = allAvailTreeMeshes.pick_random()
 	var tree_instance: Node3D = tree_scene.instantiate() as Node3D
+	var original_scale: Vector3 = tree_instance.transform.basis.get_scale()
+	t = t.scaled_local(original_scale)
 	tree_instance.transform = t
+	
 
 	# Add to the scene tree
 	add_child(tree_instance)
