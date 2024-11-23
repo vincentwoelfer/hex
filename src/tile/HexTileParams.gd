@@ -12,7 +12,3 @@ func _init() -> void:
 	shade = randf_range(0.2, 0.9)
 	nutrition = randf_range(0.2, 0.9)
 	is_secret_stash = randf() < 0.1
-
-	# Doesnt do anything, surprise Nek
-	if humidity <= 0.1:
-		tile_type = "Dry Meadow"

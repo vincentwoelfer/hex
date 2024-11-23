@@ -10,8 +10,6 @@ const DEFAULT_TERRAIN_MAT: Material = preload('res://assets/materials/default_ge
 const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
 const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.tres')
 
-var allAvailRockMeshes: Array[ArrayMesh]
-
 # Core Variables
 var hex_pos: HexPos
 var height: int
@@ -25,8 +23,6 @@ var terrainOccluderInstance: OccluderInstance3D
 var plant: SurfacePlant
 var rocks: MeshInstance3D
 
-var rocksMesh: Mesh
-
 # Does not much, only actual constructor
 func _init(hex_pos_: HexPos, height_: int) -> void:
 	self.hex_pos = hex_pos_
@@ -39,26 +35,25 @@ func _init(hex_pos_: HexPos, height_: int) -> void:
 	self.plant = null
 	self.rocks = null
 	self.terrainMesh = null
-
-	# Load Rocks - hardcoded numbers for now
-	for i in range(1, 10):
-		allAvailRockMeshes.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as Mesh)
-
+	self.label = null
 	self.params = HexTileParams.new() # Randomizes everything
 
-	if height > 0:
-		label = HexTileLabel.new(params)
-		add_child(label)
-
+	# TODO move to static place
+	# Load Rocks - hardcoded numbers for now
+	# for i in range(1, 10):
+		# allAvailRockMeshes.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as Mesh)
+	
 
 func _ready() -> void:
+	if height > 0:
+		label = HexTileLabel.new(params)
+		label.set_label_world_pos(global_position)
+		add_child(label)
+
 	# Signals
 	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
 	EventBus.Signal_WorldStep.connect(processWorldStep)
-
-	if label != null:
-		label.set_label_world_pos(global_position)
-
+		
 
 func generate(geometry_input: HexGeometryInput) -> void:
 	assert(geometry_input != null)
@@ -125,7 +120,7 @@ func generate(geometry_input: HexGeometryInput) -> void:
 
 		# Add rocks
 		if DebugSettings.enable_rocks:
-			rocksMesh = addRocks(geometry.samplerHorizontal)
+			var rocksMesh := addRocks(geometry.samplerHorizontal)
 			if rocksMesh != null:
 				rocks = MeshInstance3D.new()
 				rocks.name = "Rocks"
@@ -159,7 +154,7 @@ func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 			t = t.scaled_local(Vector3.ONE * randf_range(6.0, 8.0))
 			t = t.translated_local(Vector3.UP * -0.1) # Move down a bit
 
-		var mesh: ArrayMesh = self.allAvailRockMeshes.pick_random()
+		var mesh: Mesh = ResLoader.basic_rocks_meshes.pick_random()
 		st_combined.append_from(mesh, 0, t)
 	return st_combined.commit()
 

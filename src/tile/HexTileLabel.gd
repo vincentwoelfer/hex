@@ -1,7 +1,7 @@
 class_name HexTileLabel
 extends Node3D
 
-var label := RichTextLabel.new()
+var label: RichTextLabel = null
 var is_label_visible := false
 var label_world_pos: Vector3
 
@@ -9,9 +9,18 @@ var color_humidity: Color = Color.BLUE.lightened(0.2)
 var color_shade: Color = Color.BLACK.lightened(0.1)
 var color_nutrition: Color = Color.DARK_OLIVE_GREEN
 
+var initial_params: HexTileParams = null
+
+
 func _init(params: HexTileParams) -> void:
-	update_label_text(params)
-	add_child(label, true)
+	initial_params = params
+
+
+func _ready() -> void:
+	label = RichTextLabel.new()
+	label.visible = is_label_visible
+	add_child(label)
+	update_label_text(initial_params)
 
 
 func set_label_world_pos(world_pos: Vector3) -> void:

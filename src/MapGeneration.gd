@@ -9,19 +9,19 @@ var max_regeneration_delay := 1.0
 
 # Queues
 var to_generate_queue: Array[int] = []
-var to_generate_mutex: Mutex = Mutex.new()
-var to_generate_semaphore: Semaphore = Semaphore.new()
+var to_generate_mutex: Mutex
+var to_generate_semaphore: Semaphore
 
 var generated_queue: Array[int] = []
-var generated_mutex: Mutex = Mutex.new()
+var generated_queue_mutex: Mutex
 
 # Threads
 var threads: Array[Thread] = []
 # 3-4 is sweet spot on my machine
 var num_threads: int = 3
 var threads_running: bool = true
-var threads_running_mutex: Mutex = Mutex.new()
-var fetch_tiles_count := 1
+var threads_running_mutex: Mutex
+var fetch_tiles_count := 4
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
 var tile_generation_distance := roundi(50.0 / HexConst.vertical_size())
@@ -40,6 +40,12 @@ func _ready() -> void:
 		print("Detected headless, not starting map generation!")
 		num_threads = 0
 		return
+
+	# Init stuff
+	to_generate_mutex = Mutex.new()
+	to_generate_semaphore = Semaphore.new()
+	generated_queue_mutex = Mutex.new()
+	threads_running_mutex = Mutex.new()
 
 	# Create thread
 	print("MAIN: Starting %d threads with %d fetch_tiles_count" % [num_threads, fetch_tiles_count])
@@ -81,12 +87,12 @@ func _process(delta: float) -> void:
 	# Testing
 	if not testing_complete:
 		var expected := HexPos.compute_num_tiles_in_range(tile_generation_distance, true)
-		if HexTileMap.tiles.size() >= expected:
+		if HexTileMap.get_size() >= expected:
 			var t := (Time.get_ticks_usec() - t_start_) / 1000.0
-			print("=======================================================")
+			print("MAIN: =======================================================")
 			print("MAIN: Process took %4.0f ms to generate %d tiles (N=%d)" % [t, expected, tile_generation_distance])
 			print("MAIN: Thread count: %d, fetch_tiles_count: %d" % [num_threads, fetch_tiles_count])
-			print("=======================================================")
+			print("MAIN: =======================================================")
 			testing_complete = true
 
 
@@ -108,10 +114,10 @@ func update_generation_position() -> bool:
 # Fetch all generated tile hashes, get the tile from the HexTileMap and add them to the scene
 func fetch_and_add_all_generated_tiles() -> void:
 	# MUTEX LOCK
-	generated_mutex.lock()
+	generated_queue_mutex.lock()
 	var generated_queue_copy: Array[int] = generated_queue.duplicate()
 	generated_queue.clear()
-	generated_mutex.unlock()
+	generated_queue_mutex.unlock()
 	# MUTEX UNLOCK
 
 	for key: int in generated_queue_copy:
@@ -146,10 +152,16 @@ func queue_new_tiles_for_generation() -> void:
 		if HexTileMap.get_by_hash(key) == null:
 			hashes_filtered.push_back(key)
 
-	var num_queued := 0
+	# Early return
+	if hashes_filtered.is_empty():
+		return
 
 	# MUTEX LOCK
+	print("MAIN: Waiting for to_generate_mutex")
 	to_generate_mutex.lock()
+	print("MAIN: Got to_generate_mutex")
+
+	var num_queued := 0
 	for key in hashes_filtered:
 		# Filter again, this time in to_generate_mutex
 		if HexTileMap.get_by_hash(key) != null:
@@ -163,6 +175,7 @@ func queue_new_tiles_for_generation() -> void:
 			num_queued += 1
 
 	to_generate_mutex.unlock()
+	print("MAIN: Unlocked to_generate_mutex")
 	# MUTEX UNLOCK
 
 	# Notify threads
@@ -177,7 +190,7 @@ func thread_generation_loop(thread_id: int) -> void:
 
 	while true:
 		# Wait for new data (also posted on exit signal)
-		print("THREAD %d: Waiting for data" % thread_id)
+		print("THREAD %d: Waiting for data (to_generate_semaphore.wait())" % thread_id)
 		to_generate_semaphore.wait()
 		print("THREAD %d: Got data" % thread_id)
 
@@ -200,6 +213,8 @@ func thread_generation_loop(thread_id: int) -> void:
 		# MUTEX LOCK
 		to_generate_mutex.lock()
 
+		print("THREAD %d: Got to_generate_mutex" % thread_id)
+
 		# Fetch keys
 		for i in range(fetch_tiles_count):
 			# Fetch and pop key, save hex_pos and create empty tile for it
@@ -215,10 +230,11 @@ func thread_generation_loop(thread_id: int) -> void:
 
 		to_generate_mutex.unlock()
 		# MUTEX UNLOCK
-		print("THREAD %d: Generating %d tiles" % [thread_id, keys.size()])
+		print("THREAD %d: Unlocked to_generate_mutex, Generating %d tiles" % [thread_id, keys.size()])
 
 		# Abort if no keys
 		if keys.is_empty():
+			print("THREAD %d: No keys to generate" % thread_id)
 			continue
 
 		# Generate geometry input (dirt cheap ~ < 1ms) and HexGeometry itself (expensive ~ 50ms per tile)
@@ -232,10 +248,10 @@ func thread_generation_loop(thread_id: int) -> void:
 		print("THREAD %d: Finished generating %d tiles" % [thread_id, keys.size()])
 
 		# Add to generated queue
-		generated_mutex.lock()
+		generated_queue_mutex.lock()
 		for i in range(keys.size()):
 			generated_queue.push_back(keys[i])
-		generated_mutex.unlock()
+		generated_queue_mutex.unlock()
 
 
 func create_empty_hex_tile(hex_pos: HexPos) -> HexTile:
@@ -261,9 +277,9 @@ func set_regenerate() -> void:
 func delete_everything() -> void:
 	print("Deleting everything!")
 
-	generated_mutex.lock()
+	generated_queue_mutex.lock()
 	generated_queue.clear()
-	generated_mutex.unlock()
+	generated_queue_mutex.unlock()
 
 	to_generate_mutex.lock()
 	to_generate_queue.clear()
@@ -290,22 +306,19 @@ func join_threads() -> void:
 		# Post to the semaphore to unblock any waiting threads so they can exit
 		to_generate_semaphore.post(threads.size() * 10)
 
-		# print("in loop waiting")
-		# await get_tree().create_timer(0.01).timeout # Sleep for 2 seconds
-
-		var deleted: Array[int] = []
+		var to_delete_idx: int = -1
 
 		for i in range(threads.size()):
 			# is_alive == false -> joins immediately
 			if not threads[i].is_alive():
 				print("MAIN: wait for finisdhing thread %d" % i)
 				threads[i].wait_to_finish()
-				deleted.push_back(i)
+				to_delete_idx = i
 				break # delete only one per iteration
 
 		# Actually delete finished
-		for i in deleted:
-			print("MAIN: Deleting thead %d" % i)
-			threads.remove_at(i)
+		if to_delete_idx != -1:
+			print("MAIN: Deleting thead %d" % to_delete_idx)
+			threads.remove_at(to_delete_idx)
 	
 	print("MAIN: %d threads finished" % num_threads)

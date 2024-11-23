@@ -220,9 +220,9 @@ static func compute_num_tiles_for_ring(radius: int) -> int:
 	return 6 * radius
 
 static func invalid() -> HexPos:
-	var invalid := HexPos.new(0, 0, 0)
-	invalid.s = -1
-	return invalid
+	var invalid_ := HexPos.new(0, 0, 0)
+	invalid_.s = -1
+	return invalid_
 
 ##########################################################################################
 # Conversion functions between x/y/z world space and hex coordinates

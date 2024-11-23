@@ -64,6 +64,7 @@ func _input(event: InputEvent) -> void:
 	if not Engine.is_editor_hint():
 
 		if event.is_action_pressed("toogle_per_tile_ui"):
+			print("Toogle per tile UI")
 			Signal_TooglePerTileUi.emit()
 
 		if event.is_action_pressed("toogle_world_time_auto_advance"):

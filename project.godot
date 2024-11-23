@@ -22,6 +22,7 @@ config/icon="res://assets/ui/icons/gameart_icon.png"
 
 EventBus="*res://src/autoload/EventBus.gd"
 HexConst="*res://src/autoload/HexConst.gd"
+ResLoader="*res://src/autoload/ResLoader.gd"
 
 [debug]
 
