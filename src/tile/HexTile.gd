@@ -51,7 +51,7 @@ func _init(hex_pos_: HexPos, height_: int) -> void:
 	for i in range(1, 10):
 		allAvailRockMeshes.append(load('res://assets/blender/objects/rocks/rock_collection_1_' + str(i) + '.res') as Mesh)
 
-	var tree_path := "res://scenes/objects/trees/" 
+	var tree_path := "res://scenes/objects/trees/"
 	var dir := DirAccess.open(tree_path)
 	if dir:
 		dir.list_dir_begin()
@@ -59,7 +59,7 @@ func _init(hex_pos_: HexPos, height_: int) -> void:
 		while file_name != "":
 			
 			if "tree" in file_name and file_name.ends_with(".tscn"):
-				var tree_scene : PackedScene = load(tree_path + file_name)
+				var tree_scene: PackedScene = load(tree_path + file_name)
 				allAvailTreeMeshes.append(tree_scene)
 			file_name = dir.get_next()
 	
@@ -139,15 +139,8 @@ func generate(geometry_input: HexGeometryInput) -> void:
 
 		# Add trees
 		if DebugSettings.enable_trees:
-			if randf() < 0.02: #0.02:
+			if randf() < 0.03:
 				addTree(geometry.samplerHorizontal)
-			#if treesMesh != null:
-				#trees = MeshInstance3D.new()
-				#trees.name = "Trees"
-				##trees.material_override = TREE_MATERIAL
-				##trees.set_surface_override_material(0, )
-				#trees.mesh = treesMesh
-				#add_child(trees, false)
 
 func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 	if not sampler.is_valid():
@@ -171,8 +164,14 @@ func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 func addTree(sampler: PolygonSurfaceSampler) -> void:
 	if not sampler.is_valid():
 		return
-		
-	var t: Transform3D = sampler.get_random_point_transform()
+
+	var point_and_normal := sampler.get_random_point_and_normal()
+	var point := point_and_normal[0]
+	var normal := point_and_normal[1]
+
+	var up := Vector3.UP.lerp(normal, 0.25).normalized()
+	var t: Transform3D = Util.transformFromPointAndNormal(point, up)
+
 	t = t.rotated_local(Vector3.UP, randf_range(0.0, TAU))
 
 	#t.scaled(Vector3.ONE * 0.08)
@@ -185,7 +184,6 @@ func addTree(sampler: PolygonSurfaceSampler) -> void:
 	t = t.scaled_local(original_scale)
 	tree_instance.transform = t
 	
-
 	# Add to the scene tree
 	add_child(tree_instance)
 

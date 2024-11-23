@@ -50,8 +50,9 @@ func _ready() -> void:
 	add_child(timer)
 	timer.start()
 	timer.timeout.connect(func() -> void:
-		var camera_position: Vector3 = get_viewport().get_camera_3d().global_transform.origin
-		Signal_TriggerLod.emit(camera_position)
+		if not Engine.is_editor_hint():
+			var camera_position: Vector3 = get_viewport().get_camera_3d().global_transform.origin
+			Signal_TriggerLod.emit(camera_position)
 	)
 
 	# Set occlusion culling on startup

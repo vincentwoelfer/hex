@@ -1,0 +1,24 @@
+[gd_resource type="ShaderMaterial" load_steps=4 format=3 uid="uid://bf6ms1tyr6uth"]
+
+[ext_resource type="Shader" path="res://assets/shaders/spatial/tree_branches.gdshader" id="1_hx4n7"]
+[ext_resource type="Texture2D" uid="uid://chnomx51pijfs" path="res://assets/materials/trees/needles_albedo_drawn.png" id="2_gk0du"]
+[ext_resource type="Texture2D" uid="uid://dwnostvhlk0v0" path="res://assets/materials/trees/needles_transmission.png" id="3_6m6oj"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_hx4n7")
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/backlight_color = Color(1, 1, 1, 1)
+shader_parameter/texture_albedo = ExtResource("2_gk0du")
+shader_parameter/texture_backlight = ExtResource("3_6m6oj")
+shader_parameter/uv1_scale = Vector2(1, 1)
+shader_parameter/uv1_offset = null
+shader_parameter/alpha_scissor_threshold = 0.2
+shader_parameter/normal_scale = 1.0
+shader_parameter/roughness = 1.0
+shader_parameter/specular = 0.5
+shader_parameter/max_distance = 100.0
+shader_parameter/wind_enabled = true
+shader_parameter/is_branch = true
+shader_parameter/tree_wind_size = Vector4(5000, 1500, 500, 5)
+shader_parameter/tree_wind_power = Vector3(10, 10, 2)
