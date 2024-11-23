@@ -293,14 +293,14 @@ func join_threads() -> void:
 		for i in range(threads.size()):
 			# is_alive == false -> joins immediately
 			if not threads[i].is_alive():
-				print("MAIN: Finishing thread %d" % i)
+				# print("MAIN: Finishing thread %d" % i)
 				threads[i].wait_to_finish()
 				to_delete_idx = i
 				break # delete only one per iteration
 
 		# Actually delete finished
 		if to_delete_idx != -1:
-			print("MAIN: Deleting thead %d" % to_delete_idx)
+			# print("MAIN: Deleting thead %d" % to_delete_idx)
 			threads.remove_at(to_delete_idx)
 	
 	print("MAIN: All %d threads finished" % num_threads)
