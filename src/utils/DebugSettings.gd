@@ -14,6 +14,7 @@ static var generate_terrain_occluder: bool = false
 static var use_distinc_hex_colors: bool = false
 static var visualize_hex_input: bool = false
 static var visualize_plant_custom_aabb: bool = false
+static var visualize_collision_shapes: bool = false
 
 # Environment
 static var fixed_sun_energy: bool = false

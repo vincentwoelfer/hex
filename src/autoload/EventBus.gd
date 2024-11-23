@@ -57,6 +57,9 @@ func _ready() -> void:
 	# Set occlusion culling on startup
 	get_tree().root.use_occlusion_culling = DebugSettings.generate_terrain_occluder
 
+	# Set collision shape visualisation on startup
+	get_tree().set_debug_collisions_hint(DebugSettings.visualize_collision_shapes)
+
 
 # React to keyboard inputs to directly trigger events
 func _input(event: InputEvent) -> void:

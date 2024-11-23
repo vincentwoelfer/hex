@@ -9,6 +9,7 @@ var samplerAll: PolygonSurfaceSampler
 var samplerHorizontal: PolygonSurfaceSampler
 var samplerVertical: PolygonSurfaceSampler
 var occluder: ArrayOccluder3D
+var collision_shape: ConcavePolygonShape3D
 
 # Input Variables. The height is absolute!
 var input: HexGeometryInput
@@ -74,10 +75,44 @@ func generate() -> void:
 	self.samplerVertical.filter_min_incline(45)
 
 	########################################
-	# Occluder
+	# Occluder && Collision Shape
 	########################################
 	if DebugSettings.generate_terrain_occluder:
 		generateOccluder()
+
+	if DebugSettings.generate_collision:
+		generateCollisionShape()
+
+
+func generateCollisionShape() -> void:
+	var collision_trix: Array[Triangle]
+	var occluder_height := 10
+
+	# # Generate top surface triangles
+	# for i in range(1, 6 - 1):
+	# 	collision_trix.append(Triangle.new(input.corner_vertices[0], input.corner_vertices[i], input.corner_vertices[i + 1]))
+
+	# # Side triangles
+	# for i in range(6):
+	# 	var next_i := Util.as_dir(i + 1)
+	# 	var top_a := input.corner_vertices[i]
+	# 	var top_b := input.corner_vertices[next_i]
+	# 	var bottom_a := top_a - Vector3(0, occluder_height, 0)
+	# 	var bottom_b := top_b - Vector3(0, occluder_height, 0)
+		
+	# 	collision_trix.append(Triangle.new(top_a, bottom_a, bottom_b))
+	# 	collision_trix.append(Triangle.new(top_a, bottom_b, top_b))
+
+	# Generate faces from triangles
+	var faces: PackedVector3Array = []
+	for tri in triangles:
+		faces.append(tri.a)
+		faces.append(tri.b)
+		faces.append(tri.c)
+
+	# Create collision shape
+	collision_shape = ConcavePolygonShape3D.new()
+	collision_shape.set_faces(faces)
 
 
 func setInnerAndCenterVertexHeights() -> void:

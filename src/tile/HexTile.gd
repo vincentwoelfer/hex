@@ -23,6 +23,9 @@ var terrainOccluderInstance: OccluderInstance3D
 var plant: SurfacePlant
 var rocks: MeshInstance3D
 
+# Collision
+var collisionBody: StaticBody3D
+
 # Does not much, only actual constructor
 func _init(hex_pos_: HexPos, height_: int) -> void:
 	self.hex_pos = hex_pos_
@@ -32,9 +35,12 @@ func _init(hex_pos_: HexPos, height_: int) -> void:
 	else:
 		self.name = 'HexTile-Invalid'
 
+	self.terrainMesh = null
+	self.terrainOccluderInstance = null
 	self.plant = null
 	self.rocks = null
-	self.terrainMesh = null
+	self.collisionBody = null
+
 	self.label = null
 	self.params = HexTileParams.new() # Randomizes everything
 
@@ -87,11 +93,11 @@ func generate(geometry_input: HexGeometryInput) -> void:
 		geometry_input.create_debug_visualization(self)
 
 	if DebugSettings.generate_collision and self.height > 0:
-		# terrainMesh.create_convex_collision(true, false)
-		# terrainMesh.create_multiple_convex_collisions(null)
+		self.collisionBody = StaticBody3D.new()
+		collisionBody.create_shape_owner(self)
+		collisionBody.shape_owner_add_shape(0, geometry.collision_shape)
+		add_child(collisionBody)
 
-		# TODO most accurate but slowest. Maybe manually simplify mesh beforehand?
-		terrainMesh.create_trimesh_collision()
 
 	if self.height > 0 and geometry.samplerHorizontal.is_valid():
 		# Add plants
