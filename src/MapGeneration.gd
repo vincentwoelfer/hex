@@ -157,9 +157,7 @@ func queue_new_tiles_for_generation() -> void:
 		return
 
 	# MUTEX LOCK
-	print("MAIN: Waiting for to_generate_mutex")
 	to_generate_mutex.lock()
-	print("MAIN: Got to_generate_mutex")
 
 	var num_queued := 0
 	for key in hashes_filtered:
@@ -175,7 +173,6 @@ func queue_new_tiles_for_generation() -> void:
 			num_queued += 1
 
 	to_generate_mutex.unlock()
-	print("MAIN: Unlocked to_generate_mutex")
 	# MUTEX UNLOCK
 
 	# Notify threads
@@ -190,9 +187,7 @@ func thread_generation_loop(thread_id: int) -> void:
 
 	while true:
 		# Wait for new data (also posted on exit signal)
-		print("THREAD %d: Waiting for data (to_generate_semaphore.wait())" % thread_id)
 		to_generate_semaphore.wait()
-		print("THREAD %d: Got data" % thread_id)
 
 		# Exit if requested
 		threads_running_mutex.lock()
@@ -202,9 +197,6 @@ func thread_generation_loop(thread_id: int) -> void:
 			print("THREAD %d: Exiting" % thread_id)
 			return
 
-
-		print("THREAD %d: Generating" % thread_id)
-
 		var keys: Array[int] = []
 		var hex_poses: Array[HexPos] = []
 		var tiles: Array[HexTile] = []
@@ -212,8 +204,6 @@ func thread_generation_loop(thread_id: int) -> void:
 		# Fetch tile hash to generate, remove from queue and already add to HexTileMap to prevent re-queueing
 		# MUTEX LOCK
 		to_generate_mutex.lock()
-
-		print("THREAD %d: Got to_generate_mutex" % thread_id)
 
 		# Fetch keys
 		for i in range(fetch_tiles_count):
@@ -230,22 +220,15 @@ func thread_generation_loop(thread_id: int) -> void:
 
 		to_generate_mutex.unlock()
 		# MUTEX UNLOCK
-		print("THREAD %d: Unlocked to_generate_mutex, Generating %d tiles" % [thread_id, keys.size()])
 
 		# Abort if no keys
 		if keys.is_empty():
-			print("THREAD %d: No keys to generate" % thread_id)
 			continue
 
 		# Generate geometry input (dirt cheap ~ < 1ms) and HexGeometry itself (expensive ~ 50ms per tile)
 		for i in range(keys.size()):
-			print("THREAD %d: Generating tile %s" % [thread_id, hex_poses[i]._to_string()])
 			var geometry_input := HexGeometryInputMap.create_complete_hex_geometry_input(hex_poses[i])
-			print("THREAD %d: Finished generating geometry input %s" % [thread_id, hex_poses[i]._to_string()])
 			tiles[i].generate(geometry_input)
-			print("THREAD %d: Finished generating tile %s" % [thread_id, hex_poses[i]._to_string()])
-
-		print("THREAD %d: Finished generating %d tiles" % [thread_id, keys.size()])
 
 		# Add to generated queue
 		generated_queue_mutex.lock()
@@ -299,8 +282,7 @@ func join_threads() -> void:
 	threads_running_mutex.unlock()
 
 	# delete_everything()
-
-	print("MAIN: Actually waiting...")
+	
 	# Wait for threads to finish
 	while threads.size() > 0:
 		# Post to the semaphore to unblock any waiting threads so they can exit
@@ -311,7 +293,7 @@ func join_threads() -> void:
 		for i in range(threads.size()):
 			# is_alive == false -> joins immediately
 			if not threads[i].is_alive():
-				print("MAIN: wait for finisdhing thread %d" % i)
+				print("MAIN: Finishing thread %d" % i)
 				threads[i].wait_to_finish()
 				to_delete_idx = i
 				break # delete only one per iteration
@@ -321,4 +303,4 @@ func join_threads() -> void:
 			print("MAIN: Deleting thead %d" % to_delete_idx)
 			threads.remove_at(to_delete_idx)
 	
-	print("MAIN: %d threads finished" % num_threads)
+	print("MAIN: All %d threads finished" % num_threads)

@@ -33,13 +33,8 @@ static func _add(hex_pos: HexPos, key: int, height: int) -> HexTile:
 		return tile
 
 	# Add new
-	print("THREAD %d: _add before new." % OS.get_thread_caller_id())
-	print("hex_pos: ", hex_pos)
-	print("height: ", height)
 	var t: HexTile = HexTile.new(hex_pos, height)
-	print("THREAD %d: _add after new" % OS.get_thread_caller_id())
 	tiles.set(key, t)
-	print("THREAD %d: _add after set" % OS.get_thread_caller_id())
 	tile = tiles.get(key)
 
 	mutex.unlock()

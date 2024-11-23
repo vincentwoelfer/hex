@@ -64,7 +64,7 @@ func _input(event: InputEvent) -> void:
 	if not Engine.is_editor_hint():
 
 		if event.is_action_pressed("toogle_per_tile_ui"):
-			print("Toogle per tile UI")
+			print("PerTileUI visibility toogled")
 			Signal_TooglePerTileUi.emit()
 
 		if event.is_action_pressed("toogle_world_time_auto_advance"):
@@ -105,6 +105,7 @@ func quit_game() -> void:
 	# Finish threds before quitting tree
 	(get_node('../MainScene/%MapGeneration') as MapGeneration).join_threads()
 	get_tree().quit()
+
 
 func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:
 	print("EventBus: Weather Changed to ", WeatherControl.WeatherType.keys()[new_weather])

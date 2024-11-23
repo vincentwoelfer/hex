@@ -38,11 +38,6 @@ func _init(hex_pos_: HexPos, height_: int) -> void:
 	self.label = null
 	self.params = HexTileParams.new() # Randomizes everything
 
-	# TODO move to static place
-	# Load Rocks - hardcoded numbers for now
-	# for i in range(1, 10):
-		# allAvailRockMeshes.append(load('res://assets/blender/objects/rock_collection_1_' + str(i) + '.res') as Mesh)
-	
 
 func _ready() -> void:
 	if height > 0:
@@ -72,8 +67,6 @@ func generate(geometry_input: HexGeometryInput) -> void:
 	for c in self.get_children():
 		c.free()
 
-	print("THREAD %d: XXX after free" % OS.get_thread_caller_id())
-
 	# Create geometry from geometry input
 	var geometry := HexGeometry.new(geometry_input)
 
@@ -84,29 +77,21 @@ func generate(geometry_input: HexGeometryInput) -> void:
 	terrainMesh.material_overlay = HIGHLIGHT_MAT
 	add_child(terrainMesh)
 
-	print("THREAD %d: XXX after mesh" % OS.get_thread_caller_id())
-
 	# Occluder
 	if DebugSettings.generate_terrain_occluder:
 		terrainOccluderInstance = OccluderInstance3D.new()
 		terrainOccluderInstance.occluder = geometry.occluder
 		add_child(terrainOccluderInstance)
 
-	print("THREAD %d: XXX after occluder" % OS.get_thread_caller_id())
-
 	if DebugSettings.visualize_hex_input:
 		geometry_input.create_debug_visualization(self)
 
-	print("THREAD %d: XXX after debug" % OS.get_thread_caller_id())
-
-	# if DebugSettings.generate_collision and self.height > 0:
-		#terrainMesh.create_convex_collision(true, false)
-		#terrainMesh.create_multiple_convex_collisions(null)
+	if DebugSettings.generate_collision and self.height > 0:
+		# terrainMesh.create_convex_collision(true, false)
+		# terrainMesh.create_multiple_convex_collisions(null)
 
 		# TODO most accurate but slowest. Maybe manually simplify mesh beforehand?
-		# terrainMesh.create_trimesh_collision()
-
-	print("THREAD %d: XXX after collision" % OS.get_thread_caller_id())
+		terrainMesh.create_trimesh_collision()
 
 	if self.height > 0 and geometry.samplerHorizontal.is_valid():
 		# Add plants
@@ -115,8 +100,6 @@ func generate(geometry_input: HexGeometryInput) -> void:
 			plant.name = "Grass"
 			plant.populate_multimesh(geometry.samplerHorizontal)
 			add_child(plant)
-
-		print("THREAD %d: XXX after grass" % OS.get_thread_caller_id())
 
 		# Add rocks
 		if DebugSettings.enable_rocks:
@@ -127,8 +110,6 @@ func generate(geometry_input: HexGeometryInput) -> void:
 				rocks.material_override = ROCKS_MATERIAL
 				rocks.mesh = rocksMesh
 				add_child(rocks)
-
-	print("THREAD %d: XXX after rocks" % OS.get_thread_caller_id())
 
 
 func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
