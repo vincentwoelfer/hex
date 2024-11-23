@@ -18,10 +18,10 @@ var generated_queue_mutex: Mutex
 # Threads
 var threads: Array[Thread] = []
 # 3-4 is sweet spot on my machine
-var num_threads: int = 3
+var num_threads: int = 4
 var threads_running: bool = true
 var threads_running_mutex: Mutex
-var fetch_tiles_count := 4
+var fetch_tiles_count := 4 # Seems to make almost no difference in performance
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
 var tile_generation_distance := roundi(50.0 / HexConst.vertical_size())
