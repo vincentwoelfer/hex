@@ -190,25 +190,27 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	# 12 floats per transform = 4 x vec3
 	var buffer := PackedFloat32Array()
 	buffer.resize(num_blades_total * 12)
+	buffer.fill(0.0)
 
 	for i in range(num_blades_total):
-		var t := surface_sampler.get_random_point_transform()
+		var t := surface_sampler.get_random_point()
 		var offset := i * 12
 
 		# Indexing is "interleaved" for vectors (based on matrix layout)
 		# First basis, then origin. First all x, then all y, then all z
-		buffer[offset + 0] = t.basis.x.x
-		buffer[offset + 1] = t.basis.y.x
-		buffer[offset + 2] = t.basis.z.x
-		buffer[offset + 3] = t.origin.x
-		buffer[offset + 4] = t.basis.x.y
-		buffer[offset + 5] = t.basis.y.y
-		buffer[offset + 6] = t.basis.z.y
-		buffer[offset + 7] = t.origin.y
-		buffer[offset + 8] = t.basis.x.z
-		buffer[offset + 9] = t.basis.y.z
-		buffer[offset + 10] = t.basis.z.z
-		buffer[offset + 11] = t.origin.z
+		# Commented out elements are alway 0.0 (and already filled above)
+		buffer[offset + 0] = 1.0
+		# buffer[offset + 1] = t.basis.y.x
+		# buffer[offset + 2] = t.basis.z.x
+		buffer[offset + 3] = t.x
+		# buffer[offset + 4] = t.basis.x.y
+		buffer[offset + 5] = 1.0
+		# buffer[offset + 6] = t.basis.z.y
+		buffer[offset + 7] = t.y
+		# buffer[offset + 8] = t.basis.x.z
+		# buffer[offset + 9] = t.basis.y.z
+		buffer[offset + 10] = 1.0
+		buffer[offset + 11] = t.z
 		
 	# Applay buffer and set multimesh
 	multi_mesh.set_buffer(buffer)
