@@ -22,8 +22,8 @@ auto_exposure_min_sensitivity = 100.0
 [node name="MainScene" type="Node3D"]
 
 [node name="HexConstModifier" parent="." instance=ExtResource("12_e2267")]
-outer_radius = 1.5
-inner_radius = 1.0
+outer_radius = 2.5
+inner_radius = 2.2
 height = 0.5
 transition_height_factor = 0.5
 core_circle_smooth_strength = 0.5

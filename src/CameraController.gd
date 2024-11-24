@@ -6,7 +6,7 @@ var debugSphere: MeshInstance3D
 # Export parameters
 var horizontalDistance: float = 6.0
 var height: float = 5.0
-var height_min: float = 1.5
+var height_min: float = 0.5
 var height_max: float = 13.0
 var currZoom: float = 5.0
 var zoomTarget: float = currZoom
@@ -15,8 +15,10 @@ var zoomTarget: float = currZoom
 var zoom_min: float = 0.075
 var zoom_max: float = 12.0
 
-var look_at_height := 4.0
-var look_at_height_above_ground := 1.5
+# Half of 2m "character"
+var char_height: float = 1.75
+var look_at_height_above_ground := char_height * 0.5
+
 var lookAtPoint: Vector3
 var followPoint: Vector3 # = target, also used for movement
 var orientation: int = 4 # from north looking south (to see the sun moving best)
@@ -31,8 +33,8 @@ var lerpSpeed: float = 8.5 # almost instant, otherwise camera control feels slug
 func _ready() -> void:
 	#Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	Input.mouse_mode = Input.MOUSE_MODE_CONFINED
-	lookAtPoint = Vector3(0, look_at_height, 0)
-	followPoint = Vector3(0, look_at_height, 0)
+	lookAtPoint = Vector3(0, look_at_height_above_ground, 0)
+	followPoint = Vector3(0, look_at_height_above_ground, 0)
 	actual_curr_rotation = compute_target_forward_angle(orientation)
 
 
@@ -100,8 +102,7 @@ func _process(delta: float) -> void:
 	# Move follow point, lookAtPoint follows this
 	followPoint += inputDir * (speed + currZoom / 3.0) * delta
 
-	look_at_height = get_map_height() + look_at_height_above_ground
-	followPoint.y = look_at_height
+	followPoint.y = get_map_height() + look_at_height_above_ground
 
 	# Lerp follow point to lookAtPoint
 	lookAtPoint = lerp(lookAtPoint, followPoint, lerpSpeed * delta)
@@ -119,7 +120,8 @@ func _process(delta: float) -> void:
 	RenderingServer.global_shader_parameter_set("global_camera_view_direction", actual_curr_rotation)
 	RenderingServer.global_shader_parameter_set("global_player_position", lookAtPoint)
 
-	draw_debug_sphere(lookAtPoint, maxf(currZoom * 0.1, 0.025))
+	#draw_debug_sphere(lookAtPoint, maxf(currZoom * 0.1, 0.025))
+	draw_debug_sphere(lookAtPoint)
 	
 
 func check_for_selection() -> void:
@@ -132,14 +134,16 @@ func check_for_selection() -> void:
 	EventBus.emit_signal("Signal_SelectedWorldPosition", hit_pos)
 
 
-func draw_debug_sphere(location: Vector3, r: float) -> void:
+# func draw_debug_sphere(location: Vector3, r: float) -> void:
+func draw_debug_sphere(location: Vector3) -> void:
 	if debugSphere == null:
 		var scene_root := get_tree().root
 		debugSphere = MeshInstance3D.new()
 		debugSphere.name = "DebugSphere"
 		scene_root.add_child(debugSphere)
 
-	debugSphere.mesh = DebugShapes3D.create_sphere(r, Color.RED, true)
+
+	debugSphere.mesh = DebugShapes3D.create_capsule(char_height, 0.3, Color.RED, true)
 	debugSphere.global_transform.origin = location
 
 

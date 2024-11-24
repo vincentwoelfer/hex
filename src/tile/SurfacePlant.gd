@@ -4,8 +4,8 @@ extends Node3D
 var mesh_instance: MultiMeshInstance3D
 
 # In m
-var min_height := 0.2
-var max_height := 1.2
+var min_height := 0.05
+var max_height := 0.4
 
 # Only tip colors
 var color_healthy := Color(0.15, 0.4, 0.1)

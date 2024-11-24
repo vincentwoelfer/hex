@@ -22,11 +22,11 @@ var num_threads: int = 4
 var threads_running: bool = true
 var threads_running_mutex: Mutex
 # Seems to make almost no difference in performance
-var fetch_tiles_count := 1
+var fetch_tiles_count := 2
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
-var tile_generation_distance := roundi(50.0 / HexConst.vertical_size())
-var tile_deletion_distance := roundi(150.0 / HexConst.vertical_size())
+var tile_generation_distance := roundi(70.0 / HexConst.vertical_size())
+var tile_deletion_distance := roundi(250.0 / HexConst.vertical_size())
 @onready var camera_controller: CameraController = %Camera3D as CameraController
 var generation_position: HexPos = HexPos.invalid()
 
