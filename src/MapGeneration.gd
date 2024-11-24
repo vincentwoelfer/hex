@@ -63,14 +63,22 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	# Check if exiting -> is this even required???
+	# Check if shutdown in process -> Dont queue anything new and join threads
 	threads_running_mutex.lock()
 	var should_exit: bool = !threads_running
 	threads_running_mutex.unlock()
+
 	if should_exit:
+		if threads.is_empty():
+			Util.print_multiline_banner("All threads finished, quitting game")
+			get_tree().quit()
+		else:
+			join_threads()
+
+		# Dont queue anything new
 		return
 
-	# Check regeneration
+	# Check map regeneration
 	if self.regenerate and (Time.get_unix_time_from_system() - last_regeneration_timestamp) > max_regeneration_delay:
 		last_regeneration_timestamp = Time.get_unix_time_from_system()
 		self.regenerate = false
@@ -85,15 +93,15 @@ func _process(delta: float) -> void:
 		queue_new_tiles_for_generation()
 		remove_far_away_tiles()
 
-	# Testing
+	# Only for Testing / benchmarking
 	if not testing_complete:
 		var expected := HexPos.compute_num_tiles_in_range(tile_generation_distance, true)
 		if HexTileMap.get_size() >= expected:
 			var t := (Time.get_ticks_usec() - t_start_) / 1000.0
-			print("MAIN: =======================================================")
+			Util.print_only_banner()
 			print("MAIN: Process took %4.0f ms to generate %d tiles (N=%d)" % [t, expected, tile_generation_distance])
 			print("MAIN: Thread count: %d, fetch_tiles_count: %d" % [num_threads, fetch_tiles_count])
-			print("MAIN: =======================================================")
+			Util.print_only_banner()
 			testing_complete = true
 
 
@@ -184,6 +192,7 @@ func queue_new_tiles_for_generation() -> void:
 # THREAD FUNCTION
 ####################################################################################################
 func thread_generation_loop(thread_id: int) -> void:
+	# Overwrite thread_id with actual thread id
 	thread_id = OS.get_thread_caller_id()
 
 	while true:
@@ -195,7 +204,7 @@ func thread_generation_loop(thread_id: int) -> void:
 		var should_exit: bool = not threads_running
 		threads_running_mutex.unlock()
 		if should_exit:
-			print("THREAD %d: Exiting" % thread_id)
+			print("THREAD %d: Exiting thread function" % thread_id)
 			return
 
 		var keys: Array[int] = []
@@ -257,7 +266,9 @@ func create_empty_hex_tile(hex_pos: HexPos) -> HexTile:
 func set_regenerate() -> void:
 	self.regenerate = true
 
-
+##############################
+# Cleanup
+##############################
 func delete_everything() -> void:
 	print("Deleting everything!")
 
@@ -274,11 +285,9 @@ func delete_everything() -> void:
 
 
 ##############################
-# Cleanup
+# Shutdown
 ##############################
-func join_threads_async() -> void:
-	print("MAIN: Signaling all threads to finish")
-
+func shutdown_threads() -> void:
 	# Signal exit
 	threads_running_mutex.lock()
 	threads_running = false
@@ -289,28 +298,30 @@ func join_threads_async() -> void:
 	to_generate_queue.clear()
 	to_generate_mutex.unlock()
 
-	print("MAIN: Waiting for %d threads to finish" % num_threads)
-	# For whatever reason this is needed to unblock threads
-	await get_tree().create_timer(0.01).timeout
+	print("MAIN: Waiting for %d threads to finish..." % num_threads)
 
-	# Wait for threads to finish
-	while threads.size() > 0:
-		# Post to the semaphore to unblock any waiting threads so they can exit
-		to_generate_semaphore.post(threads.size() * 10)
 
-		var to_delete_idx: int = -1
+# Called repeatedly in _process to check if threads are finished
+func join_threads() -> bool:
+	if threads.size() == 0:
+		print("MAIN: All %d threads finished" % num_threads)
+		return true
 
-		for i in range(threads.size()):
-			# is_alive == false -> joins immediately
-			if not threads[i].is_alive():
-				# print("MAIN: Finishing thread %d" % i)
-				threads[i].wait_to_finish()
-				to_delete_idx = i
-				break # delete only one per iteration
+	# Post to the semaphore to unblock any waiting threads so they can exit
+	to_generate_semaphore.post(threads.size() * 10)
 
-		# Actually delete finished
-		if to_delete_idx != -1:
-			# print("MAIN: Deleting thead %d" % to_delete_idx)
-			threads.remove_at(to_delete_idx)
-	
-	print("MAIN: All %d threads finished" % num_threads)
+	var to_delete_idx: int = -1
+	for i in range(threads.size()):
+		# is_alive == false -> joins immediately
+		if not threads[i].is_alive():
+			threads[i].wait_to_finish()
+			to_delete_idx = i
+			break # delete only one per iteration
+
+	# Actually delete finished
+	if to_delete_idx != -1:
+		var deleted_num: int = num_threads - threads.size()
+		print("MAIN: Joined thead %d / %d" % [deleted_num, num_threads])
+		threads.remove_at(to_delete_idx)
+
+	return false

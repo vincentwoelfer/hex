@@ -40,7 +40,7 @@ func unhighlight_current() -> void:
 func randomize_selected_tile() -> void:
 	if current_selection != null and current_selection.is_valid() and current_selection.hex_pos != null:
 		var t_start := Time.get_ticks_usec()
-		print("============\nRandomizing tile ", current_selection.hex_pos)
+		Util.print_banner("Randomizing tile " + current_selection.hex_pos._to_string())
 
 		current_selection.params.humidity = randf()
 		current_selection.params.shade = randf()

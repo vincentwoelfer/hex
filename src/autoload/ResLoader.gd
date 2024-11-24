@@ -10,9 +10,9 @@ var basic_rocks_meshes: Array[Mesh] = []
 
 func _ready() -> void:
 	basic_rocks_meshes = load_all_meshes_from_dir(basic_rocks_path)
-	print("============== Resource Loader =============")
+	Util.print_banner("Resource Loader")
 	print("- Basic rocks meshes: " + str(basic_rocks_meshes.size()))
-	print("============================================")
+	Util.print_only_banner()
 
 func load_all_meshes_from_dir(path: String) -> Array[Mesh]:
 	var dir := DirAccess.open(path)

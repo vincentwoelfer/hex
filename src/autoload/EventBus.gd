@@ -62,6 +62,7 @@ func _ready() -> void:
 
 
 # React to keyboard inputs to directly trigger events
+# TODO move this into own class, it doesnt really belong here
 func _input(event: InputEvent) -> void:
 	# Only execute in game, check necessary because EventBus is @tool
 	if not Engine.is_editor_hint():
@@ -88,41 +89,35 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_pressed("trigger_lod"):
 			Signal_TriggerLod.emit(Util.get_global_cam_pos(self))
 
-	###################################################################
-	# NON-Signal Input Actions
-	###################################################################
-		if event.is_action_pressed("quit_game"):
-			#call_deferred("quit_game_coroutine")
-			quit_game_coroutine()
-
-			print("EVENT-BUS: After quit_game_coroutine, contunuing with the rest of the input event handling")
-
+		###################################################################
+		# NON-Signal Input Actions
+		###################################################################
+		# Toggle occlusion culling
 		if event.is_action_pressed("toogle_occlusion_culling"):
 			if not DebugSettings.generate_terrain_occluder:
 				print("Occlusion Culling not available without terrain occluders, can't enble it with this hotkey!")
-				return
+			else:
+				get_tree().root.use_occlusion_culling = !get_tree().root.use_occlusion_culling
+				print("Occlusion Culling set to ", get_tree().root.use_occlusion_culling)
 
-			get_tree().root.use_occlusion_culling = !get_tree().root.use_occlusion_culling
-			print("Occlusion Culling set to ", get_tree().root.use_occlusion_culling)
+		# Quit game
+		if event.is_action_pressed("quit_game"):
+			request_quit_game()
 
 
-func quit_game_coroutine() -> void:
-	print("EVENT-BUS: ================================= Quitting game =================================")
-	# Finish threds before quitting tree
+func request_quit_game() -> void:
+	Util.print_multiline_banner("Quitting game")
 	var map_gen: MapGeneration = get_node('../MainScene/%MapGeneration')
-	map_gen.join_threads_async()
-
-	#await get_tree().create_timer(1.5).timeout
-	# print("Calling get_tree().quit()")
-	# get_tree().quit()
-
+	map_gen.shutdown_threads()
 
 
 func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:
 	print("EventBus: Weather Changed to ", WeatherControl.WeatherType.keys()[new_weather])
 
 
-# Helper functions
+##################################################################
+# Helper Functions
+###################################################################
 func get_input_mapping() -> Dictionary[String, String]:
 	var mapping: Dictionary[String, String] = {}
 	for action in InputMap.get_actions():
@@ -131,6 +126,7 @@ func get_input_mapping() -> Dictionary[String, String]:
 
 		mapping[action] = get_keys_for_action(action)
 	return mapping
+
 
 func get_keys_for_action(action: String) -> String:
 	var key_list := []
@@ -150,12 +146,12 @@ func pretty_print_actions(actions_dict: Dictionary[String, String]) -> void:
 	var sorted_hotkeys: Array[String] = actions_dict.values()
 	sorted_hotkeys.sort_custom(func(a: String, b: String) -> bool: return a < b)
 	
-	print("=============== Key Bindings ===============")
+	Util.print_banner("Key Bindings")
 	for hotkey: String in sorted_hotkeys:
 		var action := get_key_by_value(actions_dict, hotkey)
 		var padding: String = " ".repeat(max_action_length - action.length())
-		print("%s:%s\t%s" % [action, padding, actions_dict[action]])
-	print("============================================")
+		print("- %s:%s    %s" % [action, padding, actions_dict[action]])
+	Util.print_only_banner()
 
 
 func get_key_by_value(dict: Dictionary[String, String], value: String) -> String:
