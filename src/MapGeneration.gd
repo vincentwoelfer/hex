@@ -140,7 +140,7 @@ func fetch_and_add_all_generated_tiles() -> void:
 		var tile: HexTile = HexTileMap.get_by_hash(key)
 		assert(tile != null)
 		# Only place where tiles are added to the scene
-		add_child(tile, false)
+		add_child(tile)
 
 
 func remove_far_away_tiles() -> void:
@@ -332,3 +332,14 @@ func join_threads() -> bool:
 		threads.remove_at(to_delete_idx)
 
 	return false
+
+
+func _exit_tree() -> void:
+	if not threads.is_empty():
+		# This is only for when exiting through the editor
+		Util.print_multiline_banner("MapGeneration cleaning up on _exit_tree")
+		shutdown_threads()
+
+		while not threads.is_empty():
+			join_threads()
+			await get_tree().create_timer(0.01).timeout

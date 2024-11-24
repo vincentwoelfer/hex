@@ -1,15 +1,6 @@
 class_name SurfacePlant
 extends Node3D
 
-# const GRASS_MESH_HIGH := preload('res://assets/meshes/plants/grass_hres.obj')
-# const GRASS_MESH_MED := preload('res://assets/meshes/plants/grass_mres.obj')
-# const GRASS_MESH_LOW := preload('res://assets/meshes/plants/grass_lres.obj')
-const GRASS_MAT: ShaderMaterial = preload('res://assets/materials/grass_material.tres')
-
-const GRASS_MESH_HRES := preload('res://assets/meshes/basic_grass/basic_grass_hres.res')
-const GRASS_MESH_MRES := preload('res://assets/meshes/basic_grass/basic_grass_mres.res')
-const GRASS_MESH_LRES := preload('res://assets/meshes/basic_grass/basic_grass_lres.res')
-
 var mesh_instance: MultiMeshInstance3D
 
 # In m
@@ -34,9 +25,9 @@ var current_lod_mesh: int = 0
 func _init() -> void:
 	mesh_instance = MultiMeshInstance3D.new()
 	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	mesh_instance.material_override = GRASS_MAT
+	mesh_instance.material_override = ResLoader.GRASS_MAT
 	mesh_instance.extra_cull_margin = 0.5
-	add_child(mesh_instance, true)
+	add_child(mesh_instance)
 
 	# Only for testing
 	set_shader_value(get_curr_color(), 'tip_color')
@@ -51,19 +42,34 @@ func recalculate_lod(cam_pos_global: Vector3) -> void:
 	if not is_inside_tree() or is_queued_for_deletion():
 		return
 	
-	var dist := cam_pos_global.distance_squared_to(mesh_instance.global_position)
+	var dist: float = cam_pos_global.distance_squared_to(mesh_instance.global_position)
 
-	# Cheaper mesh is barely visible but safes a lot of performance -> switch very fast
+	var array := calculate_lod(dist)
 
+	var new_lod_factor: float = array[0]
+	var new_lod_mesh: int = array[1]
+	var new_is_visible: bool = array[2]
+	
+	update_visibility(new_is_visible)
+	update_lod_factor(new_lod_factor)
+
+	if current_lod_mesh != new_lod_mesh:
+		current_lod_mesh = new_lod_mesh
+		# This is REALLY slow
+		update_lod_mesh()
+
+
+func calculate_lod(dist: float) -> Array:
 	var new_lod_factor: float
 	var new_lod_mesh: int
 	var new_is_visible: bool = true
+	
 	if dist <= pow(25, 2):
 		new_lod_factor = 1.0
 		new_lod_mesh = 0
 	elif dist <= pow(32, 2):
 		new_lod_factor = 0.9
-		new_lod_mesh = 1
+		new_lod_mesh = 2
 	elif dist <= pow(40, 2):
 		new_lod_factor = 0.8
 		new_lod_mesh = 2
@@ -87,27 +93,30 @@ func recalculate_lod(cam_pos_global: Vector3) -> void:
 		new_lod_mesh = 2
 	else:
 		new_is_visible = false
+	
+	return [new_lod_factor, new_lod_mesh, new_is_visible]
 
+
+func update_visibility(new_is_visible: bool) -> void:
 	if not new_is_visible:
 		mesh_instance.visible = false
-		return
 	else:
 		mesh_instance.visible = true
 
 
+func update_lod_factor(new_lod_factor: float) -> void:
 	if current_lod_factor != new_lod_factor:
 		current_lod_factor = new_lod_factor
 		mesh_instance.multimesh.visible_instance_count = floori(num_blades_total * current_lod_factor)
 
-	if current_lod_mesh != new_lod_mesh:
-		current_lod_mesh = new_lod_mesh
 
-		if current_lod_mesh == 0:
-			mesh_instance.multimesh.mesh = GRASS_MESH_HRES
-		elif current_lod_mesh == 1:
-			mesh_instance.multimesh.mesh = GRASS_MESH_MRES
-		else:
-			mesh_instance.multimesh.mesh = GRASS_MESH_LRES
+func update_lod_mesh() -> void:
+	if current_lod_mesh == 0:
+		mesh_instance.multimesh.mesh = ResLoader.GRASS_MESH_HRES
+	elif current_lod_mesh == 1:
+		mesh_instance.multimesh.mesh = ResLoader.GRASS_MESH_MRES
+	else:
+		mesh_instance.multimesh.mesh = ResLoader.GRASS_MESH_LRES
 
 
 func get_curr_color() -> Color:
@@ -154,7 +163,7 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	# Square density to get 2d -> weight by area
 	num_blades_total = round(density_1d * density_1d * area)
 
-	var mesh_to_use: Mesh = GRASS_MESH_HRES
+	var mesh_to_use: Mesh = ResLoader.GRASS_MESH_HRES
 
 	# Reduce in editor
 	if Engine.is_editor_hint():
@@ -234,4 +243,4 @@ func add_custom_aabb_visualization() -> void:
 	material.albedo_color = Color(1, 0, 0, 0.3)
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	vis.material_override = material
-	add_child(vis, true)
+	add_child(vis)

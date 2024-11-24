@@ -60,28 +60,33 @@ func update_label_text(params: HexTileParams) -> void:
 
 
 func update_label_position() -> void:
-	var scale_factor := get_scale_from_3d_distance_to_cam(label_world_pos)
+	# Only abort if label should not be visible. Otherwise we need to update to determine if it might become visible
+	if not is_label_visible:
+		return
+
+	var cam := Util.get_global_cam(self)
+	var dist_to_cam := cam.global_transform.origin.distance_to(label_world_pos)
+
+	# Update scale
+	var scale_factor := get_scale_from_3d_distance_to_cam(dist_to_cam)
 	label.scale = Vector2.ONE * scale_factor
 
 	# Use size (including scale) to center position in 2d correctly
-	label.position = get_viewport().get_camera_3d().unproject_position(label_world_pos)
-	label.position -= Vector2(label.size * 0.5 * scale_factor)
+	label.position = cam.unproject_position(label_world_pos) - Vector2(label.size * 0.5 * scale_factor)
 
 	# Check if visible
-	label.visible = is_label_visible and not get_viewport().get_camera_3d().is_position_behind(label_world_pos)
+	label.visible = is_label_visible and not cam.is_position_behind(label_world_pos)
 
 	# Update alpha
 	# var alpha := get_alpha_from_3d_distance_to_cam(label_world_pos)
 
 
-func get_scale_from_3d_distance_to_cam(global_pos: Vector3) -> float:
+func get_scale_from_3d_distance_to_cam(dist: float) -> float:
 	const near_dist := 10.0
 	const far_dist := 50.0
 	const min_scale := 0.1
 	const max_scale := 1.0
 
-	var cam := get_viewport().get_camera_3d()
-	var dist: float = cam.global_position.distance_to(global_pos)
 	var factor: float = remap(dist, near_dist, far_dist, max_scale, min_scale)
 	var s: float = clampf(factor, min_scale, max_scale)
 
@@ -89,13 +94,12 @@ func get_scale_from_3d_distance_to_cam(global_pos: Vector3) -> float:
 		s = 0.0
 	return s
 
-func get_alpha_from_3d_distance_to_cam(global_pos: Vector3) -> float:
+
+func get_alpha_from_3d_distance_to_cam(dist: float) -> float:
 	const near_dist := 30.0
 	const far_dist := 45.0
 	const min_scale := 0.3
 	const max_scale := 1.0
 
-	var cam := get_viewport().get_camera_3d()
-	var dist: float = cam.global_position.distance_to(global_pos)
 	var factor: float = remap(dist, near_dist, far_dist, max_scale, min_scale)
 	return clampf(factor, min_scale, max_scale)

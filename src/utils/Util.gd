@@ -80,19 +80,28 @@ static func sortVecAccordingToAngles(vecs: Array[Vector3]) -> Array[Vector3]:
 ######################################################
 # Misc
 ######################################################
-
 # Like clamp but ensures values is between a,b , even if a > b
 static func clampf(val: float, a: float, b: float) -> float:
 	return clampf(val, minf(a, b), maxf(a, b))
 
 
-# Get global camera pos, works in game and editor
-static func get_global_cam_pos(reference_node: Node) -> Vector3:
+######################################################
+# Camera access
+######################################################
+
+# Get global camera works in game and editor
+static func get_global_cam(reference_node: Node) -> Camera3D:
 	var cam: Camera3D
 	if Engine.is_editor_hint():
 		cam = EditorInterface.get_editor_viewport_3d(0).get_camera_3d()
 	else:
 		cam = reference_node.get_viewport().get_camera_3d()
+	return cam
+
+
+# Get global camera pos, works in game and editor
+static func get_global_cam_pos(reference_node: Node) -> Vector3:
+	var cam := get_global_cam(reference_node)
 		
 	if cam != null:
 		return cam.global_transform.origin
