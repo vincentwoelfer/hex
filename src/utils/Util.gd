@@ -86,19 +86,18 @@ static func clampf(val: float, a: float, b: float) -> float:
 	return clampf(val, minf(a, b), maxf(a, b))
 
 
-static func get_global_cam_pos(node: Node) -> Vector3:
-	var cam_global_pos := Vector3.ZERO
-
+# Get global camera pos, works in game and editor
+static func get_global_cam_pos(reference_node: Node) -> Vector3:
+	var cam: Camera3D
 	if Engine.is_editor_hint():
-		var cam := EditorInterface.get_editor_viewport_3d(0).get_camera_3d()
-		if cam != null:
-			cam_global_pos = cam.global_transform.origin
+		cam = EditorInterface.get_editor_viewport_3d(0).get_camera_3d()
 	else:
-		var cam := node.get_viewport().get_camera_3d()
-		if cam != null:
-			cam_global_pos = cam.global_transform.origin
-
-	return cam_global_pos
+		cam = reference_node.get_viewport().get_camera_3d()
+		
+	if cam != null:
+		return cam.global_transform.origin
+	else:
+		return Vector3.ZERO
 
 
 ######################################################

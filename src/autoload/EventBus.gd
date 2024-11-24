@@ -50,6 +50,7 @@ func _ready() -> void:
 	add_child(timer)
 	timer.start()
 
+	# This always uses the camera pos, not the player pos
 	timer.timeout.connect(func() -> void:
 		Signal_TriggerLod.emit(Util.get_global_cam_pos(self))
 	)
