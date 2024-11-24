@@ -187,6 +187,9 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
 	multi_mesh.instance_count = num_blades_total
 
+	# This has basically no performance improvement
+	multi_mesh.physics_interpolation_quality = MultiMesh.INTERP_QUALITY_FAST
+
 	# 12 floats per transform = 4 x vec3
 	var buffer := PackedFloat32Array()
 	buffer.resize(num_blades_total * 12)
