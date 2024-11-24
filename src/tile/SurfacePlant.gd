@@ -45,7 +45,6 @@ func recalculate_lod(cam_pos_global: Vector3) -> void:
 	var dist: float = cam_pos_global.distance_squared_to(mesh_instance.global_position)
 
 	var array := calculate_lod(dist)
-
 	var new_lod_factor: float = array[0]
 	var new_lod_mesh: int = array[1]
 	var new_is_visible: bool = array[2]
@@ -64,6 +63,8 @@ func calculate_lod(dist: float) -> Array:
 	var new_lod_mesh: int
 	var new_is_visible: bool = true
 	
+	# LOD mesh switching is the most expensive part -> minimize changing it
+	# 0 = HRES, 1 = MRES, 2 = LRES
 	if dist <= pow(25, 2):
 		new_lod_factor = 1.0
 		new_lod_mesh = 0
@@ -163,8 +164,6 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	# Square density to get 2d -> weight by area
 	num_blades_total = round(density_1d * density_1d * area)
 
-	var mesh_to_use: Mesh = ResLoader.GRASS_MESH_HRES
-
 	# Reduce in editor
 	if Engine.is_editor_hint():
 		var in_editor_density_reduction := 1.0
@@ -174,7 +173,6 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	if RenderingServer.get_video_adapter_type() != RenderingDevice.DEVICE_TYPE_DISCRETE_GPU:
 		var bad_gpu_reduction := 0.3
 		num_blades_total = round(num_blades_total * bad_gpu_reduction)
-		#mesh_to_use = GRASS_MESH_LRES
 
 	# Compute custom aabb
 	mesh_instance.custom_aabb = surface_sampler.compute_custom_aabb(max_height)
@@ -183,7 +181,10 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 
 	# Create multi-mesh
 	var multi_mesh := MultiMesh.new()
-	multi_mesh.mesh = mesh_to_use
+
+	# Use LRES mesh per default because new tiles are added far away -> prevents switching to lres directly
+	multi_mesh.mesh = ResLoader.GRASS_MESH_LRES
+
 	multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
 	multi_mesh.instance_count = num_blades_total
 
