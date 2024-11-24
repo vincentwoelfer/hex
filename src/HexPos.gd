@@ -68,7 +68,7 @@ func magnitude() -> int:
 
 # Actual distance function (in hex tiles)
 func distance_to(other: HexPos) -> int:
-	return (subtract(other)).magnitude()
+	return roundi((absi(q - other.q) + absi(r - other.r) + absi(s - other.s)) / 2.0)
 
 func get_neighbour(dir: int) -> HexPos:
 	return add(hexpos_direction(dir))

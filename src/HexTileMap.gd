@@ -33,9 +33,8 @@ static func _add(hex_pos: HexPos, key: int, height: int) -> HexTile:
 		return tile
 
 	# Add new
-	var t: HexTile = HexTile.new(hex_pos, height)
-	tiles.set(key, t)
-	tile = tiles.get(key)
+	tile = HexTile.new(hex_pos, height)
+	tiles.set(key, tile)
 
 	mutex.unlock()
 	return tile
@@ -79,9 +78,7 @@ static func get_size() -> int:
 # DOES NOT FREE
 static func delete_by_hash(key: int) -> void:
 	mutex.lock()
-	if tiles.has(key):
-		#tiles[key].free()
-		tiles.erase(key)
+	tiles.erase(key)
 	mutex.unlock()
 
 

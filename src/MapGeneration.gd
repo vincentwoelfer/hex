@@ -148,14 +148,13 @@ func remove_far_away_tiles() -> void:
 	var child_count := get_child_count()
 
 	for i in range(child_count - 1, -1, -1):
-		var node: Node = get_child(i)
-		if node is HexTile and is_instance_valid(node) and not node.is_queued_for_deletion() and (node as HexTile).is_valid():
-			var tile: HexTile = node as HexTile
+		var tile: HexTile = get_child(i) as HexTile
+		if is_instance_valid(tile) and not tile.is_queued_for_deletion():
 			var distance := generation_position.distance_to(tile.hex_pos)
 			if distance > tile_deletion_distance:
 				# This is the only place where tiles are removed
-				HexTileMap.delete_by_hash(tile.hex_pos.hash())
-				node.queue_free()
+				HexTileMap.delete_by_pos(tile.hex_pos)
+				tile.queue_free()
 
 
 func queue_new_tiles_for_generation() -> void:
