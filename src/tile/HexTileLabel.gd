@@ -14,13 +14,13 @@ var initial_params: HexTileParams = null
 
 func _init(params: HexTileParams) -> void:
 	initial_params = params
+	label = RichTextLabel.new()
+	label.visible = is_label_visible
 
 
 func _ready() -> void:
-	label = RichTextLabel.new()
-	label.visible = is_label_visible
-	add_child(label)
 	update_label_text(initial_params)
+	call_deferred("add_child", label)
 
 
 func set_label_world_pos(world_pos: Vector3) -> void:

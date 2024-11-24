@@ -67,7 +67,7 @@ func calculate_lod(dist: float) -> Array:
 	# 0 = HRES, 1 = MRES, 2 = LRES
 	if dist <= pow(25, 2):
 		new_lod_factor = 1.0
-		new_lod_mesh = 0
+		new_lod_mesh = 2
 	elif dist <= pow(32, 2):
 		new_lod_factor = 0.9
 		new_lod_mesh = 2
