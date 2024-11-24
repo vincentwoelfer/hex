@@ -40,6 +40,10 @@ func get_follow_point() -> Vector3:
 	return followPoint
 
 
+# TODO:
+# https://github.com/godotengine/godot-demo-projects/blob/4.2-31d1c0c/3d/kinematic_character/player/follow_camera.gd
+# https://github.com/godotengine/godot-demo-projects/blob/4.2-31d1c0c/3d/kinematic_character/player/cubio.gd
+
 func _input(event: InputEvent) -> void:
 	# Rotate
 	if event.is_action_pressed("rotate_cam_left"):

@@ -21,7 +21,8 @@ var threads: Array[Thread] = []
 var num_threads: int = 4
 var threads_running: bool = true
 var threads_running_mutex: Mutex
-var fetch_tiles_count := 4 # Seems to make almost no difference in performance
+# Seems to make almost no difference in performance
+var fetch_tiles_count := 1
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
 var tile_generation_distance := roundi(50.0 / HexConst.vertical_size())
@@ -275,14 +276,23 @@ func delete_everything() -> void:
 ##############################
 # Cleanup
 ##############################
-func join_threads() -> void:
-	print("MAIN: Waiting for %d threads to finish" % num_threads)
+func join_threads_async() -> void:
+	print("MAIN: Signaling all threads to finish")
+
+	# Signal exit
 	threads_running_mutex.lock()
 	threads_running = false
 	threads_running_mutex.unlock()
 
-	# delete_everything()
-	
+	# Delete queue
+	to_generate_mutex.lock()
+	to_generate_queue.clear()
+	to_generate_mutex.unlock()
+
+	print("MAIN: Waiting for %d threads to finish" % num_threads)
+	# For whatever reason this is needed to unblock threads
+	await get_tree().create_timer(0.01).timeout
+
 	# Wait for threads to finish
 	while threads.size() > 0:
 		# Post to the semaphore to unblock any waiting threads so they can exit
