@@ -6,15 +6,10 @@ uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap;
 
 uniform vec3 highlight_color: source_color = vec3(0.973238, 0.825123, 0.129592);
 uniform float blink_frequency = 2.0;
-instance uniform lowp float enabled = 0.0;
 
 void fragment() {
-	if (enabled == 0.0) {
-		discard;
-	}
-
 	vec3 original_color = texture(SCREEN_TEXTURE, SCREEN_UV).xyz;
-	float t = enabled * (sin(TIME * blink_frequency) * 0.5 + 1.0); // Between 0-1
+	float t = (sin(TIME * blink_frequency) * 0.5 + 1.0); // Between 0-1
 
 	// Map from [0, 1] -> [0.1 , 0.2]
 	t = t * 0.1 + 0.1;

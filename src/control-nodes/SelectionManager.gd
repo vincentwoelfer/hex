@@ -1,6 +1,8 @@
 class_name SelectionManager
 extends Node
 
+const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
+
 var current_selection: HexTile = null
 
 func _init() -> void:
@@ -29,12 +31,12 @@ func update_selected_hex_tile(new_selection: HexTile) -> void:
 
 func highlight_current() -> void:
 	if current_selection != null:
-		current_selection.terrainMesh.set_instance_shader_parameter("enabled", 1.0)
+		current_selection.terrainMesh.material_overlay = HIGHLIGHT_MAT
 
 
 func unhighlight_current() -> void:
 	if current_selection != null:
-		current_selection.terrainMesh.set_instance_shader_parameter("enabled", 0.0)
+		current_selection.terrainMesh.material_overlay = null
 
 
 func randomize_selected_tile() -> void:

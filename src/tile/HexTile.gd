@@ -7,7 +7,6 @@ extends Node3D
 ######################################################
 
 const DEFAULT_TERRAIN_MAT: Material = preload('res://assets/materials/default_geom_material.tres')
-const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
 const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.tres')
 
 # Core Variables
@@ -80,7 +79,7 @@ func generate(geometry_input: HexGeometryInput) -> void:
 	terrainMesh.name = "terrain"
 	terrainMesh.mesh = geometry.mesh
 	terrainMesh.material_override = DEFAULT_TERRAIN_MAT
-	terrainMesh.material_overlay = HIGHLIGHT_MAT
+	#terrainMesh.material_overlay = HIGHLIGHT_MAT
 	add_child(terrainMesh)
 
 	# Occluder
