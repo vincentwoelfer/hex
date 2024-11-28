@@ -3,7 +3,19 @@ import numpy as np
 from matplotlib.patches import RegularPolygon
 import matplotlib.cm as cm
 import random
+import math
 
+# GLOBALS:
+
+# Hex_tiles
+grid = []
+
+# For visualization
+# hex_tile_to_cluster_mapping = {}
+
+# clusters_to_hex_tiles_mapping = {}
+
+#########################################################################
 def generate_random_color():
     """Generate a random color in RGB format."""
     r = random.random()
@@ -14,59 +26,65 @@ def generate_random_color():
 
 def generate_hexagonal_grid(radius):
     """Generate a hexagonal grid with axial coordinates."""
-    grid = []
     for q in range(-radius, radius + 1):
         for r in range(max(-radius, -q - radius), min(radius, -q + radius) + 1):
             grid.append((q, r))
-    return grid
 
-def map_hex_tile_to_cluster(q, r, cluster_size):
-    """Map a hex tile (q, r) to its cluster coordinates."""
-    cluster_q = q // cluster_size
-    cluster_r = (r - (q // cluster_size) % 2) // cluster_size
+#########################################################################
+"""Map a hex tile (q, r) to its cluster coordinates."""
+def map_hex_tile_to_cluster(tile_q, tile_r, cluster_size):
+    if cluster_size == 1:
+        return (tile_q, tile_r)
+
+    # cluster_q = tile_q // cluster_size
+    # cluster_r = (tile_r - (tile_q // cluster_size) % 2) // cluster_size
+
+    cluster_q = math.floor(tile_q / cluster_size)
+    cluster_r = math.floor((tile_r - cluster_q % 2) / cluster_size)
+
     return cluster_q, cluster_r
+
+def map_cluster_to_base_tile(cluster_q, cluster_r, cluster_size):
+    if cluster_size == 1:
+        return (cluster_q, cluster_r)
+
+    # Find the base tile (top-left) hex tile of the cluster
+    # base_q = cluster_q * cluster_size
+    # base_r = cluster_r * cluster_size + (cluster_q % 2) * (cluster_size // 2)
+
+    base_q = cluster_q * cluster_size
+    base_r = cluster_r * cluster_size + (cluster_q % 2) * math.floor(cluster_size / 2)
+
+    return (base_q, base_r)
 
 def map_cluster_to_hex_coordinates(cluster_q, cluster_r, cluster_size):
     """Map cluster coordinates to the top-left hex tile of the cluster and return all coordinates in the cluster."""
-    base_q = cluster_q * cluster_size
-    base_r = cluster_r * cluster_size + (cluster_q % 2) * (cluster_size // 2)
+    base_q, base_r = map_cluster_to_base_tile(cluster_q, cluster_r, cluster_size)
 
-    # Generate all coordinates in the cluster
-    coordinates = []
-    for dq in range(-cluster_size + 1, cluster_size):
-        for dr in range(max(-cluster_size + 1, -dq - cluster_size + 1), min(cluster_size, -dq + cluster_size)):
-            q = base_q + dq
-            r = base_r + dr
-            coordinates.append((q, r))
+    # Generate all coordinates in the cluster using the base tile
+    # TODO this is wrong
+    tiles_in_cluster = []
+    for dq in range(0, cluster_size):
+        for dr in range(0, cluster_size):
+            tile_q = base_q + dq
+            tile_r = base_r + dr
+            tiles_in_cluster.append((tile_q, tile_r))
 
-    return base_q, base_r, coordinates
+    return tiles_in_cluster
 
-def assign_hexagonal_clusters_offset(grid, cluster_size):
-    """Assign clusters using an offset pattern for tiling."""
-    cluster_map = {}
-    for q, r in grid:
-        cluster_map[(q, r)] = map_hex_tile_to_cluster(q, r, cluster_size)
-    return cluster_map
-
-def map_cluster_to_hex_tiles(cluster_map):
-    """Map clusters to lists of hex tiles."""
-    cluster_to_tiles = {}
-    for hex_tile, cluster_id in cluster_map.items():
-        if cluster_id not in cluster_to_tiles:
-            cluster_to_tiles[cluster_id] = []
-        cluster_to_tiles[cluster_id].append(hex_tile)
-    return cluster_to_tiles
-
-def plot_hexagonal_clusters(grid, cluster_map):
+    
+def plot_hexagonal_clusters():
     """Visualize hexagonal grid and cluster grouping."""
+    hex_tile_to_cluster_mapping = {tile: map_hex_tile_to_cluster(tile[0], tile[1], cluster_size) for tile in grid}
+
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.set_aspect('equal')
 
-    # Assign unique colors to each cluster using a colormap
-    cluster_ids = list(set(cluster_map.values()))
+    # Assign unique colors to each cluster
+    cluster_ids = list(set(hex_tile_to_cluster_mapping.values()))
     cluster_colors = {cluster_id: generate_random_color() for i, cluster_id in enumerate(cluster_ids)}
 
-    for hex_tile, cluster_id in cluster_map.items():
+    for hex_tile, cluster_id in hex_tile_to_cluster_mapping.items():
         color = cluster_colors[cluster_id]
 
         q, r = hex_tile
@@ -84,39 +102,68 @@ def plot_hexagonal_clusters(grid, cluster_map):
 
 # Example usage
 if __name__ == "__main__":
-    grid_radius = 6  # Radius of the entire grid
-    cluster_size = 2  # Configurable cluster size
+    grid_radius = 8  # Radius of the entire grid
+    cluster_size = 4  # Configurable cluster size
 
     # Generate grid
-    hex_grid = generate_hexagonal_grid(grid_radius)
+    generate_hexagonal_grid(grid_radius)
 
     # Assign clusters using offset tiling
-    cluster_mapping = assign_hexagonal_clusters_offset(hex_grid, cluster_size)
+    # assign_hexagonal_clusters_offset(cluster_size)
 
     # Map clusters to hex tiles
-    clusters_to_tiles = map_cluster_to_hex_tiles(cluster_mapping)
+    # map_cluster_to_hex_tiles(cluster_mapping)
 
     # Plot the clusters
-    plot_hexagonal_clusters(hex_grid, cluster_mapping)
+    plot_hexagonal_clusters()
 
     # Example outputs
-    print("Cluster mapping (hex-tile to cluster):")
-    print(list(cluster_mapping.items())[:10])  # Show first 10 mappings
+    # print("Cluster mapping (hex-tile to cluster):")
+    # print(list(cluster_mapping.items())[:10])  # Show first 10 mappings
 
-    print("\nCluster to hex-tiles:")
-    for cluster_id, tiles in list(clusters_to_tiles.items())[:5]:  # Show first 5 clusters
-        print(f"Cluster {cluster_id}: {tiles}")
+    # print("\nCluster to hex-tiles:")
+    # for cluster_id, tiles in list(clusters_to_tiles.items())[:8]:
+    #     print(f"Cluster {cluster_id}:\t {tiles}")
+
 
     # Test mapping functions
-    print("\nTesting coordinate mappings:")
-    for i in range(2):
-        test_q, test_r = 4, 4+i
-        cluster_q, cluster_r = map_hex_tile_to_cluster(test_q, test_r, cluster_size)
-        print(f"Hex tile ({test_q}, {test_r}) maps to cluster ({cluster_q}, {cluster_r})")
+    print("\nMAP hex-tile to cluster:")
+    tiles_used = {}
+    for (q, r) in grid[:10]:
+        cluster_q, cluster_r = map_hex_tile_to_cluster(q, r, cluster_size)
+        tiles_used[(q, r)] = (cluster_q, cluster_r)
+        print(f"Hex tile ({q:2}, {r:2}) maps to cluster ({cluster_q:2}, {cluster_r:2})")
 
-    base_q, base_r, cluster_coords = map_cluster_to_hex_coordinates(cluster_q, cluster_r, cluster_size)
-    print(f"Cluster ({cluster_q}, {cluster_r}) maps to top-left hex tile ({base_q}, {base_r})")
-    print(f"All coordinates in this cluster: {cluster_coords}")
+    print("\nMAP clusters to hex-tile:")
+    for (cluster_q, cluster_r) in set(tiles_used.values()):
+        base_tile = map_cluster_to_base_tile(cluster_q, cluster_r, cluster_size)
+        tiles_in_cluster = map_cluster_to_hex_coordinates(cluster_q, cluster_r, cluster_size)
+        print(f"Cluster ({cluster_q:2}, {cluster_r:2}) maps to base_tile ({base_tile[0]:2}, {base_tile[1]:2}) and contains ({len(tiles_in_cluster)}) tiles: {tiles_in_cluster}")
 
+
+    # VERIFY
+    print("\nVERIFY:")    
+    for (q, r) in grid:
+        # Hex-Tile -> Cluster -> List of tiles in cluster. Verify that original hex tile is this cluster
+        cluster_q, cluster_r = map_hex_tile_to_cluster(q, r, cluster_size)
+        tiles_in_cluster = map_cluster_to_hex_coordinates(cluster_q, cluster_r, cluster_size)
+        assert (q, r) in tiles_in_cluster, f"Hex tile ({q}, {r}) not found in cluster ({cluster_q}, {cluster_r}) which contains {tiles_in_cluster}"
+
+
+    # Create a dictionary to store tiles for each cluster
+    list_of_all_clusters = {map_hex_tile_to_cluster(q, r, cluster_size) for (q, r) in grid}
+    cluster_tiles = {}
+    for cluster in list_of_all_clusters:
+        tiles = map_cluster_to_hex_coordinates(cluster[0], cluster[1], cluster_size)
+        assert len(tiles) == cluster_size ** 2, f"Cluster {cluster} does not have {cluster_size ** 2} tiles"
+        cluster_tiles[cluster] = set(tiles)
+
+    # Check that tiles in each cluster are not contained in any other cluster
+    for cluster, tiles in cluster_tiles.items():
+        for other_cluster, other_tiles in cluster_tiles.items():
+            if cluster != other_cluster:
+                common_tiles = tiles.intersection(other_tiles)
+                if common_tiles:
+                    print(f"Cluster {cluster} shares tiles with cluster {other_cluster}: {common_tiles}")
 
 
