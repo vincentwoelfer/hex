@@ -36,30 +36,18 @@ def map_hex_tile_to_cluster(tile_q, tile_r, cluster_size):
     if cluster_size == 1:
         return (tile_q, tile_r)
 
-    # cluster_q = tile_q // cluster_size
-    # cluster_r = (tile_r - (tile_q // cluster_size) % 2) // cluster_size
-
-    cluster_q = math.floor(tile_q / cluster_size)
-    cluster_r = math.floor((tile_r - cluster_q % 2) / cluster_size)
+    # "matching" operator to modulo - the part thats removed by modulo
+    cluster_q = tile_q - (tile_q % cluster_size)
+    cluster_r = tile_r - (tile_r % cluster_size)
 
     return cluster_q, cluster_r
 
-def map_cluster_to_base_tile(cluster_q, cluster_r, cluster_size):
-    if cluster_size == 1:
-        return (cluster_q, cluster_r)
-
-    # Find the base tile (top-left) hex tile of the cluster
-    # base_q = cluster_q * cluster_size
-    # base_r = cluster_r * cluster_size + (cluster_q % 2) * (cluster_size // 2)
-
-    base_q = cluster_q * cluster_size
-    base_r = cluster_r * cluster_size + (cluster_q % 2) * math.floor(cluster_size / 2)
-
-    return (base_q, base_r)
+def map_cluster_to_base_tile(cluster_q, cluster_r):
+    return (cluster_q, cluster_r)
 
 def map_cluster_to_hex_coordinates(cluster_q, cluster_r, cluster_size):
     """Map cluster coordinates to the top-left hex tile of the cluster and return all coordinates in the cluster."""
-    base_q, base_r = map_cluster_to_base_tile(cluster_q, cluster_r, cluster_size)
+    base_q, base_r = map_cluster_to_base_tile(cluster_q, cluster_r)
 
     # Generate all coordinates in the cluster using the base tile
     # TODO this is wrong
@@ -103,7 +91,7 @@ def plot_hexagonal_clusters():
 # Example usage
 if __name__ == "__main__":
     grid_radius = 8  # Radius of the entire grid
-    cluster_size = 4  # Configurable cluster size
+    cluster_size = 2  # Configurable cluster size
 
     # Generate grid
     generate_hexagonal_grid(grid_radius)
@@ -136,13 +124,13 @@ if __name__ == "__main__":
 
     print("\nMAP clusters to hex-tile:")
     for (cluster_q, cluster_r) in set(tiles_used.values()):
-        base_tile = map_cluster_to_base_tile(cluster_q, cluster_r, cluster_size)
+        base_tile = map_cluster_to_base_tile(cluster_q, cluster_r)
         tiles_in_cluster = map_cluster_to_hex_coordinates(cluster_q, cluster_r, cluster_size)
-        print(f"Cluster ({cluster_q:2}, {cluster_r:2}) maps to base_tile ({base_tile[0]:2}, {base_tile[1]:2}) and contains ({len(tiles_in_cluster)}) tiles: {tiles_in_cluster}")
+        print(f"Cluster ({cluster_q:2}, {cluster_r:2}) maps to base_tile ({base_tile[0]:2}, {base_tile[1]:2}) and contains ({len(tiles_in_cluster)}) tiles: {tiles_in_cluster}\n")
 
 
     # VERIFY
-    print("\nVERIFY:")    
+    print("\nVERIFICATION ERRORS:")    
     for (q, r) in grid:
         # Hex-Tile -> Cluster -> List of tiles in cluster. Verify that original hex tile is this cluster
         cluster_q, cluster_r = map_hex_tile_to_cluster(q, r, cluster_size)
