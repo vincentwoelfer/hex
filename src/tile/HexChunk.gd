@@ -6,9 +6,6 @@ extends Node3D
 # Parent / Struct class holding everything a hex chunk can be/posess
 ######################################################
 
-const DEFAULT_TERRAIN_MAT: Material = preload('res://assets/materials/default_geom_material.tres')
-const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.tres')
-
 # Core Variables
 var hex_pos_base: HexPos
 
@@ -78,7 +75,7 @@ func generate() -> void:
 	terrainMesh = MeshInstance3D.new()
 	terrainMesh.name = "terrain"
 	terrainMesh.mesh = triangle_mesh_tool.commit()
-	terrainMesh.material_override = DEFAULT_TERRAIN_MAT
+	terrainMesh.material_override = ResLoader.DEFAULT_TERRAIN_MAT
 	add_child(terrainMesh)
 
 	# TODO this is only a quick version

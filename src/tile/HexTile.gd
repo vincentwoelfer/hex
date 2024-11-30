@@ -6,9 +6,6 @@ extends Node3D
 # Parent / Struct class holding everything a hex tile can be/posess
 ######################################################
 
-const DEFAULT_TERRAIN_MAT: Material = preload('res://assets/materials/default_geom_material.tres')
-const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.tres')
-
 # Core Variables
 var hex_pos: HexPos
 var height: int
@@ -92,7 +89,7 @@ func generate(geometry_input: HexGeometryInput) -> void:
 			if rocksMesh != null:
 				rocks = MeshInstance3D.new()
 				rocks.name = "Rocks"
-				rocks.material_override = ROCKS_MATERIAL
+				rocks.material_override = ResLoader.ROCKS_MAT
 				rocks.mesh = rocksMesh
 				add_child(rocks)
 

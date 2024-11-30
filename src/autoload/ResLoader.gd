@@ -6,12 +6,16 @@ extends Node
 # Basic Rocks
 var basic_rocks_path := "res://assets/blender/objects/"
 var basic_rocks_meshes: Array[Mesh] = []
+const ROCKS_MAT: Material = preload('res://assets/materials/rocks_material.tres')
 
 # Basic Grass
 const GRASS_MAT: ShaderMaterial = preload('res://assets/materials/grass_material.tres')
 const GRASS_MESH_HRES := preload('res://assets/meshes/basic_grass/basic_grass_hres.res')
 const GRASS_MESH_MRES := preload('res://assets/meshes/basic_grass/basic_grass_mres.res')
 const GRASS_MESH_LRES := preload('res://assets/meshes/basic_grass/basic_grass_lres.res')
+
+# Terrain
+const DEFAULT_TERRAIN_MAT: Material = preload('res://assets/materials/default_geom_material.tres')
 
 
 func _ready() -> void:
