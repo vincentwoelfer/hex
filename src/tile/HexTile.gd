@@ -80,11 +80,11 @@ func generate(geometry_input: HexGeometryInput) -> void:
 	# Remaining steps (=placing stuff on tile) only if tile is a valid non-ocean tile with a horizontal sampler
 	if self.height > 0 and geometry.samplerHorizontal.is_valid():
 		# Add plants
-		if DebugSettings.enable_grass:
-			plant = SurfacePlant.new()
-			plant.name = "Grass"
-			plant.populate_multimesh(geometry.samplerHorizontal)
-			add_child(plant)
+		# if DebugSettings.enable_grass:
+		# 	plant = SurfacePlant.new()
+		# 	plant.name = "Grass"
+		# 	plant.populate_multimesh(geometry.samplerHorizontal)
+		# 	add_child(plant)
 
 		# Add rocks
 		if DebugSettings.enable_rocks:

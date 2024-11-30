@@ -21,8 +21,11 @@ var terrainMesh: MeshInstance3D
 # Collision
 # var collisionBody: StaticBody3D
 
-# Model here or through children???
+
+# Tiles
+var tile_poses: Array[HexPos] = []
 var tiles: Array[HexTile] = []
+
 
 # Does not much, only actual constructor
 func _init(hex_pos_: HexPos) -> void:
@@ -41,11 +44,12 @@ func _init(hex_pos_: HexPos) -> void:
 func generate() -> void:
 	# Free previous tiles
 	tiles.clear()
+	tile_poses.clear()
 	for c in self.get_children():
 		c.free()
 
 	# Generate new tiles
-	var tile_poses: Array[HexPos] = self.hex_pos_base.get_chunk_tiles()
+	tile_poses = hex_pos_base.get_chunk_tile_positions()
 	for hex_pos_tile in tile_poses:
 		# Create new tile
 		var height: int = MapGenerationData.determine_height(hex_pos_tile)
@@ -67,6 +71,7 @@ func generate() -> void:
 
 	# Terrain Mesh
 	var triangle_mesh_tool := TriangleMeshTool.new()
+	# TODO THIs modifies the triangles so the modification does not need to happen again below. Fix this?
 	for tile: HexTile in tiles:
 		triangle_mesh_tool.add_triangle_list(tile.geometry.triangles, tile.position)
 
@@ -75,6 +80,24 @@ func generate() -> void:
 	terrainMesh.mesh = triangle_mesh_tool.commit()
 	terrainMesh.material_override = DEFAULT_TERRAIN_MAT
 	add_child(terrainMesh)
+
+	# TODO this is only a quick version
+	#  surface samplers
+	var triangles: Array[Triangle] = []
+	for tile: HexTile in tiles:
+		for tri: Triangle in tile.geometry.triangles:
+			#triangles.append(Triangle.new(tri.a + tile.position, tri.b + tile.position, tri.c + tile.position))
+			triangles.append(tri)
+
+	var sampler := PolygonSurfaceSampler.new(triangles).filter_max_incline(45).finalize()
+
+	if sampler.is_valid():
+		# GRASS
+		if DebugSettings.enable_grass:
+			var plant := SurfacePlant.new()
+			plant.name = "Grass"
+			plant.populate_multimesh(sampler)
+			add_child(plant)
 
 	# Add debug color overlay for tiles
 	if DebugSettings.use_chunk_colors:

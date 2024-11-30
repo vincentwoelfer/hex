@@ -56,13 +56,9 @@ func generate() -> void:
 	#########################################
 	# Create polygon samplers from triangles
 	#########################################
-	self.samplerAll = PolygonSurfaceSampler.new(self.triangles)
-
-	self.samplerHorizontal = PolygonSurfaceSampler.new(self.triangles)
-	self.samplerHorizontal.filter_max_incline(45)
-
-	self.samplerVertical = PolygonSurfaceSampler.new(self.triangles)
-	self.samplerVertical.filter_min_incline(45)
+	self.samplerAll = PolygonSurfaceSampler.new(self.triangles).finalize()
+	self.samplerHorizontal = PolygonSurfaceSampler.new(self.triangles).filter_max_incline(45).finalize()
+	self.samplerVertical = PolygonSurfaceSampler.new(self.triangles).filter_min_incline(45).finalize()
 
 	########################################
 	# Occluder && Collision Shape

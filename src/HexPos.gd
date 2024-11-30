@@ -94,7 +94,7 @@ func to_chunk_base() -> HexPos:
 func is_chunk_base() -> bool:
 	return q % HexConst.chunk_size == 0 and r % HexConst.chunk_size == 0
 
-func get_chunk_tiles() -> Array[HexPos]:
+func get_chunk_tile_positions() -> Array[HexPos]:
 	assert(is_chunk_base())
 
 	var tiles: Array[HexPos] = []

@@ -25,7 +25,7 @@ var threads_running_mutex: Mutex
 var fetch_chunks_count := 1
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
-var tile_generation_distance_hex := HexConst.distance_m_to_hex(70 * 2)
+var tile_generation_distance_hex := HexConst.distance_m_to_hex(70 * 1.5)
 var tile_deletion_distance_hex := HexConst.distance_m_to_hex(250)
 @onready var camera_controller: CameraController = %Camera3D as CameraController
 var generation_position: HexPos = HexPos.invalid()
@@ -156,6 +156,8 @@ func remove_far_away_tiles() -> void:
 			if distance > tile_deletion_distance_hex:
 				# This is the only place where tiles are removed
 				HexChunkMap.delete_by_pos(chunk.hex_pos_base)
+				HexTileMap.delete_batch_by_poses(chunk.tile_poses)
+				# This will also free the children of the chunk
 				chunk.queue_free()
 
 

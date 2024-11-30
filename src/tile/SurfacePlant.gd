@@ -157,22 +157,27 @@ func processWorldStep(humidity: float, shade: float, nutrition: float) -> void:
 	tween.tween_method(set_shader_value.bind("height_mod"), height_start, curr_height, 0.4)
 
 
-func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
+func determine_num_blades(surface_sampler: PolygonSurfaceSampler) -> int:
 	# Density per 1d-meter (one line)
 	var density_1d: float = HexConst.grass_density;
 	var area := surface_sampler.get_total_area()
 	# Square density to get 2d -> weight by area
-	num_blades_total = round(density_1d * density_1d * area)
+	var num_blades : int = round(density_1d * density_1d * area)
 
 	# Reduce in editor
 	if Engine.is_editor_hint():
 		var in_editor_density_reduction := 1.0
-		num_blades_total = round(num_blades_total * in_editor_density_reduction)
+		num_blades = round(num_blades * in_editor_density_reduction)
 
 	# Reduce if gpu is bad
 	if RenderingServer.get_video_adapter_type() != RenderingDevice.DEVICE_TYPE_DISCRETE_GPU:
 		var bad_gpu_reduction := 0.3
-		num_blades_total = round(num_blades_total * bad_gpu_reduction)
+		num_blades = round(num_blades * bad_gpu_reduction)
+
+	return num_blades
+
+func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
+	num_blades_total = determine_num_blades(surface_sampler)
 
 	# Compute custom aabb
 	mesh_instance.custom_aabb = surface_sampler.compute_custom_aabb(max_height)

@@ -11,7 +11,12 @@ var total_weight: float
 
 func _init(triangles_: Array[Triangle]) -> void:
 	self.triangles = triangles_
+	#self._calculate_area_weights()	
+
+
+func finalize() -> PolygonSurfaceSampler:
 	self._calculate_area_weights()
+	return self
 
 
 func is_valid() -> bool:
@@ -22,46 +27,48 @@ func get_total_area() -> float:
 	return total_area
 
 
-func filter_max_incline(max_incline_deg: float) -> void:
+func filter_max_incline(max_incline_deg: float) -> PolygonSurfaceSampler:
 	self.triangles = triangles.filter(func(tri: Triangle) -> bool:
 		# Return true to keep triangle
 		return tri.calculateInclineDeg() <= max_incline_deg
 	)
 	# if self.triangles.is_empty():
 	# 	print("Triangle list in PolygonSurfaceSampler is empty after filtering for max_incline <= %f" % [max_incline_deg])
-	self._calculate_area_weights()
+	#self._calculate_area_weights()
+	return self
 
 
-func filter_min_incline(min_incline_deg: float) -> void:
+func filter_min_incline(min_incline_deg: float) -> PolygonSurfaceSampler:
 	self.triangles = triangles.filter(func(tri: Triangle) -> bool:
 		# Return true to keep triangle
 		return tri.calculateInclineDeg() >= min_incline_deg
 	)
 	# if self.triangles.is_empty():
 	# 	print("Triangle list in PolygonSurfaceSampler is empty after filtering for min_incline >= %f" % [min_incline_deg])
-	self._calculate_area_weights()
+	#self._calculate_area_weights()
+	return self
 
 
 func get_random_point() -> Vector3:
-	if not is_valid():
-		push_warning("Tried to get point from PolygonSurfaceSampler but triangle list is empty!")
-		return Vector3.ZERO
+	# if not is_valid():
+	# 	push_warning("Tried to get point from PolygonSurfaceSampler but triangle list is empty!")
+	# 	return Vector3.ZERO
 
 	var tri_idx: int = _weighted_random_choice()
 	return self.triangles[tri_idx].getRandPoint()
 
 
 func get_random_point_transform() -> Transform3D:
-	if not is_valid():
-		push_warning("Tried to get transform from PolygonSurfaceSampler but triangle list is empty!")
-		return Transform3D.IDENTITY
+	# if not is_valid():
+	# 	push_warning("Tried to get transform from PolygonSurfaceSampler but triangle list is empty!")
+	# 	return Transform3D.IDENTITY
 
 	var tri_idx: int = _weighted_random_choice()
 	var tri: Triangle = self.triangles[tri_idx]
 	return Util.transformFromPointAndNormal(tri.getRandPoint(), tri.getNormal())
 
 
-func _calculate_area_weights() -> void:
+func _calculate_area_weights() -> PolygonSurfaceSampler:
 	var areas: Array[float] = []
 	total_area = 0.0
 	total_weight = 0.0
@@ -77,6 +84,8 @@ func _calculate_area_weights() -> void:
 		area_weights.append(weight + total_weight)
 		total_weight += weight
 
+	return self
+
 
 func _weighted_random_choice() -> int:
 	# ChatGPT magic
@@ -87,6 +96,7 @@ func _weighted_random_choice() -> int:
 	return index
 
 
+# Expensive, only use for debugging
 func compute_custom_aabb(object_height: float) -> AABB:
 	if not is_valid():
 		return AABB()

@@ -89,17 +89,23 @@ static func get_size() -> int:
 #################################################################
 # DELETE
 #################################################################
-
 # DOES NOT FREE
 static func delete_by_hash(key: int) -> void:
 	mutex.lock()
 	tiles.erase(key)
 	mutex.unlock()
 
-
 static func delete_by_pos(hex_pos: HexPos) -> void:
 	# -> Requires mutex
 	delete_by_hash(hex_pos.hash())
+
+
+# DIFFERENT FROM HexChunkMap
+static func delete_batch_by_poses(hex_poses: Array[HexPos]) -> void:
+	mutex.lock()
+	for i in range(hex_poses.size()):
+		tiles.erase(hex_poses[i].hash())
+	mutex.unlock()
 
 
 static func clear_all() -> void:
