@@ -87,8 +87,8 @@ func equals(other: HexPos) -> bool:
 # Chunking
 ##########################################################################################
 func to_chunk_base() -> HexPos:
-	var q_: int = q - (absi(q) % HexConst.chunk_size)
-	var r_: int = r - (absi(r) % HexConst.chunk_size)
+	var q_: int = q - posmod(q, HexConst.chunk_size)
+	var r_: int = r - posmod(r, HexConst.chunk_size)
 	return HexPos.new(q_, r_, _get_s(q_, r_))
 
 func is_chunk_base() -> bool:

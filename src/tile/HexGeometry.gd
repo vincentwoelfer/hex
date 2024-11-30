@@ -51,23 +51,13 @@ func generate() -> void:
 	#########################################
 	# Build mesh from triangles
 	#########################################
-	var st: SurfaceTool = SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	st.set_normal(Vector3.UP)
-
-	for tri in triangles:
-		tri.addToSurfaceTool(st)
-
-	# Removes duplicates and actually create mesh
-	st.index()
-	st.optimize_indices_for_cache()
-	st.generate_normals()
-	mesh = st.commit()
+	#mesh = Util.create_mesh_from_triangles(triangles)
 
 	#########################################
 	# Create polygon samplers from triangles
 	#########################################
 	self.samplerAll = PolygonSurfaceSampler.new(self.triangles)
+
 	self.samplerHorizontal = PolygonSurfaceSampler.new(self.triangles)
 	self.samplerHorizontal.filter_max_incline(45)
 
@@ -82,37 +72,6 @@ func generate() -> void:
 
 	if DebugSettings.generate_collision:
 		generateCollisionShape()
-
-
-func generateCollisionShape() -> void:
-	var collision_trix: Array[Triangle]
-	var occluder_height := 10
-
-	# # Generate top surface triangles
-	# for i in range(1, 6 - 1):
-	# 	collision_trix.append(Triangle.new(input.corner_vertices[0], input.corner_vertices[i], input.corner_vertices[i + 1]))
-
-	# # Side triangles
-	# for i in range(6):
-	# 	var next_i := Util.as_dir(i + 1)
-	# 	var top_a := input.corner_vertices[i]
-	# 	var top_b := input.corner_vertices[next_i]
-	# 	var bottom_a := top_a - Vector3(0, occluder_height, 0)
-	# 	var bottom_b := top_b - Vector3(0, occluder_height, 0)
-		
-	# 	collision_trix.append(Triangle.new(top_a, bottom_a, bottom_b))
-	# 	collision_trix.append(Triangle.new(top_a, bottom_b, top_b))
-
-	# Generate faces from triangles
-	var faces: PackedVector3Array = []
-	for tri in triangles:
-		faces.append(tri.a)
-		faces.append(tri.b)
-		faces.append(tri.c)
-
-	# Create collision shape
-	collision_shape = ConcavePolygonShape3D.new()
-	collision_shape.set_faces(faces)
 
 
 func setInnerAndCenterVertexHeights() -> void:
@@ -140,7 +99,6 @@ func setOuterVertexHeights() -> void:
 	for dir in range(6):
 		verts_outer[dir_to_corner_index(dir)].y = input.corner_vertices[dir].y
 
-
 	# For each DIRECTION: Adjust height of outer vertices according do adjacent tiles.
 	# This does not modify the corner vertices
 	for dir in range(6):
@@ -160,12 +118,6 @@ func setOuterVertexHeights() -> void:
 		while x != end_idx:
 			var t := compute_t_on_line_segment(Util.toVec2(verts_outer[x]), start_corner, end_corner)
 			var smoothed_height: float = (1.0 - t) * input.transitions[dir].smoothing_start_height + t * input.transitions[dir].smoothing_end_height
-				
-			# var fac := HexConst.smooth_height_factor_outer
-			# if input.transitions[dir].type == HexGeometryInput.TransitionType.SHARP:
-			# 	fac = 0.0
-			# verts_outer[x].y = lerpf(base_height, smoothed_height, fac)
-
 			verts_outer[x].y = lerpf(base_height, smoothed_height, HexConst.smooth_height_factor_outer)
 
 			# Increment with wrap-around
@@ -284,6 +236,20 @@ func generateOccluder() -> void:
 	# Create occluder from arrays
 	occluder = ArrayOccluder3D.new()
 	occluder.set_arrays(vertices, indices)
+
+
+func generateCollisionShape() -> void:
+	# Generate faces from triangles
+	var faces: PackedVector3Array = []
+	faces.resize(triangles.size() * 3)
+	for idx in range(triangles.size()):
+		faces[idx * 3 + 0] = triangles[idx].a
+		faces[idx * 3 + 1] = triangles[idx].b
+		faces[idx * 3 + 2] = triangles[idx].c
+
+	# Create collision shape
+	collision_shape = ConcavePolygonShape3D.new()
+	collision_shape.set_faces(faces)
 
 
 # Point must be strictly inside hexagon (not on borders)!

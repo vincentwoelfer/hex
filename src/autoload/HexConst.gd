@@ -44,7 +44,7 @@ var trans_type_max_height_diff := 4
 var grass_density := 10.0
 
 
-var chunk_size: int = 2
+var chunk_size: int = 3
 
 
 # Use smooth groups

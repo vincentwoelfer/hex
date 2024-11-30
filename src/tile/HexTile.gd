@@ -14,13 +14,15 @@ var hex_pos: HexPos
 var height: int
 
 var params: HexTileParams
-var label: HexTileLabel = null
+var geometry: HexGeometry
+
 
 # Visual Representation
-var terrainMesh: MeshInstance3D = null
+# var terrainMesh: MeshInstance3D = null
 var terrainOccluderInstance: OccluderInstance3D = null
 var plant: SurfacePlant = null
 var rocks: MeshInstance3D = null
+var label: HexTileLabel = null
 
 # Collision
 var collisionBody: StaticBody3D
@@ -37,7 +39,6 @@ func _init(hex_pos_: HexPos, height_: int) -> void:
 
 	# Set position of tile (relative to parent chunk)
 	var hex_pos_local := hex_pos.subtract(hex_pos.to_chunk_base())
-	print("hex_pos: ", hex_pos, " | chunk_base: ", hex_pos.to_chunk_base(), " | hex_pos_local: ", hex_pos_local)
 	var world_pos: Vector2 = HexPos.hexpos_to_xy(hex_pos_local)
 	self.position = Vector3(world_pos.x, height * HexConst.height, world_pos.y)
 
@@ -50,27 +51,19 @@ func generate(geometry_input: HexGeometryInput) -> void:
 	assert(geometry_input.generation_stage == HexGeometryInput.GenerationStage.COMPLETE)
 	
 	# Delete old stuff
-	if terrainMesh != null:
-		terrainMesh.free()
-	if plant != null:
-		plant.free()
-	if rocks != null:
-		rocks.free()
-
-	# Does this solve everything?
-	# For now, it deletes debug visuals
 	for c in self.get_children():
 		c.free()
 
 	# Create geometry from geometry input
-	var geometry := HexGeometry.new(geometry_input)
+	geometry = HexGeometry.new(geometry_input)
 
-	terrainMesh = MeshInstance3D.new()
-	terrainMesh.name = "terrain"
-	terrainMesh.mesh = geometry.mesh
-	terrainMesh.material_override = DEFAULT_TERRAIN_MAT
+	#########################################
+	# Add / generate new stuff baes on new geometry
+	#########################################	
+	# Terrain mesh is created in chunk
 
-	add_child(terrainMesh)
+	if DebugSettings.visualize_hex_input:
+		geometry_input.create_debug_visualization(self)
 
 	# Occluder
 	if DebugSettings.generate_terrain_occluder:
@@ -78,16 +71,13 @@ func generate(geometry_input: HexGeometryInput) -> void:
 		terrainOccluderInstance.occluder = geometry.occluder
 		add_child(terrainOccluderInstance)
 
-	if DebugSettings.visualize_hex_input:
-		geometry_input.create_debug_visualization(self)
-
 	if DebugSettings.generate_collision and self.height > 0:
 		self.collisionBody = StaticBody3D.new()
 		collisionBody.create_shape_owner(self)
 		collisionBody.shape_owner_add_shape(0, geometry.collision_shape)
 		add_child(collisionBody)
 
-
+	# Remaining steps (=placing stuff on tile) only if tile is a valid non-ocean tile with a horizontal sampler
 	if self.height > 0 and geometry.samplerHorizontal.is_valid():
 		# Add plants
 		if DebugSettings.enable_grass:

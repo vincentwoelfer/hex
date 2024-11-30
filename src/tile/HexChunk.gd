@@ -3,14 +3,17 @@ class_name HexChunk
 extends Node3D
 
 ######################################################
-# Parent / Struct class holding everything a hex tile can be/posess
+# Parent / Struct class holding everything a hex chunk can be/posess
 ######################################################
+
+const DEFAULT_TERRAIN_MAT: Material = preload('res://assets/materials/default_geom_material.tres')
+const ROCKS_MATERIAL: Material = preload('res://assets/materials/rocks_material.tres')
 
 # Core Variables
 var hex_pos_base: HexPos
 
 # Visual Representation
-# var terrainMesh: MeshInstance3D
+var terrainMesh: MeshInstance3D
 # var terrainOccluderInstance: OccluderInstance3D
 # var plant: SurfacePlant
 # var rocks: MeshInstance3D
@@ -34,14 +37,10 @@ func _init(hex_pos_: HexPos) -> void:
 	var world_pos: Vector2 = HexPos.hexpos_to_xy(hex_pos_base)
 	self.position = Vector3(world_pos.x, 0.0, world_pos.y)
 
-	# self.terrainMesh = null
-	# self.terrainOccluderInstance = null
-	# self.plant = null
-	# self.rocks = null
-	# self.collisionBody = null
 
 func generate() -> void:
 	# Free previous tiles
+	tiles.clear()
 	for c in self.get_children():
 		c.free()
 
@@ -59,16 +58,29 @@ func generate() -> void:
 		add_child(tile)
 
 	# Add tiles to map as batch
+	assert(tiles.size() == pow(HexConst.chunk_size, 2))
 	HexTileMap.add_initialized_tiles_batch(tiles)
 
-	# Color Chunk in same color for debugging
+	##############################
+	# Merge components from tiles
+	##############################
+
+	# Terrain Mesh
+	var triangle_mesh_tool := TriangleMeshTool.new()
+	for tile: HexTile in tiles:
+		triangle_mesh_tool.add_triangle_list(tile.geometry.triangles, tile.position)
+
+	terrainMesh = MeshInstance3D.new()
+	terrainMesh.name = "terrain"
+	terrainMesh.mesh = triangle_mesh_tool.commit()
+	terrainMesh.material_override = DEFAULT_TERRAIN_MAT
+	add_child(terrainMesh)
 
 	# Add debug color overlay for tiles
 	if DebugSettings.use_chunk_colors:
 		var material := StandardMaterial3D.new()
 		material.albedo_color = Colors.randColorNoExtreme()
-		for tile in tiles:
-			tile.terrainMesh.material_override = material
+		terrainMesh.material_override = material
 		
 
 func _ready() -> void:

@@ -159,6 +159,24 @@ static func transformFromPointAndNormal(point: Vector3, normal: Vector3) -> Tran
 
 
 ######################################################
+# Mesh manipulation / merging
+######################################################
+static func create_mesh_from_triangles(triangles: Array[Triangle]) -> Mesh:
+	var st: SurfaceTool = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_normal(Vector3.UP)
+
+	for tri in triangles:
+		tri.addToSurfaceTool(st)
+
+	# Removes duplicates and actually create mesh
+	st.index()
+	st.optimize_indices_for_cache()
+	st.generate_normals()
+	return st.commit()
+
+
+######################################################
 # HEXAGON
 ######################################################
 
