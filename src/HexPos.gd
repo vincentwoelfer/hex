@@ -17,6 +17,9 @@ func _init(q_: int, r_: int, s_: int) -> void:
 func _to_string() -> String:
 	return '(' + str(q) + ', ' + str(r) + ', ' + str(s) + ')'
 
+func is_valid() -> bool:
+	return q + r + s == 0
+
 ##########################################################################################
 # Hash / Unhash functions
 ##########################################################################################
@@ -52,6 +55,9 @@ static func unhash(z: int) -> HexPos:
 ##########################################################################################
 # Basic operations
 ##########################################################################################
+func as_frac() -> HexPosFrac:
+	return HexPosFrac.new(q, r, s)
+
 func add(other: HexPos) -> HexPos:
 	return HexPos.new(q + other.q, r + other.r, s + other.s)
 
@@ -81,9 +87,9 @@ func equals(other: HexPos) -> bool:
 # Chunking
 ##########################################################################################
 func to_chunk_base() -> HexPos:
-	var q_: int = q - (q % HexConst.chunk_size)
-	var r_: int = r - (r % HexConst.chunk_size)
-	return HexPos.new(q, r, _get_s(q_, r_))
+	var q_: int = q - (absi(q) % HexConst.chunk_size)
+	var r_: int = r - (absi(r) % HexConst.chunk_size)
+	return HexPos.new(q_, r_, _get_s(q_, r_))
 
 func is_chunk_base() -> bool:
 	return q % HexConst.chunk_size == 0 and r % HexConst.chunk_size == 0
@@ -244,6 +250,7 @@ static func compute_num_tiles_for_ring(radius: int) -> int:
 
 static func invalid() -> HexPos:
 	var invalid_ := HexPos.new(0, 0, 0)
+	# Change after constructor to not trigger warning here
 	invalid_.s = -1
 	return invalid_
 

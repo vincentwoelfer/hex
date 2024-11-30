@@ -21,6 +21,8 @@ static func add_by_pos(hex_pos: HexPos) -> HexChunk:
 
 	
 static func _add(hex_pos: HexPos, key: int) -> HexChunk:
+	assert(hex_pos.is_chunk_base()) # DIFFERENT FROM HexTileMap
+
 	# Create var
 	var chunk: HexChunk
 
@@ -43,6 +45,8 @@ static func _add(hex_pos: HexPos, key: int) -> HexChunk:
 # GET -> returns null if not existing
 #################################################################
 static func get_by_hash(key: int) -> HexChunk:
+	assert(HexPos.unhash(key).is_chunk_base()) # DIFFERENT FROM HexTileMap
+
 	mutex.lock()
 	var chunk: HexChunk = chunks.get(key)
 	mutex.unlock()
@@ -77,6 +81,8 @@ static func get_size() -> int:
 
 # DOES NOT FREE
 static func delete_by_hash(key: int) -> void:
+	assert(HexPos.unhash(key).is_chunk_base()) # DIFFERENT FROM HexTileMap
+
 	mutex.lock()
 	chunks.erase(key)
 	mutex.unlock()

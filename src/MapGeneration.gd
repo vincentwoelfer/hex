@@ -22,7 +22,7 @@ var num_threads: int = 4
 var threads_running: bool = true
 var threads_running_mutex: Mutex
 # Seems to make almost no difference in performance
-var fetch_tiles_count := 1
+var fetch_chunks_count := 1
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
 var tile_generation_distance_hex := HexConst.distance_m_to_hex(70)
@@ -48,7 +48,7 @@ func _ready() -> void:
 	threads_running_mutex = Mutex.new()
 
 	# Create thread
-	print("MAIN: Starting %d threads with %d fetch_tiles_count" % [num_threads, fetch_tiles_count])
+	print("MAIN: Starting %d threads with %d fetch_chunks_count" % [num_threads, fetch_chunks_count])
 	threads.clear()
 	for i in range(num_threads):
 		threads.append(Thread.new())
@@ -95,12 +95,13 @@ func _process(delta: float) -> void:
 
 	# Only for Testing / benchmarking
 	if not benchmark_complete:
-		var expected := HexPos.compute_num_tiles_in_range(tile_generation_distance_hex, true)
-		if HexTileMap.get_size() >= expected:
+		var expected_tiles := HexPos.compute_num_tiles_in_range(tile_generation_distance_hex, true)
+		if HexTileMap.get_size() >= expected_tiles:
+			var num_chunks := HexChunkMap.get_size()
 			var t := (Time.get_ticks_usec() - t_start_benchmark) / 1000.0
 			Util.print_only_banner()
-			print("MAIN: Process took %4.0f ms to generate %d tiles (N=%d)" % [t, expected, tile_generation_distance_hex])
-			print("MAIN: Thread count: %d, fetch_tiles_count: %d" % [num_threads, fetch_tiles_count])
+			print("MAIN: Process took %4.0f ms to generate %d tiles in %d chunks (N=%d)" % [t, expected_tiles, num_chunks, tile_generation_distance_hex])
+			print("MAIN: Thread count: %d, fetch_chunks_count: %d, chunk_size=%d" % [num_threads, fetch_chunks_count, HexConst.chunk_size])
 			Util.print_only_banner()
 			benchmark_complete = true
 
@@ -137,10 +138,10 @@ func fetch_and_add_all_generated_tiles() -> void:
 	# MUTEX UNLOCK
 
 	for key: int in generated_queue_copy:
-		var tile: HexTile = HexTileMap.get_by_hash(key)
-		assert(tile != null)
+		var chunk: HexChunk = HexChunkMap.get_by_hash(key)
+		assert(chunk != null)
 		# Only place where tiles are added to the scene
-		add_child(tile)
+		add_child(chunk)
 
 
 func remove_far_away_tiles() -> void:
@@ -149,23 +150,31 @@ func remove_far_away_tiles() -> void:
 
  	# Loop over all children in reverse order (to be able to modify the array)
 	for i in range(child_count - 1, -1, -1):
-		var tile: HexTile = get_child(i) as HexTile
-		if is_instance_valid(tile) and not tile.is_queued_for_deletion():
-			var distance := generation_position.distance_to(tile.hex_pos)
+		var chunk: HexChunk = get_child(i) as HexChunk
+		if is_instance_valid(chunk) and not chunk.is_queued_for_deletion():
+			var distance := generation_position.distance_to(chunk.get_hex_pos_center())
 			if distance > tile_deletion_distance_hex:
 				# This is the only place where tiles are removed
-				HexTileMap.delete_by_pos(tile.hex_pos)
-				tile.queue_free()
+				HexChunkMap.delete_by_pos(chunk.hex_pos_base)
+				chunk.queue_free()
 
 
 func queue_new_tiles_for_generation() -> void:
-	var hashes_in_range: PackedInt32Array = generation_position.get_neighbours_in_range_as_hash(tile_generation_distance_hex, true)
+	var hashes_in_range_tiles: PackedInt32Array = generation_position.get_neighbours_in_range_as_hash(tile_generation_distance_hex, true)
+
+	# TODO optimize this
+	# Filter to only get hexposes which are chunk bases
+	var hashes_in_range: PackedInt32Array
+	for i in range(hashes_in_range_tiles.size()):
+		var hex_pos: HexPos = HexPos.unhash(hashes_in_range_tiles[i])
+		if hex_pos.is_chunk_base():
+			hashes_in_range.push_back(hashes_in_range_tiles[i])
 
 	# Remove any hashes which are already presend in the map. No mutex needed here.
-	# This might miss some tiles since they are added to the map after this check -> filter again after mutex lock
+	# This might miss some chunks since they are added to the map after this check -> filter again after mutex lock
 	var hashes_filtered: PackedInt32Array
 	for key in hashes_in_range:
-		if HexTileMap.get_by_hash(key) == null:
+		if HexChunkMap.get_by_hash(key) == null:
 			hashes_filtered.push_back(key)
 
 	# Early return if empty to avoid mutex lock completely
@@ -178,15 +187,12 @@ func queue_new_tiles_for_generation() -> void:
 	var num_queued := 0
 	for key in hashes_filtered:
 		# Filter again, this time with locked to_generate_mutex
-		if HexTileMap.get_by_hash(key) != null:
-			continue
-
-		# Queue if hex-tile is not already queued
-		if not to_generate_queue.has(key):
-			# Push front is less effective BUT preserves order. Godot has no fast FIFO container :(
-			to_generate_queue.push_front(key)
-			# print("Queuing: ", HexPos.unhash(key)._to_string())
-			num_queued += 1
+		if HexChunkMap.get_by_hash(key) == null:
+			# Queue if chunk is not already queued
+			if not to_generate_queue.has(key):
+				# Push front is less effective BUT preserves order. Godot has no fast FIFO container :(
+				to_generate_queue.push_front(key)
+				num_queued += 1
 
 	to_generate_mutex.unlock()
 	# MUTEX UNLOCK
@@ -199,7 +205,7 @@ func queue_new_tiles_for_generation() -> void:
 # THREAD FUNCTION
 ####################################################################################################
 func thread_generation_loop_function() -> void:
-	# Overwrite thread_id (number from 0) with actual thread id
+	# Get actual thread id
 	var thread_id := OS.get_thread_caller_id()
 
 	while true:
@@ -215,25 +221,26 @@ func thread_generation_loop_function() -> void:
 			return
 
 		var keys: Array[int] = []
-		var hex_poses: Array[HexPos] = []
-		var tiles: Array[HexTile] = []
+		var chunk_positions: Array[HexPos] = []
+		var chunks: Array[HexChunk] = []
 
 		# Fetch tile hash to generate, remove from queue and already add to HexTileMap to prevent re-queueing
 		# MUTEX LOCK
 		to_generate_mutex.lock()
 
 		# Fetch keys
-		for i in range(fetch_tiles_count):
+		for i in range(fetch_chunks_count):
 			# Fetch and pop key, save hex_pos and create empty tile for it
 			var k: Variant = to_generate_queue.pop_back()
 			if k == null:
 				break
 
 			keys.push_back(k)
-			hex_poses.push_back(HexPos.unhash(keys[i]))
+			chunk_positions.push_back(HexPos.unhash(keys[i]))
 
-			# Create HexTile here already to prevent re-queueing
-			tiles.push_back(create_empty_hex_tile(hex_poses[i]))
+			# Create chunk and add to map here already to prevent the main thread from re-queueing it again
+			var new_chunk: HexChunk = HexChunkMap.add_by_pos(chunk_positions[i])
+			chunks.push_back(new_chunk)
 
 		to_generate_mutex.unlock()
 		# MUTEX UNLOCK
@@ -242,29 +249,15 @@ func thread_generation_loop_function() -> void:
 		if keys.is_empty():
 			continue
 
-		# Generate geometry input (dirt cheap ~ < 1ms) and HexGeometry itself (expensive ~ 50ms per tile)
+		# Generate chunks. This will generate the tiles itself which is the expensive part
 		for i in range(keys.size()):
-			var geometry_input := HexGeometryInputMap.create_complete_hex_geometry_input(hex_poses[i])
-			tiles[i].generate(geometry_input)
+			chunks[i].generate()
 
 		# Add to generated queue
 		generated_queue_mutex.lock()
 		for i in range(keys.size()):
 			generated_queue.push_back(keys[i])
 		generated_queue_mutex.unlock()
-
-
-func create_empty_hex_tile(hex_pos: HexPos) -> HexTile:
-	assert(hex_pos != null)
-	var height: int = MapGenerationData.determine_height(hex_pos)
-	var hex_tile := HexTileMap.add_by_pos(hex_pos, height)
-	assert(hex_tile != null)
-
-	# Set global world position of tile -> TODO move this elsewhere ?
-	var world_pos: Vector2 = HexPos.hexpos_to_xy(hex_pos)
-	hex_tile.position = Vector3(world_pos.x, height * HexConst.height, world_pos.y)
-
-	return hex_tile
 
 
 ##############################
@@ -289,6 +282,7 @@ func delete_everything() -> void:
 	to_generate_mutex.unlock()
 
 	HexTileMap.clear_all()
+	HexChunkMap.clear_all()
 	HexGeometryInputMap.clear_all()
 
 

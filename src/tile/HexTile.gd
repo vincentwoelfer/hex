@@ -14,46 +14,36 @@ var hex_pos: HexPos
 var height: int
 
 var params: HexTileParams
-var label: HexTileLabel
+var label: HexTileLabel = null
 
 # Visual Representation
-var terrainMesh: MeshInstance3D
-var terrainOccluderInstance: OccluderInstance3D
-var plant: SurfacePlant
-var rocks: MeshInstance3D
+var terrainMesh: MeshInstance3D = null
+var terrainOccluderInstance: OccluderInstance3D = null
+var plant: SurfacePlant = null
+var rocks: MeshInstance3D = null
 
 # Collision
 var collisionBody: StaticBody3D
 
 # Does not much, only actual constructor
+# Order is init() -> generate() -> ready()
 func _init(hex_pos_: HexPos, height_: int) -> void:
 	self.hex_pos = hex_pos_
 	self.height = height_
-	if self.hex_pos != null:
+	if self.hex_pos != null and self.hex_pos.is_valid():
 		self.name = 'HexTile' + hex_pos._to_string()
 	else:
 		self.name = 'HexTile-Invalid'
 
-	self.terrainMesh = null
-	self.terrainOccluderInstance = null
-	self.plant = null
-	self.rocks = null
-	self.collisionBody = null
+	# Set position of tile (relative to parent chunk)
+	var hex_pos_local := hex_pos.subtract(hex_pos.to_chunk_base())
+	print("hex_pos: ", hex_pos, " | chunk_base: ", hex_pos.to_chunk_base(), " | hex_pos_local: ", hex_pos_local)
+	var world_pos: Vector2 = HexPos.hexpos_to_xy(hex_pos_local)
+	self.position = Vector3(world_pos.x, height * HexConst.height, world_pos.y)
 
-	self.label = null
-	self.params = HexTileParams.new() # Randomizes everything
+	# Set Ground Params - Randomizes everything
+	self.params = HexTileParams.new()
 
-
-func _ready() -> void:
-	if height > 0:
-		label = HexTileLabel.new(params)
-		label.set_label_world_pos(global_position)
-		add_child(label)
-
-	# Signals
-	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
-	EventBus.Signal_WorldStep.connect(processWorldStep)
-		
 
 func generate(geometry_input: HexGeometryInput) -> void:
 	assert(geometry_input != null)
@@ -79,7 +69,7 @@ func generate(geometry_input: HexGeometryInput) -> void:
 	terrainMesh.name = "terrain"
 	terrainMesh.mesh = geometry.mesh
 	terrainMesh.material_override = DEFAULT_TERRAIN_MAT
-	#terrainMesh.material_overlay = HIGHLIGHT_MAT
+
 	add_child(terrainMesh)
 
 	# Occluder
@@ -115,6 +105,17 @@ func generate(geometry_input: HexGeometryInput) -> void:
 				rocks.material_override = ROCKS_MATERIAL
 				rocks.mesh = rocksMesh
 				add_child(rocks)
+
+
+func _ready() -> void:
+	if height > 0:
+		label = HexTileLabel.new(params)
+		label.set_label_world_pos(global_position)
+		add_child(label)
+
+	# Signals
+	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
+	EventBus.Signal_WorldStep.connect(processWorldStep)
 
 
 func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:

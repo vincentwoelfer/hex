@@ -17,6 +17,7 @@ reflected_light_source = 1
 tonemap_mode = 3
 tonemap_white = 6.0
 sdfgi_enabled = true
+sdfgi_y_scale = 0
 fog_enabled = true
 fog_mode = 1
 fog_sun_scatter = 1.0

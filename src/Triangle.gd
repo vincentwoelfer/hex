@@ -18,7 +18,6 @@ func _init(a_: Vector3, b_: Vector3, c_: Vector3, color_: Color = Color.BLACK) -
 	assert(a != b and a != c and b != c, "Triangle points must be different")
 
 	# Color is set to distinc hex color in HexGeometry (unless overwritten here)
-
 	if not DebugSettings.use_distinc_hex_colors:
 		# For testing, set color based on incline
 		color = Colors.getColorForIncline(calculateInclineDeg())

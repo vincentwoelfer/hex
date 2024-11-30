@@ -39,6 +39,21 @@ static func _add(hex_pos: HexPos, key: int, height: int) -> HexTile:
 	mutex.unlock()
 	return tile
 
+
+#################################################################
+# BATCHED ADD - for adding all tiles of a chunk
+# DIFFERENT FROM HexChunkMap
+#################################################################
+static func add_initialized_tiles_batch(new_tiles: Array[HexTile]) -> void:
+	mutex.lock()
+
+	for i in range(new_tiles.size()):
+		var key: int = new_tiles[i].hex_pos.hash()
+		assert(not tiles.has(key))
+		tiles.set(key, new_tiles[i])
+
+	mutex.unlock()
+
 #################################################################
 # GET -> returns null if not existing
 #################################################################
