@@ -17,6 +17,8 @@ const GRASS_MESH_LRES := preload('res://assets/meshes/basic_grass/basic_grass_lr
 # Terrain
 const DEFAULT_TERRAIN_MAT: Material = preload('res://assets/materials/default_geom_material.tres')
 
+# Highlight
+const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
 
 func _ready() -> void:
 	basic_rocks_meshes = load_all_meshes_from_dir(basic_rocks_path)

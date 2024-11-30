@@ -17,7 +17,7 @@ var geometry: HexGeometry
 # Visual Representation
 # var terrainMesh: MeshInstance3D = null
 var terrainOccluderInstance: OccluderInstance3D = null
-var plant: SurfacePlant = null
+var plant: SurfacePlant = null # TODO must stay here for tick() (i guess). 
 var rocks: MeshInstance3D = null
 var label: HexTileLabel = null
 
