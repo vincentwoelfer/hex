@@ -75,7 +75,7 @@ static func _fetch_or_create_geometry_input(hex_pos: HexPos) -> HexGeometryInput
 # DELETE
 #################################################################
 # PUBLIC
-static func free_all() -> void:
+static func clear_all() -> void:
 	mutex.lock()
 
 	for i: int in geometry_inputs:

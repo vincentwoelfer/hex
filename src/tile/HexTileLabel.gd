@@ -62,6 +62,7 @@ func update_label_text(params: HexTileParams) -> void:
 func update_label_position() -> void:
 	# Only abort if label should not be visible. Otherwise we need to update to determine if it might become visible
 	if not is_label_visible:
+		label.visible = false
 		return
 
 	var cam := Util.get_global_cam(self)

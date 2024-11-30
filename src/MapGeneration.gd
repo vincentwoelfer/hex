@@ -22,23 +22,22 @@ var num_threads: int = 4
 var threads_running: bool = true
 var threads_running_mutex: Mutex
 # Seems to make almost no difference in performance
-var fetch_tiles_count := 2
+var fetch_tiles_count := 1
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
-var tile_generation_distance := roundi(70.0 / HexConst.vertical_size())
-var tile_deletion_distance := roundi(250.0 / HexConst.vertical_size())
+var tile_generation_distance_hex := HexConst.distance_m_to_hex(70)
+var tile_deletion_distance_hex := HexConst.distance_m_to_hex(250)
 @onready var camera_controller: CameraController = %Camera3D as CameraController
 var generation_position: HexPos = HexPos.invalid()
 
 # Testing
-var t_start_: int
-var testing_complete: bool = false
+var t_start_benchmark: int
+var benchmark_complete: bool = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	# This is required for the LSP to work (since this script is a tool script)
+	# This is required for the headless LSP to work (since this script is a tool script)
 	if OS.has_feature("Server"):
-		print("Detected headless, not starting map generation!")
 		num_threads = 0
 		return
 
@@ -53,16 +52,19 @@ func _ready() -> void:
 	threads.clear()
 	for i in range(num_threads):
 		threads.append(Thread.new())
-		threads[i].start(thread_generation_loop.bind(i))
+		threads[i].start(thread_generation_loop_function)
 
 	# Signals
 	EventBus.Signal_HexConstChanged.connect(set_regenerate)
 
-	# Start testing timer
-	t_start_ = Time.get_ticks_usec()
+	# Start benchmark timer
+	t_start_benchmark = Time.get_ticks_usec()
 
 
 func _process(delta: float) -> void:
+	# This is required for the headless LSP to work (since this script is a tool script)
+	if OS.has_feature("Server"): return
+
 	# Check if shutdown in process -> Dont queue anything new and join threads
 	threads_running_mutex.lock()
 	var should_exit: bool = !threads_running
@@ -70,13 +72,11 @@ func _process(delta: float) -> void:
 
 	if should_exit:
 		if threads.is_empty():
-			Util.print_multiline_banner("All threads finished, quitting game")
+			Util.print_multiline_banner("All threads finished, exiting game")
 			get_tree().quit()
 		else:
 			join_threads()
-
-		# Dont queue anything new
-		return
+		return # Dont queue anything new
 
 	# Check map regeneration
 	if self.regenerate and (Time.get_unix_time_from_system() - last_regeneration_timestamp) > max_regeneration_delay:
@@ -94,15 +94,15 @@ func _process(delta: float) -> void:
 		remove_far_away_tiles()
 
 	# Only for Testing / benchmarking
-	if not testing_complete:
-		var expected := HexPos.compute_num_tiles_in_range(tile_generation_distance, true)
+	if not benchmark_complete:
+		var expected := HexPos.compute_num_tiles_in_range(tile_generation_distance_hex, true)
 		if HexTileMap.get_size() >= expected:
-			var t := (Time.get_ticks_usec() - t_start_) / 1000.0
+			var t := (Time.get_ticks_usec() - t_start_benchmark) / 1000.0
 			Util.print_only_banner()
-			print("MAIN: Process took %4.0f ms to generate %d tiles (N=%d)" % [t, expected, tile_generation_distance])
+			print("MAIN: Process took %4.0f ms to generate %d tiles (N=%d)" % [t, expected, tile_generation_distance_hex])
 			print("MAIN: Thread count: %d, fetch_tiles_count: %d" % [num_threads, fetch_tiles_count])
 			Util.print_only_banner()
-			testing_complete = true
+			benchmark_complete = true
 
 
 # Returns true if the player has moved and we need to regenerate
@@ -147,27 +147,28 @@ func remove_far_away_tiles() -> void:
 	# No mutex needed here
 	var child_count := get_child_count()
 
+ 	# Loop over all children in reverse order (to be able to modify the array)
 	for i in range(child_count - 1, -1, -1):
 		var tile: HexTile = get_child(i) as HexTile
 		if is_instance_valid(tile) and not tile.is_queued_for_deletion():
 			var distance := generation_position.distance_to(tile.hex_pos)
-			if distance > tile_deletion_distance:
+			if distance > tile_deletion_distance_hex:
 				# This is the only place where tiles are removed
 				HexTileMap.delete_by_pos(tile.hex_pos)
 				tile.queue_free()
 
 
 func queue_new_tiles_for_generation() -> void:
-	var hashes_in_range: PackedInt32Array = generation_position.get_neighbours_in_range_as_hash(tile_generation_distance, true)
+	var hashes_in_range: PackedInt32Array = generation_position.get_neighbours_in_range_as_hash(tile_generation_distance_hex, true)
 
 	# Remove any hashes which are already presend in the map. No mutex needed here.
-	# THIS MIGHT MISS SOME TILES SINCE THEY ARE ADDED TO THE MAP AFTER THIS CHECK -> filter again after mutex lock
+	# This might miss some tiles since they are added to the map after this check -> filter again after mutex lock
 	var hashes_filtered: PackedInt32Array
 	for key in hashes_in_range:
 		if HexTileMap.get_by_hash(key) == null:
 			hashes_filtered.push_back(key)
 
-	# Early return
+	# Early return if empty to avoid mutex lock completely
 	if hashes_filtered.is_empty():
 		return
 
@@ -176,7 +177,7 @@ func queue_new_tiles_for_generation() -> void:
 
 	var num_queued := 0
 	for key in hashes_filtered:
-		# Filter again, this time in to_generate_mutex
+		# Filter again, this time with locked to_generate_mutex
 		if HexTileMap.get_by_hash(key) != null:
 			continue
 
@@ -197,9 +198,9 @@ func queue_new_tiles_for_generation() -> void:
 ####################################################################################################
 # THREAD FUNCTION
 ####################################################################################################
-func thread_generation_loop(thread_id: int) -> void:
-	# Overwrite thread_id with actual thread id
-	thread_id = OS.get_thread_caller_id()
+func thread_generation_loop_function() -> void:
+	# Overwrite thread_id (number from 0) with actual thread id
+	var thread_id := OS.get_thread_caller_id()
 
 	while true:
 		# Wait for new data (also posted on exit signal)
@@ -270,6 +271,7 @@ func create_empty_hex_tile(hex_pos: HexPos) -> HexTile:
 # Regeneration
 ##############################
 func set_regenerate() -> void:
+	Util.print_multiline_banner("Regenerating map")
 	self.regenerate = true
 
 ##############################
@@ -286,8 +288,8 @@ func delete_everything() -> void:
 	to_generate_queue.clear()
 	to_generate_mutex.unlock()
 
-	HexTileMap.free_all()
-	HexGeometryInputMap.free_all()
+	HexTileMap.clear_all()
+	HexGeometryInputMap.clear_all()
 
 
 ##############################

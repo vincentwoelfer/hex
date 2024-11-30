@@ -47,7 +47,7 @@ static func unhash(z: int) -> HexPos:
 	var q_: int = a / 2 if a % 2 == 0 else (a + 1) / -2
 	@warning_ignore("integer_division")
 	var r_: int = b / 2 if b % 2 == 0 else (b + 1) / -2
-	return HexPos.new(q_, r_, -q_ - r_)
+	return HexPos.new(q_, r_, _get_s(q_, r_))
 
 ##########################################################################################
 # Basic operations
@@ -76,6 +76,29 @@ func get_neighbour(dir: int) -> HexPos:
 func equals(other: HexPos) -> bool:
 	return q == other.q and r == other.r and s == other.s
 
+
+##########################################################################################
+# Chunking
+##########################################################################################
+func to_chunk_base() -> HexPos:
+	var q_: int = q - (q % HexConst.chunk_size)
+	var r_: int = r - (r % HexConst.chunk_size)
+	return HexPos.new(q, r, _get_s(q_, r_))
+
+func is_chunk_base() -> bool:
+	return q % HexConst.chunk_size == 0 and r % HexConst.chunk_size == 0
+
+func get_chunk_tiles() -> Array[HexPos]:
+	assert(is_chunk_base())
+
+	var tiles: Array[HexPos] = []
+	tiles.resize(HexConst.chunk_size * HexConst.chunk_size)
+	var idx := 0
+	for dq in range(0, HexConst.chunk_size):
+		for dr in range(0, HexConst.chunk_size):
+			tiles[idx] = HexPos.new(q + dq, r + dr, _get_s(q + dq, r + dr))
+			idx += 1
+	return tiles
 
 ##########################################################################################
 # Neighbours / Area functions
@@ -223,6 +246,9 @@ static func invalid() -> HexPos:
 	var invalid_ := HexPos.new(0, 0, 0)
 	invalid_.s = -1
 	return invalid_
+
+static func _get_s(q_: int, r_: int) -> int:
+	return -q_ - r_
 
 ##########################################################################################
 # Conversion functions between x/y/z world space and hex coordinates

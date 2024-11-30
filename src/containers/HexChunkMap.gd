@@ -1,55 +1,55 @@
 @tool # Must be tool because static variables are used in editor
-class_name HexTileMap
+class_name HexChunkMap
 
-# Hash-Map of Hexes. Key = int (HexPos.hash()), Value = HexTile
-static var tiles: Dictionary[int, HexTile] = {}
+# Hash-Map of Hexes. Key = int (HexPos.hash()), Value = HexChunk
+static var chunks: Dictionary[int, HexChunk] = {}
 static var mutex: Mutex = Mutex.new()
 
 #################################################################
-# ADD -> does nothing if already existing, returns the tile in all cases
+# ADD -> does nothing if already existing, returns the chunk in all cases
 #################################################################
-static func add_by_hash(key: int, height: int) -> HexTile:
+static func add_by_hash(key: int) -> HexChunk:
 	var hex_pos: HexPos = HexPos.unhash(key)
 	# -> Requires mutex
-	return _add(hex_pos, key, height)
+	return _add(hex_pos, key)
 
 
-static func add_by_pos(hex_pos: HexPos, height: int) -> HexTile:
+static func add_by_pos(hex_pos: HexPos) -> HexChunk:
 	var key := hex_pos.hash()
 	# -> Requires mutex
-	return _add(hex_pos, key, height)
+	return _add(hex_pos, key)
 
 	
-static func _add(hex_pos: HexPos, key: int, height: int) -> HexTile:
+static func _add(hex_pos: HexPos, key: int) -> HexChunk:
 	# Create var
-	var tile: HexTile
+	var chunk: HexChunk
 
 	mutex.lock()
 
 	# Existing
-	if tiles.has(key):
-		tile = tiles.get(key)
+	if chunks.has(key):
+		chunk = chunks.get(key)
 		mutex.unlock()
-		return tile
+		return chunk
 
 	# Add new
-	tile = HexTile.new(hex_pos, height)
-	tiles.set(key, tile)
+	chunk = HexChunk.new(hex_pos)
+	chunks.set(key, chunk)
 
 	mutex.unlock()
-	return tile
+	return chunk
 
 #################################################################
 # GET -> returns null if not existing
 #################################################################
-static func get_by_hash(key: int) -> HexTile:
+static func get_by_hash(key: int) -> HexChunk:
 	mutex.lock()
-	var tile: HexTile = tiles.get(key)
+	var chunk: HexChunk = chunks.get(key)
 	mutex.unlock()
-	return tile
+	return chunk
 
 
-static func get_by_pos(hex_pos: HexPos) -> HexTile:
+static func get_by_pos(hex_pos: HexPos) -> HexChunk:
 	# -> Requires mutex
 	return get_by_hash(hex_pos.hash())
 
@@ -59,14 +59,14 @@ static func get_by_pos(hex_pos: HexPos) -> HexTile:
 #################################################################
 static func is_empty() -> bool:
 	mutex.lock()
-	var ret: bool = tiles.is_empty()
+	var ret: bool = chunks.is_empty()
 	mutex.unlock()
 	return ret
 
 
 static func get_size() -> int:
 	mutex.lock()
-	var ret: int = tiles.size()
+	var ret: int = chunks.size()
 	mutex.unlock()
 	return ret
 
@@ -78,7 +78,7 @@ static func get_size() -> int:
 # DOES NOT FREE
 static func delete_by_hash(key: int) -> void:
 	mutex.lock()
-	tiles.erase(key)
+	chunks.erase(key)
 	mutex.unlock()
 
 
@@ -87,11 +87,11 @@ static func delete_by_pos(hex_pos: HexPos) -> void:
 	delete_by_hash(hex_pos.hash())
 
 
-static func free_all() -> void:
+static func clear_all() -> void:
 	mutex.lock()
 	# IS THIS REQUIRED ???
-	# for i: int in tiles:
-	# 	if tiles[i] != null:
-	# 		tiles[i].free()
-	tiles.clear()
+	# for i: int in chunks:
+	# 	if chunks[i] != null:
+	# 		chunks[i].free()
+	chunks.clear()
 	mutex.unlock()

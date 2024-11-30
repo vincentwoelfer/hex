@@ -11,7 +11,7 @@ extends Node
 # Also known as "size"
 var outer_radius: float = 1.5
 
-# Radius of the workable Regular area.
+# Radius of the workable Regular area. Distance from center to the sides.
 # Must be smaller than outer_radius * 0.86 (size of largest circle in outer hex)
 var inner_radius: float = 1.1
 
@@ -44,6 +44,9 @@ var trans_type_max_height_diff := 4
 var grass_density := 10.0
 
 
+var chunk_size: int = 2
+
+
 # Use smooth groups
 var smooth_vertex_normals: bool = false
 # ========================================================
@@ -66,11 +69,19 @@ const MAP_SIZE: int = 3
 
 # Full horizontal (along East-West) size of hexagon = width
 func horizontal_size() -> float:
-    return 2.0 * outer_radius
+    return 1.5 * outer_radius
 
 # Full vertical (along North-South) size of hexagon = "height"
 func vertical_size() -> float:
     return sqrt(3.0) * outer_radius
+
+# Convert distance in meters to distance in hex-tiles (center to center)
+func distance_m_to_hex(dist_m: float) -> int:
+    return round(dist_m / vertical_size())
+
+# Convert distance in hex-tiles (center to center) to distance in meters
+func distance_hex_to_m(dist_hex: int) -> float:
+    return dist_hex * vertical_size()
 
 # Distance from center to the closest point of the sides of the outer_radius
 func outer_radius_interior_circle() -> float:
