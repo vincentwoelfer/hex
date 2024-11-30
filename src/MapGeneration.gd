@@ -25,7 +25,7 @@ var threads_running_mutex: Mutex
 var fetch_chunks_count := 1
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
-var tile_generation_distance_hex := HexConst.distance_m_to_hex(70 * 1.5)
+var tile_generation_distance_hex := HexConst.distance_m_to_hex(70)
 var tile_deletion_distance_hex := HexConst.distance_m_to_hex(250)
 @onready var camera_controller: CameraController = %Camera3D as CameraController
 var generation_position: HexPos = HexPos.invalid()
