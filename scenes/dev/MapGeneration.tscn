@@ -23,11 +23,11 @@ auto_exposure_min_sensitivity = 100.0
 
 [node name="HexConstModifier" parent="." instance=ExtResource("12_e2267")]
 outer_radius = 2.5
-inner_radius = 2.2
-height = 0.5
+inner_radius = 2.3
+height = 0.6
 transition_height_factor = 0.5
 core_circle_smooth_strength = 0.5
-extra_verts_per_side = 1
+extra_verts_per_side = 2
 extra_verts_per_center = 4
 smooth_height_factor_inner = 1.0
 smooth_height_factor_outer = 1.0

@@ -279,18 +279,19 @@ func delete_everything() -> void:
 	print("Deleting everything!")
 
 	generated_queue_mutex.lock()
-	generated_queue.clear()
-	generated_queue_mutex.unlock()
-
 	to_generate_mutex.lock()
-	to_generate_queue.clear()
-	to_generate_mutex.unlock()
-
+	generated_queue.clear()
+	
 	HexTileMap.clear_all()
 	HexChunkMap.clear_all()
 	HexGeometryInputMap.clear_all()
+	
+	to_generate_queue.clear()
+	to_generate_mutex.unlock()
+	generated_queue_mutex.unlock()
 
-
+	print('Done deleting everything!')
+	
 ##############################
 # Shutdown
 ##############################

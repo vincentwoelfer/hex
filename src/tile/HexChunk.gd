@@ -86,7 +86,7 @@ func generate() -> void:
 			#triangles.append(Triangle.new(tri.a + tile.position, tri.b + tile.position, tri.c + tile.position))
 			triangles.append(tri)
 
-	var sampler := PolygonSurfaceSampler.new(triangles).filter_max_incline(45).finalize()
+	var sampler := PolygonSurfaceSampler.new(triangles).filter_max_incline(40).finalize()
 
 	if sampler.is_valid():
 		# GRASS
