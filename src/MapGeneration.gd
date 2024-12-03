@@ -132,8 +132,11 @@ func update_generation_position() -> bool:
 func fetch_and_add_all_generated_tiles() -> void:
 	# MUTEX LOCK
 	generated_queue_mutex.lock()
-	var generated_queue_copy: Array[int] = generated_queue.duplicate()
-	generated_queue.clear()
+	# var generated_queue_copy: Array[int] = generated_queue.duplicate()
+	# generated_queue.clear()
+	var generated_queue_copy: Array[int]
+	if generated_queue.size() > 0:
+		generated_queue_copy = [generated_queue.pop_back()]
 	generated_queue_mutex.unlock()
 	# MUTEX UNLOCK
 

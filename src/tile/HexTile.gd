@@ -95,10 +95,10 @@ func generate(geometry_input: HexGeometryInput) -> void:
 
 
 func _ready() -> void:
-	if height > 0:
-		label = HexTileLabel.new(params)
-		label.set_label_world_pos(global_position)
-		add_child(label)
+	# if height > 0:
+	# 	label = HexTileLabel.new(params)
+	# 	label.set_label_world_pos(global_position)
+	# 	add_child(label)
 
 	# Signals
 	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)

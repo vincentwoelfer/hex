@@ -1,7 +1,7 @@
 extends Camera3D
 class_name CameraController
 
-var debugSphere: MeshInstance3D
+var debug_mesh: MeshInstance3D
 
 # Export parameters
 var horizontalDistance: float = 6.0
@@ -117,11 +117,13 @@ func _process(delta: float) -> void:
 	
 	self.check_for_selection()
 
+	draw_debug_mesh(lookAtPoint)
+
+
+	# TODO this causes stuttering - Invesitage
+	#RenderingServer.call_on_render_thread(update_shader_parameters)
 	RenderingServer.global_shader_parameter_set("global_camera_view_direction", actual_curr_rotation)
 	RenderingServer.global_shader_parameter_set("global_player_position", lookAtPoint)
-
-	#draw_debug_sphere(lookAtPoint, maxf(currZoom * 0.1, 0.025))
-	draw_debug_sphere(lookAtPoint)
 	
 
 func check_for_selection() -> void:
@@ -134,17 +136,15 @@ func check_for_selection() -> void:
 	EventBus.emit_signal("Signal_SelectedWorldPosition", hit_pos)
 
 
-# func draw_debug_sphere(location: Vector3, r: float) -> void:
-func draw_debug_sphere(location: Vector3) -> void:
-	if debugSphere == null:
+func draw_debug_mesh(location: Vector3) -> void:
+	if debug_mesh == null:
 		var scene_root := get_tree().root
-		debugSphere = MeshInstance3D.new()
-		debugSphere.name = "DebugSphere"
-		scene_root.add_child(debugSphere)
+		debug_mesh = MeshInstance3D.new()
+		debug_mesh.name = "CameraControllerCapsule"
+		debug_mesh.mesh = DebugShapes3D.create_capsule(char_height, 0.3, Color.RED, true)
+		scene_root.add_child(debug_mesh)
 
-
-	debugSphere.mesh = DebugShapes3D.create_capsule(char_height, 0.3, Color.RED, true)
-	debugSphere.global_transform.origin = location
+	debug_mesh.global_transform.origin = location
 
 
 func raycast_into_world() -> Dictionary:
