@@ -27,8 +27,9 @@ var fetch_chunks_count := 1
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
 var tile_generation_distance_hex := HexConst.distance_m_to_hex(70)
 var tile_deletion_distance_hex := HexConst.distance_m_to_hex(250)
-@onready var camera_controller: CameraController = %Camera3D as CameraController
 var generation_position: HexPos = HexPos.invalid()
+
+@onready var camera_controller: CameraController = %Player/CamFollowPoint/CameraController as CameraController
 
 # Testing
 var t_start_benchmark: int
@@ -85,7 +86,7 @@ func _process(delta: float) -> void:
 		delete_everything()
 
 	# Empty generated queue and add to scene, regardless of player position
-	fetch_and_add_all_generated_tiles()
+	fetch_and_add_generated_tiles()
 
 	# Add tiles near player to queue and delete far away
 	var generation_position_changed := update_generation_position()
@@ -129,14 +130,19 @@ func update_generation_position() -> bool:
 
 
 # Fetch all generated tile hashes, get the tile from the HexTileMap and add them to the scene
-func fetch_and_add_all_generated_tiles() -> void:
+func fetch_and_add_generated_tiles() -> void:
 	# MUTEX LOCK
-	generated_queue_mutex.lock()
+	# Fetch ALL
+	# generated_queue_mutex.lock()
 	# var generated_queue_copy: Array[int] = generated_queue.duplicate()
 	# generated_queue.clear()
+	# generated_queue_mutex.unlock()
+
+	# Fetch only one
+	generated_queue_mutex.lock()
 	var generated_queue_copy: Array[int]
 	if generated_queue.size() > 0:
-		generated_queue_copy = [generated_queue.pop_back()]
+		generated_queue_copy = [generated_queue.pop_front()]
 	generated_queue_mutex.unlock()
 	# MUTEX UNLOCK
 
@@ -335,12 +341,17 @@ func join_threads() -> bool:
 	return false
 
 
+# This is only for when exiting through the editor
 func _exit_tree() -> void:
+	if Engine.is_editor_hint():
+		return
+
 	if not threads.is_empty():
-		# This is only for when exiting through the editor
+		
 		Util.print_multiline_banner("MapGeneration cleaning up on _exit_tree")
 		shutdown_threads()
 
 		while not threads.is_empty():
 			join_threads()
+			# This fails if node not in tree (if scene was not opened on startup)
 			await get_tree().create_timer(0.01).timeout

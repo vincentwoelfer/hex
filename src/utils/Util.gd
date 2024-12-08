@@ -112,7 +112,7 @@ static func get_global_cam_pos(reference_node: Node) -> Vector3:
 ######################################################
 # Printing / Logging
 ######################################################
-const BANNER_WIDTH: int = 50
+const BANNER_WIDTH: int = 64
 const BANNER_CHAR: String = "="
 
 static func print_only_banner() -> void:

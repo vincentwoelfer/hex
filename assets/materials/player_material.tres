@@ -1,0 +1,9 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://c0myngqkhsb44"]
+
+[resource]
+albedo_color = Color(1, 0, 0, 1)
+rim_enabled = true
+rim = 0.05
+subsurf_scatter_enabled = true
+subsurf_scatter_strength = 1.0
+subsurf_scatter_skin_mode = true

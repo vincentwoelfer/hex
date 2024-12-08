@@ -29,13 +29,16 @@ var speed: float = 14.0
 var rotationLerpSpeed: float = 7.0
 var lerpSpeed: float = 8.5 # almost instant, otherwise camera control feels sluggish
 
+var own_movement: bool = false
+var player_anchor: Node3D = get_parent()
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	#Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	Input.mouse_mode = Input.MOUSE_MODE_CONFINED
-	lookAtPoint = Vector3(0, look_at_height_above_ground, 0)
-	followPoint = Vector3(0, look_at_height_above_ground, 0)
 	actual_curr_rotation = compute_target_forward_angle(orientation)
+
+	#followPoint = Vector3(0, look_at_height_above_ground, 0)
 
 
 func get_follow_point() -> Vector3:
@@ -55,38 +58,30 @@ func _input(event: InputEvent) -> void:
 
 	# Zoom
 	var zoom_speed := 0.3
-	if Input.is_action_pressed("zoom_cam_forward"):
-		zoomTarget -= zoom_speed
-	if Input.is_action_pressed("zoom_cam_backward"):
-		zoomTarget += zoom_speed
+	var zoom_vel := Input.get_axis("zoom_cam_forward", "zoom_cam_backward")
+	zoomTarget += zoom_vel * zoom_speed
 	zoomTarget = clampf(zoomTarget, zoom_min, zoom_max)
 
 
 func updateContinuousInputs(delta: float) -> void:
 	# Up / Down
-	var height_speed := 9.0
-	if Input.is_action_pressed("rotate_cam_up"):
-		height += height_speed * delta
-	if Input.is_action_pressed("rotate_cam_down"):
-		height -= height_speed * delta
+	const height_speed := 9.0
+	var vel := Input.get_axis("rotate_cam_down", "rotate_cam_up")
+	height += vel * height_speed * delta
 	height = clampf(height, height_min, height_max)
-	
+
 
 func getInputVec() -> Vector3:
-	var inputDir := Vector3.ZERO
-	if Input.is_action_pressed("move_cam_forward"):
-		inputDir.z -= 1.0
-	if Input.is_action_pressed("move_cam_backward"):
-		inputDir.z += 1.0
-	if Input.is_action_pressed("move_cam_left"):
-		inputDir.x -= 1.0
-	if Input.is_action_pressed("move_cam_right"):
-		inputDir.x += 1.0
-	return inputDir.normalized()
+	var inputDir := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+	var ret: Vector3 = Vector3(inputDir.x, 0, inputDir.y)
+	return ret.normalized()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
+	if player_anchor != null:
+		followPoint = player_anchor.global_transform.origin
+
 	updateContinuousInputs(delta)
 
 	currZoom = lerpf(currZoom, zoomTarget, rotationLerpSpeed * delta)
@@ -96,16 +91,16 @@ func _process(delta: float) -> void:
 	actual_curr_rotation = lerp_angle(actual_curr_rotation, target_forward_angle, rotationLerpSpeed * delta)
 	var forwardDir := Vector3(0, 0, -1).rotated(Vector3.UP, actual_curr_rotation) # not actually forward, lerps
 
-	var inputDirRaw := getInputVec()
-	var inputDir := inputDirRaw.rotated(Vector3.UP, target_forward_angle)
-
-	# Move follow point, lookAtPoint follows this
-	followPoint += inputDir * (speed + currZoom / 3.0) * delta
-
-	followPoint.y = get_map_height() + look_at_height_above_ground
+	# Move follow point
+	if own_movement:
+		var inputDirRaw := getInputVec()
+		var inputDir := inputDirRaw.rotated(Vector3.UP, target_forward_angle)
+		followPoint += inputDir * (speed + currZoom / 3.0) * delta
+		followPoint.y = get_map_height() + look_at_height_above_ground
 
 	# Lerp follow point to lookAtPoint
-	lookAtPoint = lerp(lookAtPoint, followPoint, lerpSpeed * delta)
+	#lookAtPoint = lerp(lookAtPoint, followPoint, lerpSpeed * delta)
+	lookAtPoint = followPoint
 
 	# Camera position
 	var camPos := lookAtPoint
@@ -114,17 +109,16 @@ func _process(delta: float) -> void:
 
 	global_position = camPos
 	look_at(lookAtPoint)
-	
+
 	self.check_for_selection()
 
-	draw_debug_mesh(lookAtPoint)
-
+	# draw_debug_mesh(lookAtPoint)
 
 	# TODO this causes stuttering - Invesitage
 	#RenderingServer.call_on_render_thread(update_shader_parameters)
 	RenderingServer.global_shader_parameter_set("global_camera_view_direction", actual_curr_rotation)
 	RenderingServer.global_shader_parameter_set("global_player_position", lookAtPoint)
-	
+
 
 func check_for_selection() -> void:
 	var hit: Dictionary = self.raycast_into_world()
