@@ -14,6 +14,8 @@ var dash_timer: float = 0.0
 
 # @onready var camera := $Target/Camera3D as Camera3D
 
+# https://www.youtube.com/watch?v=C-1AerTEjFU&t=210s
+
 func get_input_vector() -> Vector3:
 	var inputDir := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var ret: Vector3 = Vector3(inputDir.x, 0, inputDir.y)
