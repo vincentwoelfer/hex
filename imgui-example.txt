@@ -1,0 +1,13 @@
+    ImGui.Begin("GameState")
+    ImGui.Text("Turn: %s" % turn_state._active_state.name)
+    ImGui.SliderInt("count", im_bet_count, 1, 10)
+    ImGui.SliderInt("value", im_bet_value, 1, 6)
+    if ImGui.Button("Bet"):
+        bet(Bet.new(im_bet_count[0], im_bet_value[0]))
+    if ImGui.Button("Callout"):
+        callout()
+    if ImGui.Button("Spot On"):
+        spot_on()
+    if current_bet != null:
+        ImGui.Text("Bet C:%d V:%d" % [current_bet.count, current_bet.value])
+    ImGui.End()
