@@ -343,11 +343,13 @@ func join_threads() -> bool:
 
 # This is only for when exiting through the editor
 func _exit_tree() -> void:
-	if Engine.is_editor_hint():
+	# This is only for in-editor -> return if not in editor.
+	if not Engine.is_editor_hint():
 		return
 
+	delete_everything()
+
 	if not threads.is_empty():
-		
 		Util.print_multiline_banner("MapGeneration cleaning up on _exit_tree")
 		shutdown_threads()
 
