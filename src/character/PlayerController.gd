@@ -16,6 +16,12 @@ var dash_timer: float = 0.0
 
 # https://www.youtube.com/watch?v=C-1AerTEjFU&t=210s
 
+func _ready() -> void:
+	MapGeneration.generation_center_node = self
+
+func get_map_generation_center_position() -> Vector3:
+	return global_transform.origin
+
 func get_input_vector() -> Vector3:
 	var inputDir := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var ret: Vector3 = Vector3(inputDir.x, 0, inputDir.y)

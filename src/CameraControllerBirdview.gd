@@ -1,5 +1,5 @@
 extends Camera3D
-class_name CameraController
+class_name CameraControllerBirdview
 
 var debug_mesh: MeshInstance3D
 
@@ -38,16 +38,19 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CONFINED
 	actual_curr_rotation = compute_target_forward_angle(orientation)
 
-	#followPoint = Vector3(0, look_at_height_above_ground, 0)
+	#func _ready() -> void:
+	MapGeneration.generation_center_node = self
 
 
-func get_follow_point() -> Vector3:
+func get_map_generation_center_position() -> Vector3:
 	return followPoint
 
 
 # TODO:
 # https://github.com/godotengine/godot-demo-projects/blob/4.2-31d1c0c/3d/kinematic_character/player/follow_camera.gd
 # https://github.com/godotengine/godot-demo-projects/blob/4.2-31d1c0c/3d/kinematic_character/player/cubio.gd
+
+# https://www.youtube.com/watch?v=xIKErMgJ1Yk
 
 func _input(event: InputEvent) -> void:
 	# Rotate
@@ -116,8 +119,8 @@ func _process(delta: float) -> void:
 
 	# TODO this causes stuttering - Invesitage
 	#RenderingServer.call_on_render_thread(update_shader_parameters)
-	RenderingServer.global_shader_parameter_set("global_camera_view_direction", actual_curr_rotation)
-	RenderingServer.global_shader_parameter_set("global_player_position", lookAtPoint)
+	# RenderingServer.global_shader_parameter_set("global_camera_view_direction", actual_curr_rotation)
+	# RenderingServer.global_shader_parameter_set("global_player_position", lookAtPoint)
 
 
 func check_for_selection() -> void:
@@ -162,7 +165,7 @@ func compute_target_forward_angle(orientation_: float) -> float:
 
 
 func get_map_height() -> float:
-	var hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(get_follow_point()).round()
+	var hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(get_map_generation_center_position()).round()
 	var tile: HexTile = HexTileMap.get_by_pos(hex_pos)
 
 	if tile != null:

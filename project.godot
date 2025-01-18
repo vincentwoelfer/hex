@@ -24,6 +24,7 @@ GameStateManager="*res://src/autoload/GameStateManager.gd"
 EventBus="*res://src/autoload/EventBus.gd"
 HexConst="*res://src/autoload/HexConst.gd"
 ResLoader="*res://src/autoload/ResLoader.gd"
+MapGeneration="*res://src/autoload/MapGeneration.gd"
 
 [debug]
 
@@ -137,10 +138,6 @@ randomize_selected_tile={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-3,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":51,"key_label":0,"unicode":51,"location":0,"echo":false,"script":null)
 ]
-}
-hold_speed_up_time={
-"deadzone": 0.5,
-"events": []
 }
 quit_game={
 "deadzone": 0.5,

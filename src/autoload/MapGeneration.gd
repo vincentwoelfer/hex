@@ -1,8 +1,9 @@
-@tool # No static vars but actually runs in editor
-extends Node3D
-class_name MapGeneration
+# Needs to be tool to read these in other tool scripts!
+# No class_name here, the name of the singleton is set in the autoload
+@tool
+extends Node
 
-# Regeneration
+# Complete Map Regeneration
 var regenerate: bool = false
 var last_regeneration_timestamp := 0.0
 var max_regeneration_delay := 1.0
@@ -25,15 +26,16 @@ var threads_running_mutex: Mutex
 var fetch_chunks_count := 1
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
-var tile_generation_distance_hex := HexConst.distance_m_to_hex(70)
-var tile_deletion_distance_hex := HexConst.distance_m_to_hex(250)
+var tile_generation_distance_hex := HexConst.distance_m_to_hex(30)
+var tile_deletion_distance_hex := HexConst.distance_m_to_hex(100)
 var generation_position: HexPos = HexPos.invalid()
-
-@onready var camera_controller: CameraController = %Player/CamFollowPoint/CameraController as CameraController
 
 # Testing
 var t_start_benchmark: int
 var benchmark_complete: bool = false
+
+# Map generation happens arround this node. Must have function "get_map_generation_center_position() -> Vector3"
+var generation_center_node: Node3D = null
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -79,11 +81,7 @@ func _process(delta: float) -> void:
 			join_threads()
 		return # Dont queue anything new
 
-	# Check map regeneration
-	if self.regenerate and (Time.get_unix_time_from_system() - last_regeneration_timestamp) > max_regeneration_delay:
-		last_regeneration_timestamp = Time.get_unix_time_from_system()
-		self.regenerate = false
-		delete_everything()
+	self.tick_check_map_regeneration()
 
 	# Empty generated queue and add to scene, regardless of player position
 	fetch_and_add_generated_tiles()
@@ -112,8 +110,9 @@ func update_generation_position() -> bool:
 	# Base generation pos on player or camera if in editor
 	var world_pos: Vector3
 
-	if camera_controller != null and not Engine.is_editor_hint():
-		world_pos = camera_controller.get_follow_point()
+	if generation_center_node != null and generation_center_node.has_method("get_map_generation_center_position") and not Engine.is_editor_hint():
+		# TODO suppress warning here
+		world_pos = generation_center_node.get_map_generation_center_position()
 	else:
 		world_pos = Util.get_global_cam_pos(self)
 
@@ -131,6 +130,7 @@ func update_generation_position() -> bool:
 
 # Fetch all generated tile hashes, get the tile from the HexTileMap and add them to the scene
 func fetch_and_add_generated_tiles() -> void:
+	# OLD code before chunking
 	# MUTEX LOCK
 	# Fetch ALL
 	# generated_queue_mutex.lock()
@@ -138,7 +138,7 @@ func fetch_and_add_generated_tiles() -> void:
 	# generated_queue.clear()
 	# generated_queue_mutex.unlock()
 
-	# Fetch only one
+	# Fetch only one (because we have chunks now)
 	generated_queue_mutex.lock()
 	var generated_queue_copy: Array[int]
 	if generated_queue.size() > 0:
@@ -148,9 +148,10 @@ func fetch_and_add_generated_tiles() -> void:
 
 	for key: int in generated_queue_copy:
 		var chunk: HexChunk = HexChunkMap.get_by_hash(key)
-		assert(chunk != null)
-		# Only place where tiles are added to the scene
-		add_child(chunk)
+		assert(chunk != null) # This should never happen
+		if chunk != null:
+			# Only place where tiles are added to the scene
+			add_child(chunk)
 
 
 func remove_far_away_tiles() -> void:
@@ -275,8 +276,16 @@ func thread_generation_loop_function() -> void:
 # Regeneration
 ##############################
 func set_regenerate() -> void:
-	Util.print_multiline_banner("Regenerating map")
 	self.regenerate = true
+
+
+func tick_check_map_regeneration() -> void:
+	var now := Time.get_unix_time_from_system()
+	if self.regenerate and (now - last_regeneration_timestamp) > max_regeneration_delay:
+		last_regeneration_timestamp = now
+		self.regenerate = false
+		Util.print_multiline_banner("Regenerating map")
+		delete_everything()
 
 ##############################
 # Cleanup

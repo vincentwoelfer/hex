@@ -2,6 +2,7 @@
 class_name HexGeometryInputMap
 
 # Member variables
+# Key = int (HexPos.hash()), Value = HexGeometryInput
 static var geometry_inputs: Dictionary[int, HexGeometryInput] = {}
 static var mutex: Mutex = Mutex.new()
 

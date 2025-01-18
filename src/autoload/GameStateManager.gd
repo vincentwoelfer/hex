@@ -3,20 +3,22 @@
 @tool
 extends Node
 
+# Global State Variables
+
 
 func _ready() -> void:
 	# Print Input Mappings
 	pretty_print_actions(get_input_mapping())
 
 	# Create a timer to trigger LOD updates
-	var timer: Timer = Timer.new()
-	timer.wait_time = 0.1 # Time in seconds
-	timer.one_shot = false # Repeat indefinitely
-	add_child(timer)
-	timer.start()
+	var lod_timer: Timer = Timer.new()
+	lod_timer.wait_time = 0.1 # Time in seconds
+	lod_timer.one_shot = false # Repeat indefinitely
+	add_child(lod_timer)
+	lod_timer.start()
 
 	# This always uses the camera pos, not the player pos
-	timer.timeout.connect(func() -> void:
+	lod_timer.timeout.connect(func() -> void:
 		EventBus.Signal_TriggerLod.emit(Util.get_global_cam_pos(self))
 	)
 
@@ -72,8 +74,7 @@ func _input(event: InputEvent) -> void:
 
 func request_quit_game() -> void:
 	Util.print_multiline_banner("Quitting game")
-	var map_gen: MapGeneration = get_node('../MainScene/%MapGeneration')
-	map_gen.shutdown_threads()
+	MapGeneration.shutdown_threads()
 
 
 func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:
@@ -106,11 +107,11 @@ func pretty_print_actions(actions_dict: Dictionary[String, String]) -> void:
 	var max_action_length: int = 0
 	for action: String in actions_dict.keys():
 		max_action_length = max(max_action_length, action.length())
-	
+
 	# Sort the dictionary by values (hotkeys) alphabetically
 	var sorted_hotkeys: Array[String] = actions_dict.values()
 	sorted_hotkeys.sort_custom(func(a: String, b: String) -> bool: return a < b)
-	
+
 	Util.print_banner("Key Bindings")
 	for hotkey: String in sorted_hotkeys:
 		var action := get_key_by_value(actions_dict, hotkey)

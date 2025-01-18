@@ -1,9 +1,9 @@
 [gd_scene load_steps=8 format=3 uid="uid://yt40srqvcs4y"]
 
-[ext_resource type="Script" path="res://src/PlayerController.gd" id="1_2b623"]
+[ext_resource type="Script" path="res://src/character/PlayerController.gd" id="1_2b623"]
 [ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://assets/misc/CameraAttributes.tres" id="2_8qf0n"]
 [ext_resource type="Material" uid="uid://c0myngqkhsb44" path="res://assets/materials/player_material.tres" id="2_e2xsl"]
-[ext_resource type="Script" path="res://src/CameraController.gd" id="3_2rxeu"]
+[ext_resource type="Script" path="res://src/CameraControllerBirdview.gd" id="3_2rxeu"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_2b623"]
 material = ExtResource("2_e2xsl")
@@ -25,7 +25,7 @@ script = ExtResource("1_2b623")
 [node name="CamFollowPoint" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 
-[node name="CameraController" type="Camera3D" parent="CamFollowPoint"]
+[node name="CameraControllerBirdview" type="Camera3D" parent="CamFollowPoint"]
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 3, 3)
 attributes = ExtResource("2_8qf0n")
 current = true
