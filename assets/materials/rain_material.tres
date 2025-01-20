@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://1g3n54rngfyf"]
 
-[ext_resource type="Shader" path="res://assets/shaders/spatial/rain.gdshader" id="1_rktjl"]
+[ext_resource type="Shader" uid="uid://0kef102f5643" path="res://assets/shaders/spatial/rain.gdshader" id="1_rktjl"]
 
 [resource]
 render_priority = 0

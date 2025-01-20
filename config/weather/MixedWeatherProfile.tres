@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="WeatherProfile" load_steps=2 format=3 uid="uid://byof4re5jhhyy"]
 
-[ext_resource type="Script" path="res://config/weather/WeatherProfile.gd" id="1_psh1i"]
+[ext_resource type="Script" uid="uid://o8d8nxwq8o76" path="res://config/weather/WeatherProfile.gd" id="1_psh1i"]
 
 [resource]
 resource_name = "Mixed"

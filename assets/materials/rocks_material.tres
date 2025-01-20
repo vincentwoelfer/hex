@@ -1,7 +1,7 @@
 [gd_resource type="ShaderMaterial" load_steps=3 format=3 uid="uid://cgtp52e0nyq6v"]
 
 [ext_resource type="Texture2D" uid="uid://dsc3xgdkpfudr" path="res://assets/textures/rock_collection_1_baseColor.jpeg" id="1_5suel"]
-[ext_resource type="Shader" path="res://assets/shaders/spatial/rock_wettness.gdshader" id="1_xq75q"]
+[ext_resource type="Shader" uid="uid://cm0fo25mcaqgg" path="res://assets/shaders/spatial/rock_wettness.gdshader" id="1_xq75q"]
 
 [resource]
 render_priority = 0

@@ -2,11 +2,11 @@
 
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://assets/misc/DefaultEnvironment.tres" id="2_2n06e"]
 [ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://assets/misc/CameraAttributes.tres" id="3_lr7o2"]
-[ext_resource type="Script" path="res://src/control-nodes/SelectionManager.gd" id="6_x1kdg"]
+[ext_resource type="Script" uid="uid://dkmcubf7mjvti" path="res://src/control-nodes/SelectionManager.gd" id="6_x1kdg"]
 [ext_resource type="PackedScene" uid="uid://i5fes5afbict" path="res://scenes/ui/TooltipPanel.tscn" id="7_molft"]
-[ext_resource type="Script" path="res://src/control-nodes/WorldLightControl.gd" id="8_4pj04"]
+[ext_resource type="Script" uid="uid://b3dopwgv2qlpf" path="res://src/control-nodes/WorldLightControl.gd" id="8_4pj04"]
 [ext_resource type="PackedScene" uid="uid://b3ol067ntho4v" path="res://scenes/ui/DebugInfoPanel.tscn" id="9_1vbi7"]
-[ext_resource type="Script" path="res://src/control-nodes/WorldTimeManager.gd" id="9_pfdia"]
+[ext_resource type="Script" uid="uid://cm7jam8b75yxd" path="res://src/control-nodes/WorldTimeManager.gd" id="9_pfdia"]
 [ext_resource type="PackedScene" uid="uid://gefdglv0vl5e" path="res://scenes/control-nodes/WeatherControl.tscn" id="9_ukl4i"]
 
 [node name="MainScene" type="Node3D"]
