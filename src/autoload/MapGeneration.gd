@@ -26,7 +26,7 @@ var threads_running_mutex: Mutex
 var fetch_chunks_count := 1
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
-var tile_generation_distance_hex := HexConst.distance_m_to_hex(30)
+var tile_generation_distance_hex := HexConst.distance_m_to_hex(40)
 var tile_deletion_distance_hex := HexConst.distance_m_to_hex(100)
 var generation_position: HexPos = HexPos.invalid()
 
@@ -111,7 +111,7 @@ func update_generation_position() -> bool:
 	var world_pos: Vector3
 
 	if generation_center_node != null and generation_center_node.has_method("get_map_generation_center_position") and not Engine.is_editor_hint():
-		# TODO suppress warning here
+		@warning_ignore("UNSAFE_METHOD_ACCESS")
 		world_pos = generation_center_node.get_map_generation_center_position()
 	else:
 		world_pos = Util.get_global_cam_pos(self)

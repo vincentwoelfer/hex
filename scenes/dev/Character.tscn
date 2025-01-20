@@ -1,0 +1,44 @@
+[gd_scene load_steps=8 format=3 uid="uid://yt40srqvcs4y"]
+
+[ext_resource type="Script" uid="uid://dvvu501emdgsn" path="res://src/character/PlayerController.gd" id="1_gar1i"]
+[ext_resource type="Material" uid="uid://c0myngqkhsb44" path="res://assets/materials/player_material.tres" id="2_kle66"]
+[ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://assets/misc/DefaultEnvironment.tres" id="3_yn75o"]
+[ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://assets/misc/CameraAttributes.tres" id="4_hr358"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_2b623"]
+material = ExtResource("2_kle66")
+radius = 0.3
+height = 1.7
+radial_segments = 16
+
+[sub_resource type="BoxMesh" id="BoxMesh_8m5ra"]
+material = ExtResource("2_kle66")
+size = Vector3(1, 0.1, 0.1)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_e2xsl"]
+radius = 0.3
+height = 1.7
+
+[node name="Character" type="CharacterBody3D"]
+input_ray_pickable = false
+script = ExtResource("1_gar1i")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+mesh = SubResource("CapsuleMesh_2b623")
+
+[node name="arms" type="MeshInstance3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+mesh = SubResource("BoxMesh_8m5ra")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+shape = SubResource("CapsuleShape3D_e2xsl")
+
+[node name="Head" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="Camera" type="Camera3D" parent="Head"]
+environment = ExtResource("3_yn75o")
+attributes = ExtResource("4_hr358")
+fov = 85.0

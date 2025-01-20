@@ -96,7 +96,9 @@ func get_keys_for_action(action: String) -> String:
 	var events := InputMap.action_get_events(action)
 	for event in events:
 		if event is InputEventKey:
-			key_list.append((event as InputEventKey).as_text_physical_keycode())
+			# Add the physical key code to the list
+			var key_string: String = (event as InputEventKey).as_text_physical_keycode()
+			key_list.append(key_string)
 	return ", ".join(key_list)
 
 
