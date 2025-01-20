@@ -33,7 +33,6 @@ func _ready() -> void:
 	# Connect Signals
 	EventBus.Signal_ToogleWorldTimeAutoAdvance.connect(_on_Signal_ToogleWorldTimeAutoAdvance)
 	EventBus.Signal_AdvanceWorldTimeOneStep.connect(advance_world_time_one_step)
-	EventBus.Signal_ToggleSpeedUpTime.connect(_on_Signal_ToogleSpeedUpTime)
 
 
 func _on_Signal_ToogleWorldTimeAutoAdvance() -> void:

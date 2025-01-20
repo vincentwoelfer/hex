@@ -47,9 +47,6 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_pressed("randomize_selected_tile"):
 			EventBus.Signal_randomizeSelectedTile.emit()
 
-		if event.is_action_pressed("hold_speed_up_time"):
-			EventBus.Signal_ToggleSpeedUpTime.emit()
-
 		if event.is_action_pressed("trigger_weather_change"):
 			EventBus.Signal_TriggerWeatherChange.emit()
 

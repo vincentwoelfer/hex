@@ -23,7 +23,6 @@ signal Signal_randomizeSelectedTile() # 3
 signal Signal_TriggerWeatherChange() # 4
 signal Signal_TriggerLod(cam_pos_global: Vector3) # 9
 signal Signal_AdvanceWorldTimeOneStep() # Space
-signal Signal_ToggleSpeedUpTime() # Shift
 
 
 func _ready() -> void:
