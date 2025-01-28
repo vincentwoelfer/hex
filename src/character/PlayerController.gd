@@ -2,19 +2,29 @@ class_name PlayerController
 extends CharacterBody3D
 
 @export var walk_speed: float = 5.0
-@export var sprint_speed: float = 10.0
+@export var sprint_speed: float = 9.0
 @export var dash_speed: float = 25.0
-@export var jump_force: float = 5000.0
-@export var dash_duration: float = 0.2
+@export var dash_duration: float = 0.18
 
 var mouse_sensitivity := 0.15
 
 # Components
 @onready var head : Node3D = $Head
 
-#var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
-var gravity: float = 300.0
+# Gravity & Jumping
+# See https://www.youtube.com/watch?v=IOe1aGY6hXA
+var jump_height: float = 2.2
+var jump_time_to_peak_sec: float = 0.75
+var jump_time_to_descent_sec: float = 0.5
 
+@onready var jump_velocity: float = (2.0 * jump_height) / jump_time_to_peak_sec
+@onready var jump_gravity: float = (-2.0 * jump_height) / (jump_time_to_peak_sec**2)
+@onready var fall_gravity: float = (-2.0 * jump_height) / (jump_time_to_descent_sec**2)
+
+var max_num_jumps: int = 3
+var current_num_jumps: int = 0
+
+# Terrible, implement a proper state machine
 var is_sprinting: bool = false
 var is_dashing: bool = false
 var dash_timer: float = 0.0
@@ -28,7 +38,13 @@ func _ready() -> void:
 
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
-	print("Player Gravity: %f" % [gravity])
+
+func get_current_gravity() -> float:
+	if velocity.y < 0.0:
+		return jump_gravity
+	else:
+		return fall_gravity
+
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
@@ -42,16 +58,18 @@ func _input(event: InputEvent) -> void:
 		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-85), deg_to_rad(85))
 		
 
+func jump() -> void:
+	velocity.y = jump_velocity
+
 func _physics_process(delta: float) -> void:
 	# Apply gravity
-	if not is_on_floor():
-		velocity.y -= gravity * delta
-	else:
-		velocity.y = 0.0
+	velocity.y += get_current_gravity() * delta
 
 	# Movement input
 	var input_dir := get_input_vector()
 	input_dir = (transform.basis * input_dir).normalized()
+
+	# Speed
 	var target_speed := walk_speed
 	
 	# Sprinting
@@ -61,9 +79,17 @@ func _physics_process(delta: float) -> void:
 	else:
 		is_sprinting = false
 
+	if is_dashing:
+		target_speed = dash_speed
+
 	# Jumping
-	if Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = jump_force
+	if is_on_floor():
+		current_num_jumps = 0
+
+	if Input.is_action_just_pressed("jump") and current_num_jumps < max_num_jumps:
+		jump()
+		current_num_jumps += 1
+
 
 	# Dashing
 	if is_dashing:
@@ -75,13 +101,10 @@ func _physics_process(delta: float) -> void:
 			is_dashing = true
 			dash_timer = dash_duration
 
-	velocity = velocity.normalized()
-	if is_dashing:
-		velocity = velocity * dash_speed
-	else:
-		var movement := input_dir * target_speed
-		velocity.x = movement.x
-		velocity.z = movement.z
+	# Apply movement		
+	var movement := input_dir * target_speed
+	velocity.x = movement.x
+	velocity.z = movement.z
 
 	move_and_slide()	
 
