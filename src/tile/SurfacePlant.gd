@@ -5,7 +5,7 @@ var mesh_instance: MultiMeshInstance3D
 
 # In m
 var min_height := 0.05
-var max_height := 0.4
+var max_height := 0.3
 
 # Only tip colors
 var color_healthy := Color(0.15, 0.4, 0.1)

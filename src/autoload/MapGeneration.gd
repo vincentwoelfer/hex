@@ -26,7 +26,7 @@ var threads_running_mutex: Mutex
 var fetch_chunks_count := 1
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
-var tile_generation_distance_hex := HexConst.distance_m_to_hex(40)
+var tile_generation_distance_hex := HexConst.distance_m_to_hex(50)
 var tile_deletion_distance_hex := HexConst.distance_m_to_hex(100)
 var generation_position: HexPos = HexPos.invalid()
 
@@ -37,10 +37,24 @@ var benchmark_complete: bool = false
 # Map generation happens arround this node. Must have function "get_map_generation_center_position() -> Vector3"
 var generation_center_node: Node3D = null
 
-# Called when the node enters the scene tree for the first time.
+# Called when the node enters the scene tree. Node, all children and parent (SceneTree) are ready at this point
 func _ready() -> void:
+	var active: bool = true
 	# This is required for the headless LSP to work (since this script is a tool script)
-	if OS.has_feature("Server"):
+	if OS.has_feature("Server"): active = false
+
+	# Prevent map-generation in editor in other scenes
+	# var scene: = get_tree().edited_scene_root
+	# print(get_tree())
+	# print(get_tree().current_scene)
+	# print(get_tree().edited_scene_root)
+	# print(scene)
+	# print(scene.scene_file_path)
+	# if scene and scene.scene_file_path != "res://scenes/MapGeneration.tscn":
+	# 	active = false
+
+	# Dont start threads if not active
+	if not active:
 		num_threads = 0
 		return
 

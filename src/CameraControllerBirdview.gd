@@ -49,8 +49,7 @@ func get_map_generation_center_position() -> Vector3:
 # TODO:
 # https://github.com/godotengine/godot-demo-projects/blob/4.2-31d1c0c/3d/kinematic_character/player/follow_camera.gd
 # https://github.com/godotengine/godot-demo-projects/blob/4.2-31d1c0c/3d/kinematic_character/player/cubio.gd
-
-# https://www.youtube.com/watch?v=xIKErMgJ1Yk
+# https://www.youtube.com/watch?v=C-1AerTEjFU&t=210s
 
 func _input(event: InputEvent) -> void:
 	# Rotate
