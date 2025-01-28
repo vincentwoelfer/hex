@@ -14,8 +14,8 @@ var mouse_sensitivity := 0.15
 # Gravity & Jumping
 # See https://www.youtube.com/watch?v=IOe1aGY6hXA
 var jump_height: float = 2.2
-var jump_time_to_peak_sec: float = 0.75
-var jump_time_to_descent_sec: float = 0.5
+var jump_time_to_peak_sec: float = 0.65
+var jump_time_to_descent_sec: float = 0.45
 
 @onready var jump_velocity: float = (2.0 * jump_height) / jump_time_to_peak_sec
 @onready var jump_gravity: float = (-2.0 * jump_height) / (jump_time_to_peak_sec**2)
@@ -59,6 +59,7 @@ func _input(event: InputEvent) -> void:
 		
 
 func jump() -> void:
+	# Overwrite, this always gives the same impulse
 	velocity.y = jump_velocity
 
 func _physics_process(delta: float) -> void:
