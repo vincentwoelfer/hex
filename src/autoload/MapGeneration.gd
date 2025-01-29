@@ -65,7 +65,7 @@ func _ready() -> void:
 	threads_running_mutex = Mutex.new()
 
 	# Create thread
-	print("MAIN: Starting %d threads with %d fetch_chunks_count" % [num_threads, fetch_chunks_count])
+	print("MAIN: Starting %d threads with %d fetch_chunks_count, chunk_size: %d" % [num_threads, fetch_chunks_count, HexConst.chunk_size])
 	threads.clear()
 	for i in range(num_threads):
 		threads.append(Thread.new())

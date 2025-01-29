@@ -13,10 +13,12 @@ var mouse_sensitivity := 0.15
 
 # Gravity & Jumping
 # See https://www.youtube.com/watch?v=IOe1aGY6hXA
+# (0,0,0) is at the feet of the character, so this is the height of the feet at max jump height
 var jump_height: float = 2.2
 var jump_time_to_peak_sec: float = 0.65
 var jump_time_to_descent_sec: float = 0.45
 
+# TODO recalculate on change
 @onready var jump_velocity: float = (2.0 * jump_height) / jump_time_to_peak_sec
 @onready var jump_gravity: float = (-2.0 * jump_height) / (jump_time_to_peak_sec**2)
 @onready var fall_gravity: float = (-2.0 * jump_height) / (jump_time_to_descent_sec**2)
