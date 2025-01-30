@@ -3,7 +3,7 @@ class_name DebugSettings
 extends Node
 
 # Generate stuff. Normal = true
-static var enable_grass: bool = true
+static var enable_grass: bool = false
 static var enable_rocks: bool = true
 static var generate_collision: bool = true
 
