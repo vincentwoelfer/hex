@@ -13,7 +13,7 @@
 [node name="MainScene" type="Node3D"]
 
 [node name="Character" parent="." instance=ExtResource("1_5xhde")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.8024, -8.77616)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, -10)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 unique_name_in_owner = true

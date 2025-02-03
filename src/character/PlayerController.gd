@@ -13,14 +13,13 @@ var dash_duration: float = 0.2
 var air_control: float = 0.35
 var dash_control: float = 0.5
 
-var mouse_sensitivity := 0.15
-
 # Gravity & Jumping
-# See https://www.youtube.com/watch?v=IOe1aGY6hXA
+# For equations see: https://www.youtube.com/watch?v=IOe1aGY6hXA
 # (0,0,0) is at the feet of the character, so this is the height of the feet at max jump height
 var jump_height: float = 2.55
-var jump_time_to_peak_sec: float = 1.65
-var jump_time_to_descent_sec: float = 1.45
+var jump_time_to_peak_sec: float = 0.65
+var jump_time_to_descent_sec: float = 0.5
+# todo apex time
 
 # Input buffering
 var jump_input_buffer_time: float = 0.5
@@ -40,9 +39,10 @@ var is_sprinting: bool = false
 var is_dashing: bool = false
 var dash_timer: float = 0.0
 
+var input: MovementInput
 
+# First person youtube videos:
 # https://www.youtube.com/watch?v=xIKErMgJ1Yk
-# TODO https://shaggydev.com/2022/02/13/advanced-state-machines-godot/
 
 func _ready() -> void:
 	# Set the player as the center of the map generation
@@ -57,30 +57,15 @@ func get_current_gravity() -> float:
 
 	# Chose gravity based on current up vs downward velocity
 	if velocity.y < 0.0:
-		return jump_gravity
-	else:
 		return fall_gravity
+	else:
+		return jump_gravity
 
 
 func _input(event: InputEvent) -> void:
-	###################
-	### Mouse Input
-	###################
-	if event is InputEventMouseMotion:
-		var e := event as InputEventMouseMotion
+	input.handle_input_event(event)
+	
 		
-		# Character rotation
-		rotate_y(deg_to_rad(-e.relative.x * mouse_sensitivity))
-
-		# Head rotation
-		head.rotate_x(deg_to_rad(-e.relative.y * mouse_sensitivity))
-		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-85), deg_to_rad(85))
-
-	###################
-	### Keyboard Input
-	###################
-		
-
 func jump() -> void:
 	# Determine number of jump
 	var jump_index: int = currently_used_jumps
@@ -94,6 +79,9 @@ func jump() -> void:
 	velocity.y = jump_velocity
 
 func _physics_process(delta: float) -> void:
+	# Update keys
+	input.update_keys()
+
 	# Timers
 	jump_buffer_timer -= delta
 	dash_timer -= delta
@@ -105,11 +93,11 @@ func _physics_process(delta: float) -> void:
 		velocity.y += get_current_gravity() * delta
 
 	# Movement input
-	var input_dir := get_input_vector()
+	var input_dir := input.input_direction
 	input_dir = (transform.basis * input_dir).normalized()
 	
 	# Sprinting
-	if Input.is_action_pressed("sprint") and not is_dashing:
+	if input and not is_dashing:
 		is_sprinting = true
 	else:
 		is_sprinting = false
@@ -118,7 +106,7 @@ func _physics_process(delta: float) -> void:
 	if is_on_floor():
 		currently_used_jumps = 0
 
-	if Input.is_action_just_pressed("jump") and currently_used_jumps < max_num_jumps:
+	if input.wants_jump and currently_used_jumps < max_num_jumps:
 		jump()
 
 	# Dashing
@@ -126,7 +114,7 @@ func _physics_process(delta: float) -> void:
 		if dash_timer <= 0.0:
 			is_dashing = false
 	else:
-		if Input.is_action_just_pressed("dash"):
+		if input.wants_dash:
 			is_dashing = true
 			dash_timer = dash_duration
 
@@ -176,12 +164,6 @@ func _physics_process(delta: float) -> void:
 		print("Velocity: %6.2v , max_speed: %.1f , control: %.2f , change_speed: %.2f" % [velocity, desired_horizontal_speed, control_factor, change_speed_factor])
 
 	move_and_slide()
-
-
-func get_input_vector() -> Vector3:
-	var inputDir := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
-	return Vector3(inputDir.x, 0.0, inputDir.y).normalized()
-
 
 # Required for the MapGeneration.gd script
 func get_map_generation_center_position() -> Vector3:
