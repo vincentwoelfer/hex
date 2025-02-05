@@ -10,8 +10,8 @@ var sprint_speed: float = 9.0
 var dash_speed: float = 25.0
 var dash_duration: float = 0.2
 
-var air_control: float = 0.35
-var dash_control: float = 0.5
+# var air_control: float = 0.35
+# var dash_control: float = 0.5
 
 # Gravity & Jumping
 # For equations see: https://www.youtube.com/watch?v=IOe1aGY6hXA
@@ -50,12 +50,14 @@ func _ready() -> void:
 
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
+	input = MovementInput.new()
+
 
 func get_current_gravity() -> float:
 	var jump_gravity: float = (-2.0 * jump_height) / (jump_time_to_peak_sec ** 2)
 	var fall_gravity: float = (-2.0 * jump_height) / (jump_time_to_descent_sec ** 2)
 
-	# Chose gravity based on current up vs downward velocity
+	# Chose gravity based on current up vs downward vel
 	if velocity.y < 0.0:
 		return fall_gravity
 	else:
@@ -64,19 +66,28 @@ func get_current_gravity() -> float:
 
 func _input(event: InputEvent) -> void:
 	input.handle_input_event(event)
-	
+
+	# Apply mouse movement
+
+	# Character rotation
+	rotate_y(input.relative_rotation.y)
+
+	# Head rotation
+	head.rotate_x(input.relative_rotation.x)
+	head.rotation.x = clamp(head.rotation.x, deg_to_rad(-85), deg_to_rad(85))
+
 		
 func jump() -> void:
 	# Determine number of jump
 	var jump_index: int = currently_used_jumps
 	currently_used_jumps += 1
 
-	# Calculate jump velocity
-	var jump_velocity: float = (2.0 * jump_height) / jump_time_to_peak_sec
-	velocity.y = jump_velocity * jump_strength_factors[jump_index]
+	# Calculate jump vel
+	var jump_vel: float = (2.0 * jump_height) / jump_time_to_peak_sec
+	jump_vel *= jump_strength_factors[jump_index]
 	
-	# Overwrite current vertical velocity => this always gives the same impulse
-	velocity.y = jump_velocity
+	# Overwrite current vertical vel => this always gives the same impulse
+	velocity.y = jump_vel
 
 func _physics_process(delta: float) -> void:
 	# Update keys
@@ -85,8 +96,6 @@ func _physics_process(delta: float) -> void:
 	# Timers
 	jump_buffer_timer -= delta
 	dash_timer -= delta
-
-	print_timer -= delta
 
 	# Apply gravity
 	if not is_on_floor():
@@ -105,7 +114,6 @@ func _physics_process(delta: float) -> void:
 	# Jumping
 	if is_on_floor():
 		currently_used_jumps = 0
-
 	if input.wants_jump and currently_used_jumps < max_num_jumps:
 		jump()
 
@@ -118,67 +126,69 @@ func _physics_process(delta: float) -> void:
 			is_dashing = true
 			dash_timer = dash_duration
 
-	# Determine desired speed
-	var desired_horizontal_speed: float
+	# Determine target vel
+	var target_planar_speed: float
 	if is_dashing:
-		desired_horizontal_speed = dash_speed
+		target_planar_speed = dash_speed
 	elif is_sprinting:
-		desired_horizontal_speed = sprint_speed
+		target_planar_speed = sprint_speed
 	else:
-		desired_horizontal_speed = walk_speed
+		target_planar_speed = walk_speed
+	target_planar_speed = target_planar_speed if input_dir.length() > 0.0 else 0.0
 
-	# Determine control factor
-	var control_factor: float
-	if is_on_floor():
-		control_factor = 1.0
-	else:
-		control_factor = air_control
-	if is_dashing:
-		# TODO this doesnt make sense.
-		# We want limited player control but the previous direction should apply with full force
-		# We need two variables for this
-		control_factor = min(control_factor, dash_control)
+	# Acceleration & Deceleration
+	var accel: float = _compute_acc_for_target_vel(target_planar_speed, 0.5)
+	var decel: float = accel / 3.0
 
-	# Calculate desired velocity based on WASD input (horizontal)
-	var desired_velocity_horizontal: Vector3 = input_dir * desired_horizontal_speed
+	var new_vel_horizontal: Vector2 = compute_planar_velocity(Vector2(velocity.x, velocity.z), Vector2(input_dir.x, input_dir.z), target_planar_speed, accel, decel, delta)
 
-	# Calculate velocity change based on desired velocity and input control factor
-	var change_speed_factor: float = remap(control_factor, 0.0, 1.0, 1.0, 20.0)
-	var curr_velocity_horizontal: Vector3 = Vector3(velocity.x, 0.0, velocity.z)
-	var new_velocity_horizontal: Vector3 = expchange_speedVec3(curr_velocity_horizontal, desired_velocity_horizontal, change_speed_factor, delta)
+	var delta_vel: float = new_vel_horizontal.length() - Vector2(velocity.x, velocity.z).length()
 
-	# Limit velocity to desired speed
-	# TODO this is broken as it only caps from fast -> slow.
-	# var old_length: float = new_velocity_horizontal.length()
-	# new_velocity_horizontal = new_velocity_horizontal.limit_length(desired_horizontal_speed)
-	# # Debug print only
-	# if old_length > new_velocity_horizontal.length():
-	# 	print("Limiting speed from %f -> $%f" % [old_length, new_velocity_horizontal.length()])
+	# Apply vel (only horizontal)
+	velocity.x = new_vel_horizontal.x
+	velocity.z = new_vel_horizontal.y
 
-	# Apply velocity (only horizontal)
-	velocity.x = new_velocity_horizontal.x
-	velocity.z = new_velocity_horizontal.z
-
+	print_timer -= delta
 	if print_timer <= 0.0:
 		print_timer = 1.0 / 20.0
-		print("Velocity: %6.2v , max_speed: %.1f , control: %.2f , change_speed: %.2f" % [velocity, desired_horizontal_speed, control_factor, change_speed_factor])
+		var cur_vel := Vector2(velocity.x, velocity.z).length()
+		print("vel: %6.2f target_vel: %6.2f, delta_vel: %6.2f, accel: %.2f, decel: %.2f" % [cur_vel, target_planar_speed, delta_vel, accel, decel])
 
 	move_and_slide()
+
+
+# Speed = float
+# Velocity = Vector
+func compute_planar_velocity(curr_vel: Vector2, input_dir: Vector2, target_speed: float, accel: float, decel: float, delta: float) -> Vector2:
+	var current_speed: float = curr_vel.length()
+	
+	# Compute target velocity in the XZ plane
+	var target_vel: Vector2 = input_dir * target_speed
+	
+	# Compute velocity difference
+	var vel_delta: Vector2 = target_vel - curr_vel
+	
+	# Determine acceleration or deceleration
+	var acc_factor: float = accel if vel_delta.dot(input_dir) > 0.0 else decel
+	
+	# Apply acceleration/deceleration
+	var vel_change: Vector2 = vel_delta.normalized() * acc_factor * delta
+
+	# Prevent overshooting (this also works for deceleration towards 0)
+	if vel_change.length() > vel_delta.length():
+		vel_change = vel_delta
+
+	# Update velocity & limit to target speed
+	curr_vel += vel_change
+	curr_vel = curr_vel.limit_length(target_speed)
+	
+	return curr_vel
+
+
+func _compute_acc_for_target_vel(target_vel: float, time: float) -> float:
+	return target_vel / time
+
 
 # Required for the MapGeneration.gd script
 func get_map_generation_center_position() -> Vector3:
 	return global_transform.origin
-
-
-# See https://youtu.be/LSNQuFEDOyQ?si=pLfLIFVZXPFaMWlw&t=3010
-# Exponential change_speed constant, usefull range approx. [1, 25], higher values change_speed faster
-# Use as a = expchange_speed(a, b, change_speed, dt)
-# With a = current value, b = target value, change_speed = change_speed constant, dt = delta time
-func expchange_speed(a: float, b: float, change_speed: float, dt: float) -> float:
-	return b + (a - b) * exp(-change_speed * dt)
-
-func expchange_speedVec2(a: Vector2, b: Vector2, change_speed: float, dt: float) -> Vector2:
-	return Vector2(expchange_speed(a.x, b.x, change_speed, dt), expchange_speed(a.y, b.y, change_speed, dt))
-
-func expchange_speedVec3(a: Vector3, b: Vector3, change_speed: float, dt: float) -> Vector3:
-	return Vector3(expchange_speed(a.x, b.x, change_speed, dt), expchange_speed(a.y, b.y, change_speed, dt), expchange_speed(a.z, b.z, change_speed, dt))
