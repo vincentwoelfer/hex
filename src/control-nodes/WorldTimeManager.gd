@@ -31,8 +31,8 @@ func _ready() -> void:
 		timer.start()
 
 	# Connect Signals
-	EventBus.Signal_ToogleWorldTimeAutoAdvance.connect(_on_Signal_ToogleWorldTimeAutoAdvance)
-	EventBus.Signal_AdvanceWorldTimeOneStep.connect(advance_world_time_one_step)
+	# EventBus.Signal_ToogleWorldTimeAutoAdvance.connect(_on_Signal_ToogleWorldTimeAutoAdvance)
+	# EventBus.Signal_AdvanceWorldTimeOneStep.connect(advance_world_time_one_step)
 
 
 func _on_Signal_ToogleWorldTimeAutoAdvance() -> void:

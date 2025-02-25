@@ -101,7 +101,6 @@ func _ready() -> void:
 	# 	add_child(label)
 
 	# Signals
-	EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
 	EventBus.Signal_WorldStep.connect(processWorldStep)
 
 

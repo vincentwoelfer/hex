@@ -201,6 +201,9 @@ func jump() -> void:
 	# Overwrite current vertical vel => this always gives the same impulse
 	velocity.y = jump_vel
 
+	# Vibration
+	Input.start_joy_vibration(0, 0.0, 1.0, 0.2 + 0.1 * jump_index)
+
 
 # Required for the MapGeneration.gd script
 func get_map_generation_center_position() -> Vector3:

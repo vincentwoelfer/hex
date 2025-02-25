@@ -58,7 +58,6 @@ var target_wetness := current_wetness
 var current_rain_amount_ratio := 0.0
 
 func _ready() -> void:
-	EventBus.Signal_TriggerWeatherChange.connect(force_new_weather)
 	EventBus.Signal_DayTimeChanged.connect(_on_time_progression)
 
 	if weather_profile == null:

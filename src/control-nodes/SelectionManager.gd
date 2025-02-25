@@ -5,7 +5,6 @@ var current_selection: HexTile = null
 
 func _init() -> void:
 	EventBus.Signal_SelectedWorldPosition.connect(parse_selection_position)
-	EventBus.Signal_randomizeSelectedTile.connect(randomize_selected_tile)
 
 
 func parse_selection_position(pos: Vector3) -> void:
@@ -38,27 +37,3 @@ func unhighlight_current() -> void:
 		pass
 		# current_selection.terrainMesh.material_overlay = null
 
-
-func randomize_selected_tile() -> void:
-	if current_selection != null and current_selection.is_valid() and current_selection.hex_pos != null:
-		var t_start := Time.get_ticks_usec()
-		Util.print_banner("Randomizing tile " + current_selection.hex_pos._to_string())
-
-		current_selection.params.humidity = randf()
-		current_selection.params.shade = randf()
-		current_selection.params.nutrition = randf()
-
-		# # For testing
-		# var step := 2
-		# current_selection.height += step
-		# current_selection.position += Vector3(0, step * HexConst.height, 0)
-
-		# for dir in range(6):
-		# 	var n := MapManager.map.get_by_pos(current_selection.hex_pos.get_neighbour(dir))
-		# 	if n != null:
-		# 		n.generate()
-		# current_selection.generate()
-
-		# # Finish
-		# var t := (Time.get_ticks_usec() - t_start) / 1000.0
-		# print("Generated %d hex tiles in %4.0f ms" % [7, t])

@@ -17,12 +17,7 @@ signal Signal_WeatherChanged(new_weather: WeatherControl.WeatherType)
 ###################################
 # DIRECTLY FROM INPUT KEYS (default key as comment behind signal)
 ###################################
-signal Signal_TooglePerTileUi() # 1
-signal Signal_ToogleWorldTimeAutoAdvance() # 2
-signal Signal_randomizeSelectedTile() # 3
-signal Signal_TriggerWeatherChange() # 4
-signal Signal_TriggerLod(cam_pos_global: Vector3) # 9
-signal Signal_AdvanceWorldTimeOneStep() # Space
+# signal Signal_TooglePerTileUi() # 1
 
 
 func _ready() -> void:

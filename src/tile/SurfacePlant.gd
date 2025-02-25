@@ -34,9 +34,6 @@ func _init() -> void:
 	set_shader_value(curr_height, 'height_mod')
 
 
-func _ready() -> void:
-	EventBus.Signal_TriggerLod.connect(recalculate_lod)
-
 
 func recalculate_lod(cam_pos_global: Vector3) -> void:
 	if not is_inside_tree() or is_queued_for_deletion():
