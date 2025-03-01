@@ -1,0 +1,145 @@
+extends Node3D
+class_name CameraController
+
+# Only for debugging
+var debug_mesh: MeshInstance3D
+
+@onready var camera: Camera3D = $Camera
+
+# Positional parameters. Divided into curr (actual camera values) and goal (values to lerp to) + min/max values
+var zoom_curr: float = 12.0
+var zoom_goal: float = zoom_curr
+var zoom_min: float = 5.0
+var zoom_max: float = 25.0
+var zoom_lerp_speed: float = 12.0
+
+# rotation = view angle = height of camera
+var tilt_curr: float = deg_to_rad(45.0)
+var tilt_goal: float = tilt_curr
+var tilt_min: float = deg_to_rad(20.0)
+var tilt_max: float = deg_to_rad(80.0)
+var tilt_lerp_speed: float = deg_to_rad(140.0)
+
+# rotation arount UP axis
+var orientation_goal: int = 4 # from north looking south (to see the sun moving best)
+var orientation_angle_curr: float
+var orientation_angle_goal: float
+var orientation_lerp_speed: float = deg_to_rad(360.0)
+
+# Current follow point (center of players)
+var follow_point_curr: Vector3
+var follow_point_goal: Vector3
+var follow_point_lerp_speed: float = 7.0
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	orientation_angle_goal = compute_orientation_angle_goal(orientation_goal)
+	orientation_angle_curr = orientation_angle_goal
+
+	follow_point_goal = GameStateManager.calculate_cam_follow_point()
+	follow_point_curr = follow_point_goal
+
+func _input(event: InputEvent) -> void:
+	# Orientation (rotation left/right)
+	if event.is_action_pressed("cam_rotate_left"):
+		orientation_goal = (orientation_goal + 6 - 1) % 6
+	if event.is_action_pressed("cam_rotate_right"):
+		orientation_goal = (orientation_goal + 6 + 1) % 6
+	orientation_angle_goal = compute_orientation_angle_goal(orientation_goal)
+
+	# Zoom (in/out)
+	var zoom_input := 0.0
+	if event.is_action_pressed("cam_zoom_in"):
+		zoom_input -= 1.0
+	if event.is_action_pressed("cam_zoom_out"):
+		zoom_input += 1.0
+	zoom_goal = clampf(zoom_goal + zoom_input * zoom_lerp_speed, zoom_min, zoom_max)
+
+
+func handle_continuous_input(delta: float) -> void:
+	# Tilt (rotation up/down)
+	var tilt_input := Input.get_axis("cam_tilt_down", "cam_tilt_up")
+	tilt_goal = clampf(tilt_goal + tilt_input * tilt_lerp_speed * delta, tilt_min, tilt_max)
+		
+	# Zoom (in/out)
+	var zoom_input := Input.get_axis("cam_zoom_in", "cam_zoom_out")
+	zoom_goal = clampf(zoom_goal + zoom_input * zoom_lerp_speed * delta, zoom_min, zoom_max)
+
+
+func _process(delta: float) -> void:
+	handle_continuous_input(delta)
+
+	follow_point_goal = GameStateManager.calculate_cam_follow_point()
+
+	# Compute new current values by lerping towards goal values
+	zoom_curr = lerp(zoom_curr, zoom_goal, zoom_lerp_speed * delta)
+	tilt_curr = lerp(tilt_curr, tilt_goal, tilt_lerp_speed * delta)
+	orientation_angle_curr = lerp_angle(orientation_angle_curr, orientation_angle_goal, orientation_lerp_speed * delta)
+
+	# For now no lerping, set instant
+	#follow_point_curr = lerp(follow_point_curr, follow_point_goal, follow_point_lerp_speed * delta)
+	follow_point_curr = follow_point_goal
+
+	# Compute new camera position
+	var cam_direction := Vector3.BACK.rotated(Vector3.LEFT, tilt_curr).rotated(Vector3.UP, orientation_angle_curr)
+	var cam_pos := follow_point_curr + (cam_direction * zoom_curr)
+
+	camera.look_at_from_position(cam_pos, follow_point_curr, Vector3.UP)
+
+	draw_debug_mesh(follow_point_curr)
+
+	# TODO this causes stuttering - Invesitage
+	#RenderingServer.call_on_render_thread(update_shader_parameters)
+	# RenderingServer.global_shader_parameter_set("global_camera_view_direction", actual_curr_rotation)
+	# RenderingServer.global_shader_parameter_set("global_player_position", lookAtPoint)
+
+
+func check_for_selection() -> void:
+	var hit: Dictionary = self.raycast_into_world()
+	# 99999 is a placeholder for no hit, required to deselect tiles if none is selected
+	var hit_pos := Vector3(99999, 0, 0)
+	if not hit.is_empty():
+		hit_pos = hit['position']
+
+	# EventBus.emit_signal("Signal_SelectedWorldPosition", hit_pos)
+
+
+func draw_debug_mesh(location: Vector3) -> void:
+	if debug_mesh == null:
+		var scene_root := get_tree().root
+		debug_mesh = MeshInstance3D.new()
+		debug_mesh.mesh = DebugShapes3D.create_capsule(1.8, 0.3, Color.CYAN, true)
+		scene_root.add_child(debug_mesh)
+
+	debug_mesh.global_transform.origin = location
+
+
+func raycast_into_world() -> Dictionary:
+	var mouse_pos := get_viewport().get_mouse_position()
+	var ray_origin: Vector3 = camera.project_ray_origin(mouse_pos)
+	var ray_direction: Vector3 = camera.project_ray_normal(mouse_pos)
+
+	var ray_query := PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + ray_direction * 1000.0)
+	ray_query.collide_with_areas = true
+
+	var space_state := get_world_3d().direct_space_state
+	var result := space_state.intersect_ray(ray_query)
+	return result
+
+
+# Default Orientation = 1 -> Forward = -Z , this is archived with 90° into sin/cos
+# Thats why we subtract 90° to get actual forward
+func compute_orientation_angle_goal(orientation_goal_: float) -> float:
+	var target_forward_angle := deg_to_rad((60.0 * orientation_goal_ + 30.0) - 90.0)
+	return target_forward_angle
+
+
+func get_map_height_at_pos(pos: Vector3) -> float:
+	var hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(pos).round()
+	var tile: HexTile = HexTileMap.get_by_pos(hex_pos)
+
+	if tile != null:
+		return tile.height * HexConst.height
+	else:
+		return 0.0

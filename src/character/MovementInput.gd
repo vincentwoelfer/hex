@@ -21,24 +21,25 @@ var dash_input := BufferedInputAction.new("dash", 0.08)
 
 
 func handle_input_event(event: InputEvent) -> void:
+	pass
 	###################
 	### Mouse Input
 	###################
-	if event is InputEventMouseMotion:
-		var e := event as InputEventMouseMotion
-		# Character rotation
-		self.relative_rotation.y = deg_to_rad(-e.relative.x * mouse_sensitivity)
+	# if event is InputEventMouseMotion:
+	# 	var e := event as InputEventMouseMotion
+	# 	# Character rotation
+	# 	self.relative_rotation.y = deg_to_rad(-e.relative.x * mouse_sensitivity)
 
-		# Head rotation
-		self.relative_rotation.x = deg_to_rad(-e.relative.y * mouse_sensitivity)
+	# 	# Head rotation
+	# 	self.relative_rotation.x = deg_to_rad(-e.relative.y * mouse_sensitivity)
 
-	###################
-	### Controller Input
-	###################
-	if Input.get_connected_joypads().size() > 0:
-		var input := Input.get_vector("view_left", "view_right", "view_up", "view_down", 0.2)
-		self.relative_rotation.y = deg_to_rad(-input.x * controller_sensitivity)
-		self.relative_rotation.x = deg_to_rad(-input.y * controller_sensitivity)
+	# ###################
+	# ### Controller Input
+	# ###################
+	# if Input.get_connected_joypads().size() > 0:
+	# 	var input := Input.get_vector("view_left", "view_right", "view_up", "view_down", 0.2)
+	# 	self.relative_rotation.y = deg_to_rad(-input.x * controller_sensitivity)
+	# 	self.relative_rotation.x = deg_to_rad(-input.y * controller_sensitivity)
 
 
 func consume_mouse_input() -> void:

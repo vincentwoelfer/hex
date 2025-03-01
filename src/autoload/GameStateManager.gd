@@ -4,14 +4,15 @@
 extends Node
 
 # Global State Variables
+var cam_follow_nodes: Array[Node3D] = []
 
 
 func _ready() -> void:
 	# Print Input Mappings
 	pretty_print_actions(get_input_mapping())
 
-	# Set collision shape visualisation on startup
-	get_tree().set_debug_collisions_hint(DebugSettings.visualize_collision_shapes)
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
 
 
 # React to keyboard inputs to directly trigger events
@@ -33,6 +34,24 @@ func request_quit_game() -> void:
 	Util.print_multiline_banner("Quitting game")
 	MapGeneration.shutdown_threads()
 
+
+func register_cam_follow_node(node: Node3D) -> void:
+	if not node in cam_follow_nodes:
+		cam_follow_nodes.append(node)
+
+func unregister_cam_follow_node(node: Node3D) -> void:
+	if node in cam_follow_nodes:
+		cam_follow_nodes.erase(node)
+
+func calculate_cam_follow_point() -> Vector3:
+	if cam_follow_nodes.is_empty():
+		return Vector3.ZERO
+
+	var p: Vector3 = Vector3.ZERO
+	for node in cam_follow_nodes:
+		p += node.global_position
+	p /= float(cam_follow_nodes.size())
+	return p
 
 ##################################################################
 # Helper Functions

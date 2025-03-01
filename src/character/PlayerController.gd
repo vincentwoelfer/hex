@@ -2,9 +2,6 @@ class_name PlayerController
 extends CharacterBody3D
 
 # Components
-@onready var head: Node3D = $Head
-
-
 var walk_speed: float = 5.0
 var sprint_speed: float = 9.0
 var dash_speed: float = 25.0
@@ -45,16 +42,17 @@ var input: MovementInput
 # https://www.youtube.com/watch?v=xIKErMgJ1Yk
 
 func _ready() -> void:
-	# Set the player as the center of the map generation
-	MapGeneration.generation_center_node = self
-
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	GameStateManager.register_cam_follow_node(self)
 
 	input = MovementInput.new()
 
 	# Compute deceleration based on walk speed and time to max acc
 	var walk_accel: float = _get_acc_for_target_vel_and_time(walk_speed, time_to_max_acc)
 	self.deceleration = walk_accel
+
+
+func _exit_tree() -> void:
+	GameStateManager.unregister_cam_follow_node(self)
 
 
 func get_current_gravity() -> float:
@@ -72,11 +70,11 @@ func _input(event: InputEvent) -> void:
 	input.handle_input_event(event)
 
 	# Apply mouse movement: Character rotation
-	rotate_y(input.relative_rotation.y)
+	# rotate_y(input.relative_rotation.y)
 
 	# Apply mouse movement: Head rotation
-	head.rotate_x(input.relative_rotation.x)
-	head.rotation.x = clamp(head.rotation.x, deg_to_rad(-85), deg_to_rad(85))
+	# head.rotate_x(input.relative_rotation.x)
+	# head.rotation.x = clamp(head.rotation.x, deg_to_rad(-85), deg_to_rad(85))
 
 	input.consume_mouse_input()
 
@@ -94,7 +92,7 @@ func _physics_process(delta: float) -> void:
 	# Movement input
 	var input_dir := input.input_direction
 	input_dir = (transform.basis * input_dir).normalized()
-	
+
 	# Sprinting
 	if input.wants_sprint and not is_dashing:
 		is_sprinting = true
@@ -143,11 +141,11 @@ func _physics_process(delta: float) -> void:
 	velocity.z = new_vel_horizontal.y
 
 	# print_timer -= delta
-	print_timer = -1.0
-	if print_timer <= 0.0:
-		print_timer = 1.0 / 30.0
-		var cur_vel := Vector2(velocity.x, velocity.z).length()
-		print("vel: %6.2f target_vel: %6.2f, delta_vel: %6.2f, accel: %.2f, decel: %.2f" % [cur_vel, target_planar_speed, delta_vel, acceleration, deceleration])
+	# print_timer = -1.0
+	# if print_timer <= 0.0:
+	# 	print_timer = 1.0 / 30.0
+	# 	var cur_vel := Vector2(velocity.x, velocity.z).length()
+	# 	print("vel: %6.2f target_vel: %6.2f, delta_vel: %6.2f, accel: %.2f, decel: %.2f" % [cur_vel, target_planar_speed, delta_vel, acceleration, deceleration])
 
 	move_and_slide()
 
@@ -156,13 +154,13 @@ func _physics_process(delta: float) -> void:
 # Velocity = Vector
 func compute_planar_velocity(curr_vel: Vector2, input_dir: Vector2, target_speed: float, accel: float, decel: float, delta: float) -> Vector2:
 	var current_speed: float = curr_vel.length()
-	
+
 	# Compute target velocity in the XZ plane
 	var target_vel: Vector2 = input_dir * target_speed
-	
+
 	# Compute velocity difference
 	var vel_delta: Vector2 = target_vel - curr_vel
-	
+
 	# Determine acceleration or deceleration
 	var vel_change_strength: float = accel if vel_delta.dot(input_dir) > 0.0 else decel
 	# if is_equal_approx(vel_change_strength, accel):
@@ -171,7 +169,7 @@ func compute_planar_velocity(curr_vel: Vector2, input_dir: Vector2, target_speed
 		# print("Decelerating")
 	# else:
 		# print("No acceleration or deceleration")
-	
+
 	# Apply acceleration/deceleration
 	var vel_change: Vector2 = vel_delta.normalized() * vel_change_strength * delta
 
@@ -197,14 +195,9 @@ func jump() -> void:
 	# Calculate jump vel
 	var jump_vel: float = (2.0 * jump_height) / jump_time_to_peak_sec
 	jump_vel *= jump_strength_factors[jump_index]
-	
+
 	# Overwrite current vertical vel => this always gives the same impulse
 	velocity.y = jump_vel
 
 	# Vibration
 	Input.start_joy_vibration(0, 0.0, 1.0, 0.2 + 0.1 * jump_index)
-
-
-# Required for the MapGeneration.gd script
-func get_map_generation_center_position() -> Vector3:
-	return global_transform.origin

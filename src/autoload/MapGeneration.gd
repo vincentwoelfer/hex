@@ -19,7 +19,7 @@ var generated_queue_mutex: Mutex
 # Threads
 var threads: Array[Thread] = []
 # 3-4 is sweet spot on my machine
-var num_threads: int = 4
+var num_threads: int = 2
 var threads_running: bool = true
 var threads_running_mutex: Mutex
 # Seems to make almost no difference in performance
@@ -30,28 +30,12 @@ var tile_generation_distance_hex := HexConst.distance_m_to_hex(50)
 var tile_deletion_distance_hex := HexConst.distance_m_to_hex(100)
 var generation_position: HexPos = HexPos.invalid()
 
-# Testing
-var t_start_benchmark: int
-var benchmark_complete: bool = false
-
-# Map generation happens arround this node. Must have function "get_map_generation_center_position() -> Vector3"
-var generation_center_node: Node3D = null
 
 # Called when the node enters the scene tree. Node, all children and parent (SceneTree) are ready at this point
 func _ready() -> void:
 	var active: bool = true
 	# This is required for the headless LSP to work (since this script is a tool script)
 	if OS.has_feature("Server"): active = false
-
-	# Prevent map-generation in editor in other scenes
-	# var scene: = get_tree().edited_scene_root
-	# print(get_tree())
-	# print(get_tree().current_scene)
-	# print(get_tree().edited_scene_root)
-	# print(scene)
-	# print(scene.scene_file_path)
-	# if scene and scene.scene_file_path != "res://scenes/MapGeneration.tscn":
-	# 	active = false
 
 	# Dont start threads if not active
 	if not active:
@@ -70,11 +54,6 @@ func _ready() -> void:
 	for i in range(num_threads):
 		threads.append(Thread.new())
 		threads[i].start(thread_generation_loop_function)
-
-	# Signals
-
-	# Start benchmark timer
-	t_start_benchmark = Time.get_ticks_usec()
 
 
 func _process(delta: float) -> void:
@@ -105,29 +84,16 @@ func _process(delta: float) -> void:
 		queue_new_tiles_for_generation()
 		remove_far_away_tiles()
 
-	# Only for Testing / benchmarking
-	if not benchmark_complete:
-		var expected_tiles := HexPos.compute_num_tiles_in_range(tile_generation_distance_hex, true)
-		if HexTileMap.get_size() >= expected_tiles:
-			var num_chunks := HexChunkMap.get_size()
-			var t := (Time.get_ticks_usec() - t_start_benchmark) / 1000.0
-			Util.print_only_banner()
-			print("MAIN: Process took %4.0f ms to generate %d tiles in %d chunks (N=%d)" % [t, expected_tiles, num_chunks, tile_generation_distance_hex])
-			print("MAIN: Thread count: %d, fetch_chunks_count: %d, chunk_size=%d" % [num_threads, fetch_chunks_count, HexConst.chunk_size])
-			Util.print_only_banner()
-			benchmark_complete = true
-
 
 # Returns true if the player has moved and we need to regenerate
 func update_generation_position() -> bool:
 	# Base generation pos on player or camera if in editor
 	var world_pos: Vector3
 
-	if generation_center_node != null and generation_center_node.has_method("get_map_generation_center_position") and not Engine.is_editor_hint():
-		@warning_ignore("UNSAFE_METHOD_ACCESS")
-		world_pos = generation_center_node.get_map_generation_center_position()
-	else:
+	if Engine.is_editor_hint():
 		world_pos = Util.get_global_cam_pos(self)
+	else:
+		world_pos = GameStateManager.calculate_cam_follow_point()
 
 	# Transform to hexpos
 	var hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(world_pos).round()
@@ -150,7 +116,6 @@ func fetch_and_add_generated_tiles() -> void:
 	# var generated_queue_copy: Array[int] = generated_queue.duplicate()
 	# generated_queue.clear()
 	# generated_queue_mutex.unlock()
-
 	# Fetch only one (because we have chunks now)
 	generated_queue_mutex.lock()
 	var generated_queue_copy: Array[int]
