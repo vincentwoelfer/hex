@@ -122,36 +122,36 @@ func get_curr_color() -> Color:
 	return curr_color
 
 
-func processWorldStep(humidity: float, shade: float, nutrition: float) -> void:
-	if tween:
-		tween.kill()
+# func processWorldStep(humidity: float, shade: float, nutrition: float) -> void:
+# 	if tween:
+# 		tween.kill()
 
-	# Update own parameters
-	var speed := 0.5
-	var health_delta := (humidity - curr_health) * speed # lerp towards humidity value
-	health_delta += (humidity - 0.5) * 0.5 * speed # Favor extremes
-	health_delta += randf_range(-0.1, 0.1) * speed
+# 	# Update own parameters
+# 	var speed := 0.5
+# 	var health_delta := (humidity - curr_health) * speed # lerp towards humidity value
+# 	health_delta += (humidity - 0.5) * 0.5 * speed # Favor extremes
+# 	health_delta += randf_range(-0.1, 0.1) * speed
 
-	curr_health = clampf(curr_health + health_delta, 0.0, 1.0)
-	curr_height = clampf(curr_height + nutrition * speed, min_height, max_height)
+# 	curr_health = clampf(curr_health + health_delta, 0.0, 1.0)
+# 	curr_height = clampf(curr_height + nutrition * speed, min_height, max_height)
 
-	# Die
-	if curr_health <= 0.08:
-		curr_height = min_height
-		curr_health = 1.0
+# 	# Die
+# 	if curr_health <= 0.08:
+# 		curr_height = min_height
+# 		curr_health = 1.0
 
-	# Set shader
-	var color_start: Color = self.get_shader_value_color('tip_color')
-	var height_start: float = self.get_shader_value_float('height_mod')
+# 	# Set shader
+# 	var color_start: Color = self.get_shader_value_color('tip_color')
+# 	var height_start: float = self.get_shader_value_float('height_mod')
 
-	# grassMultiMesh.set_instance_shader_parameter('tip_color', color_end)
-	# grassMultiMesh.set_instance_shader_parameter('tip_color_dry', color_end)
-	# grassMultiMesh.set_instance_shader_parameter('height_mod', height_end)
-	# set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+# 	# grassMultiMesh.set_instance_shader_parameter('tip_color', color_end)
+# 	# grassMultiMesh.set_instance_shader_parameter('tip_color_dry', color_end)
+# 	# grassMultiMesh.set_instance_shader_parameter('height_mod', height_end)
+# 	# set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
-	tween = create_tween().set_parallel(true)
-	tween.tween_method(set_shader_value.bind("tip_color"), color_start, get_curr_color(), 0.4)
-	tween.tween_method(set_shader_value.bind("height_mod"), height_start, curr_height, 0.4)
+# 	tween = create_tween().set_parallel(true)
+# 	tween.tween_method(set_shader_value.bind("tip_color"), color_start, get_curr_color(), 0.4)
+# 	tween.tween_method(set_shader_value.bind("height_mod"), height_start, curr_height, 0.4)
 
 
 func determine_num_blades(surface_sampler: PolygonSurfaceSampler) -> int:

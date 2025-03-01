@@ -106,8 +106,6 @@ func generate() -> void:
 func _ready() -> void:
 	pass
 	# Signals
-	# EventBus.Signal_TooglePerTileUi.connect(toogleTileUi)
-	# EventBus.Signal_WorldStep.connect(processWorldStep)
 		
 
 # func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
@@ -137,10 +135,6 @@ func _ready() -> void:
 # 		st_combined.append_from(mesh, 0, t)
 # 	return st_combined.commit()
 
-
-# func _process(delta: float) -> void:
-# 	if label != null:
-# 		label.update_label_position()
 
 
 func get_hex_pos_center() -> HexPos:

@@ -1,14 +1,9 @@
-[gd_scene load_steps=10 format=3 uid="uid://bi8xpy2pdq81q"]
+[gd_scene load_steps=5 format=3 uid="uid://bi8xpy2pdq81q"]
 
 [ext_resource type="PackedScene" uid="uid://yt40srqvcs4y" path="res://scenes/dev/Character.tscn" id="1_5xhde"]
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://assets/misc/DefaultEnvironment.tres" id="2_2n06e"]
 [ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://assets/misc/CameraAttributes.tres" id="3_lr7o2"]
-[ext_resource type="Script" uid="uid://dkmcubf7mjvti" path="res://src/control-nodes/SelectionManager.gd" id="6_x1kdg"]
-[ext_resource type="PackedScene" uid="uid://i5fes5afbict" path="res://scenes/ui/TooltipPanel.tscn" id="7_molft"]
-[ext_resource type="Script" uid="uid://b3dopwgv2qlpf" path="res://src/control-nodes/WorldLightControl.gd" id="8_4pj04"]
 [ext_resource type="PackedScene" uid="uid://b3ol067ntho4v" path="res://scenes/ui/DebugInfoPanel.tscn" id="9_1vbi7"]
-[ext_resource type="Script" uid="uid://cm7jam8b75yxd" path="res://src/control-nodes/WorldTimeManager.gd" id="9_pfdia"]
-[ext_resource type="PackedScene" uid="uid://gefdglv0vl5e" path="res://scenes/control-nodes/WeatherControl.tscn" id="9_ukl4i"]
 
 [node name="MainScene" type="Node3D"]
 
@@ -30,32 +25,7 @@ shadow_enabled = true
 directional_shadow_blend_splits = true
 directional_shadow_max_distance = 300.0
 
-[node name="SelectionManager" type="Node3D" parent="."]
-script = ExtResource("6_x1kdg")
-
-[node name="WorldLightControl" type="Node" parent="."]
-unique_name_in_owner = true
-script = ExtResource("8_4pj04")
-current_time = 9.0
-
-[node name="WeatherControl" parent="." instance=ExtResource("9_ukl4i")]
-unique_name_in_owner = true
-
-[node name="WorldTimeManager" type="Node" parent="."]
-unique_name_in_owner = true
-script = ExtResource("9_pfdia")
-
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="Tooltip" parent="CanvasLayer" instance=ExtResource("7_molft")]
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -560.0
-offset_top = 40.0
-offset_right = -40.0
-offset_bottom = 340.0
-grow_horizontal = 0
 
 [node name="DebugInfoPanel" parent="CanvasLayer" instance=ExtResource("9_1vbi7")]
 anchors_preset = 2

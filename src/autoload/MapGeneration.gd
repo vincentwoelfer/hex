@@ -72,7 +72,6 @@ func _ready() -> void:
 		threads[i].start(thread_generation_loop_function)
 
 	# Signals
-	EventBus.Signal_HexConstChanged.connect(set_regenerate)
 
 	# Start benchmark timer
 	t_start_benchmark = Time.get_ticks_usec()

@@ -1,4 +1,4 @@
-# Needs to be tool to enable event bus already in the editor itself
+# Needs to be tool to read these in other tool scripts!
 # No class_name here, the name of the singleton is set in the autoload
 @tool
 extends Node
@@ -9,9 +9,6 @@ extends Node
 func _ready() -> void:
 	# Print Input Mappings
 	pretty_print_actions(get_input_mapping())
-
-	# Set occlusion culling on startup
-	get_tree().root.use_occlusion_culling = DebugSettings.generate_terrain_occluder
 
 	# Set collision shape visualisation on startup
 	get_tree().set_debug_collisions_hint(DebugSettings.visualize_collision_shapes)
@@ -35,10 +32,6 @@ func _input(event: InputEvent) -> void:
 func request_quit_game() -> void:
 	Util.print_multiline_banner("Quitting game")
 	MapGeneration.shutdown_threads()
-
-
-func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:
-	print("EventBus: Weather Changed to ", WeatherControl.WeatherType.keys()[new_weather])
 
 
 ##################################################################

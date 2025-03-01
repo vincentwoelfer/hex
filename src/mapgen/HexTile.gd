@@ -10,7 +10,6 @@ extends Node3D
 var hex_pos: HexPos
 var height: int
 
-var params: HexTileParams
 var geometry: HexGeometry
 
 
@@ -19,7 +18,6 @@ var geometry: HexGeometry
 var terrainOccluderInstance: OccluderInstance3D = null
 var plant: SurfacePlant = null # TODO must stay here for tick() (i guess). 
 var rocks: MeshInstance3D = null
-var label: HexTileLabel = null
 
 # Collision
 var collisionBody: StaticBody3D
@@ -39,8 +37,6 @@ func _init(hex_pos_: HexPos, height_: int) -> void:
 	var world_pos: Vector2 = HexPos.hexpos_to_xy(hex_pos_local)
 	self.position = Vector3(world_pos.x, height * HexConst.height, world_pos.y)
 
-	# Set Ground Params - Randomizes everything
-	self.params = HexTileParams.new()
 
 
 func generate(geometry_input: HexGeometryInput) -> void:
@@ -61,12 +57,6 @@ func generate(geometry_input: HexGeometryInput) -> void:
 
 	if DebugSettings.visualize_hex_input:
 		geometry_input.create_debug_visualization(self)
-
-	# Occluder
-	if DebugSettings.generate_terrain_occluder:
-		terrainOccluderInstance = OccluderInstance3D.new()
-		terrainOccluderInstance.occluder = geometry.occluder
-		add_child(terrainOccluderInstance)
 
 	if DebugSettings.generate_collision and self.height > 0:
 		self.collisionBody = StaticBody3D.new()
@@ -93,15 +83,6 @@ func generate(geometry_input: HexGeometryInput) -> void:
 				rocks.mesh = rocksMesh
 				add_child(rocks)
 
-
-func _ready() -> void:
-	# if height > 0:
-	# 	label = HexTileLabel.new(params)
-	# 	label.set_label_world_pos(global_position)
-	# 	add_child(label)
-
-	# Signals
-	EventBus.Signal_WorldStep.connect(processWorldStep)
 
 
 func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
@@ -131,21 +112,6 @@ func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 		st_combined.append_from(mesh, 0, t)
 	return st_combined.commit()
 
-
-func processWorldStep() -> void:
-	# For now just end data here, this is not good!
-	if plant != null:
-		plant.processWorldStep(params.humidity, params.shade, params.nutrition)
-
-
-func toogleTileUi() -> void:
-	if label != null:
-		label.is_label_visible = !label.is_label_visible
-
-
-func _process(delta: float) -> void:
-	if label != null:
-		label.update_label_position()
 
 
 func is_valid() -> bool:
