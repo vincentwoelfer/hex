@@ -17,7 +17,7 @@ static func colorVariation(color: Color, variation: float = 0.08) -> Color:
 	var var_r := remap(color.r, 0.0, 1.0, 0.5, 1.3)
 	var var_g := remap(color.g, 0.0, 1.0, 0.5, 1.3)
 	var var_b := remap(color.b, 0.0, 1.0, 0.5, 1.3)
-	return (color + Color(randf_range(-variation, variation) * var_r, randf_range(-variation, variation) * var_g, randf_range(-variation, variation) * var_b, 0.0)).clamp()
+	return (color + Color(randf_range(- variation, variation) * var_r, randf_range(- variation, variation) * var_g, randf_range(- variation, variation) * var_b, 0.0)).clamp()
 
 #############################################################################
 # Distrinc HEX colors for each side, top and transitions
@@ -50,8 +50,16 @@ static func modifyColorForTransitionType(base: Color, trans_type: HexGeometryInp
 	return base.lerp(Color.BLACK, 0.9)
 
 
-static func getColorForIncline(inclineDeg: float) -> Color:
+const PLAYER_COLORS: Array[Color] = [Color.DEEP_PINK, Color.ROYAL_BLUE, Color.WEB_GREEN, Color.GOLD]
+static func getPlayerColors() -> Array[Color]:
+	return PLAYER_COLORS
 
+static func getPlayerColor(i: int) -> Color:
+	assert(i >= 0 and i < PLAYER_COLORS.size())
+	return PLAYER_COLORS[i]
+
+
+static func getColorForIncline(inclineDeg: float) -> Color:
 	# Remap & clamp
 	inclineDeg = remap(inclineDeg, 30.0, 70.0, 0.0, 1.0)
 	inclineDeg = clampf(inclineDeg, 0.0, 1.0)

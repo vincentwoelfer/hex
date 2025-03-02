@@ -3,15 +3,16 @@ class_name CameraController
 
 # Only for debugging
 var debug_mesh: MeshInstance3D
+var draw_debug_follow_point := false
 
 @onready var camera: Camera3D = $Camera
 
 # Positional parameters. Divided into curr (actual camera values) and goal (values to lerp to) + min/max values
-var zoom_curr: float = 12.0
+var zoom_curr: float = 15.0
 var zoom_goal: float = zoom_curr
-var zoom_min: float = 5.0
-var zoom_max: float = 25.0
-var zoom_lerp_speed: float = 12.0
+var zoom_min: float = 8.0
+var zoom_max: float = 30.0
+var zoom_lerp_speed: float = 8.0
 
 # rotation = view angle = height of camera
 var tilt_curr: float = deg_to_rad(45.0)
@@ -21,7 +22,7 @@ var tilt_max: float = deg_to_rad(80.0)
 var tilt_lerp_speed: float = deg_to_rad(140.0)
 
 # rotation arount UP axis
-var orientation_goal: int = 4 # from north looking south (to see the sun moving best)
+var orientation_goal: int = 1
 var orientation_angle_curr: float
 var orientation_angle_goal: float
 var orientation_lerp_speed: float = deg_to_rad(360.0)
@@ -37,7 +38,7 @@ func _ready() -> void:
 	orientation_angle_goal = compute_orientation_angle_goal(orientation_goal)
 	orientation_angle_curr = orientation_angle_goal
 
-	follow_point_goal = GameStateManager.calculate_cam_follow_point()
+	follow_point_goal = GameStateManager.get_cam_follow_point()
 	follow_point_curr = follow_point_goal
 
 func _input(event: InputEvent) -> void:
@@ -67,19 +68,17 @@ func handle_continuous_input(delta: float) -> void:
 	zoom_goal = clampf(zoom_goal + zoom_input * zoom_lerp_speed * delta, zoom_min, zoom_max)
 
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	handle_continuous_input(delta)
 
-	follow_point_goal = GameStateManager.calculate_cam_follow_point()
+	follow_point_goal = GameStateManager.get_cam_follow_point()
 
 	# Compute new current values by lerping towards goal values
-	zoom_curr = lerp(zoom_curr, zoom_goal, zoom_lerp_speed * delta)
-	tilt_curr = lerp(tilt_curr, tilt_goal, tilt_lerp_speed * delta)
-	orientation_angle_curr = lerp_angle(orientation_angle_curr, orientation_angle_goal, orientation_lerp_speed * delta)
+	zoom_curr = Util.lerp_towards_f(zoom_curr, zoom_goal, zoom_lerp_speed, delta)
+	tilt_curr = Util.lerp_towards_f(tilt_curr, tilt_goal, tilt_lerp_speed, delta)
+	orientation_angle_curr = Util.lerp_towards_angle(orientation_angle_curr, orientation_angle_goal, orientation_lerp_speed, delta)
 
-	# For now no lerping, set instant
-	#follow_point_curr = lerp(follow_point_curr, follow_point_goal, follow_point_lerp_speed * delta)
-	follow_point_curr = follow_point_goal
+	follow_point_curr = Util.lerp_towards_vec3(follow_point_curr, follow_point_goal, follow_point_lerp_speed, delta)
 
 	# Compute new camera position
 	var cam_direction := Vector3.BACK.rotated(Vector3.LEFT, tilt_curr).rotated(Vector3.UP, orientation_angle_curr)
@@ -106,13 +105,15 @@ func check_for_selection() -> void:
 
 
 func draw_debug_mesh(location: Vector3) -> void:
-	if debug_mesh == null:
-		var scene_root := get_tree().root
-		debug_mesh = MeshInstance3D.new()
-		debug_mesh.mesh = DebugShapes3D.create_capsule(1.8, 0.3, Color.CYAN, true)
-		scene_root.add_child(debug_mesh)
+	if draw_debug_follow_point:
+		if debug_mesh == null:
+			var scene_root := get_tree().root
+			debug_mesh = MeshInstance3D.new()
+			# debug_mesh.mesh = DebugShapes3D.create_capsule(1.8, 0.3, Color.CYAN, true)
+			debug_mesh.mesh = DebugShapes3D.create_sphere(0.3, Color.CYAN)
+			scene_root.add_child(debug_mesh)
 
-	debug_mesh.global_transform.origin = location
+		debug_mesh.global_transform.origin = location
 
 
 func raycast_into_world() -> Dictionary:
@@ -133,13 +134,3 @@ func raycast_into_world() -> Dictionary:
 func compute_orientation_angle_goal(orientation_goal_: float) -> float:
 	var target_forward_angle := deg_to_rad((60.0 * orientation_goal_ + 30.0) - 90.0)
 	return target_forward_angle
-
-
-func get_map_height_at_pos(pos: Vector3) -> float:
-	var hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(pos).round()
-	var tile: HexTile = HexTileMap.get_by_pos(hex_pos)
-
-	if tile != null:
-		return tile.height * HexConst.height
-	else:
-		return 0.0

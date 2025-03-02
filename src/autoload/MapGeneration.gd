@@ -1,7 +1,7 @@
 # Needs to be tool to read these in other tool scripts!
 # No class_name here, the name of the singleton is set in the autoload
 @tool
-extends Node
+extends Node3D
 
 # Complete Map Regeneration
 var regenerate: bool = false
@@ -49,7 +49,7 @@ func _ready() -> void:
 	threads_running_mutex = Mutex.new()
 
 	# Create thread
-	print("MAIN: Starting %d threads with %d fetch_chunks_count, chunk_size: %d" % [num_threads, fetch_chunks_count, HexConst.chunk_size])
+	# print("MAIN: Starting %d threads with %d fetch_chunks_count, chunk_size: %d" % [num_threads, fetch_chunks_count, HexConst.chunk_size])
 	threads.clear()
 	for i in range(num_threads):
 		threads.append(Thread.new())
@@ -67,7 +67,7 @@ func _process(delta: float) -> void:
 
 	if should_exit:
 		if threads.is_empty():
-			Util.print_multiline_banner("All threads finished, exiting game")
+			# Util.print_multiline_banner("All threads finished, exiting game")
 			get_tree().quit()
 		else:
 			join_threads()
@@ -93,7 +93,7 @@ func update_generation_position() -> bool:
 	if Engine.is_editor_hint():
 		world_pos = Util.get_global_cam_pos(self)
 	else:
-		world_pos = GameStateManager.calculate_cam_follow_point()
+		world_pos = PlayerManager.calculate_cam_follow_point()
 
 	# Transform to hexpos
 	var hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(world_pos).round()
@@ -207,7 +207,7 @@ func thread_generation_loop_function() -> void:
 		var should_exit: bool = not threads_running
 		threads_running_mutex.unlock()
 		if should_exit:
-			print("THREAD %d: Exiting thread function" % thread_id)
+			# print("THREAD %d: Exiting thread function" % thread_id)
 			return
 
 		var keys: Array[int] = []
@@ -283,7 +283,7 @@ func delete_everything() -> void:
 	to_generate_mutex.unlock()
 	generated_queue_mutex.unlock()
 
-	print('Done deleting everything!')
+	# print('Done deleting everything!')
 	
 ##############################
 # Shutdown
@@ -299,13 +299,13 @@ func shutdown_threads() -> void:
 	to_generate_queue.clear()
 	to_generate_mutex.unlock()
 
-	print("MAIN: Waiting for %d threads to finish..." % num_threads)
+	# print("MAIN: Waiting for %d threads to finish..." % num_threads)
 
 
 # Called repeatedly in _process to check if threads are finished
 func join_threads() -> bool:
 	if threads.size() == 0:
-		print("MAIN: All %d threads finished" % num_threads)
+		# print("MAIN: All %d threads finished" % num_threads)
 		return true
 
 	# Post to the semaphore to unblock any waiting threads so they can exit
@@ -322,7 +322,7 @@ func join_threads() -> bool:
 	# Actually delete finished
 	if to_delete_idx != -1:
 		var deleted_num: int = num_threads - threads.size()
-		print("MAIN: Joined thead %d / %d" % [deleted_num, num_threads])
+		# print("MAIN: Joined thead %d / %d" % [deleted_num, num_threads])
 		threads.remove_at(to_delete_idx)
 
 	return false
@@ -344,3 +344,35 @@ func _exit_tree() -> void:
 			join_threads()
 			# This fails if node not in tree (if scene was not opened on startup)
 			await get_tree().create_timer(0.01).timeout
+
+
+##############################
+# Additional API
+##############################
+
+func _get_approx_map_height_at_pos(pos: Vector3) -> float:
+	var hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(pos).round()
+	var tile: HexTile = HexTileMap.get_by_pos(hex_pos)
+
+	if tile != null:
+		return tile.height * HexConst.height
+	else:
+		return 0.0
+
+
+func get_capsule_spawn_pos_on_map_surface(pos: Vector3, shape: CollisionShape3D) -> Vector3:
+	pos.y = _get_approx_map_height_at_pos(pos)
+
+	# Prepare shape query
+	var query: PhysicsShapeQueryParameters3D = PhysicsShapeQueryParameters3D.new()
+	query.shape = shape.shape
+	var distance := 50.0
+	query.transform.origin = pos + Vector3.UP * distance / 2.0
+	query.motion = Vector3.DOWN * distance
+	# TODO query.collision_mask = ...
+
+	# Perform query
+	var space_state := get_world_3d().direct_space_state
+	var t: float = space_state.cast_motion(query)[0]
+	var shape_height: float = (shape.shape as CapsuleShape3D).height
+	return (query.transform.origin + query.motion * t) - (Vector3.UP * shape_height / 2.0)

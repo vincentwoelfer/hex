@@ -41,18 +41,12 @@ var input: MovementInput
 # First person youtube videos:
 # https://www.youtube.com/watch?v=xIKErMgJ1Yk
 
-func _ready() -> void:
-	GameStateManager.register_cam_follow_node(self)
-
-	input = MovementInput.new()
+func init(device: int) -> void:
+	input = MovementInput.new(device)
 
 	# Compute deceleration based on walk speed and time to max acc
 	var walk_accel: float = _get_acc_for_target_vel_and_time(walk_speed, time_to_max_acc)
 	self.deceleration = walk_accel
-
-
-func _exit_tree() -> void:
-	GameStateManager.unregister_cam_follow_node(self)
 
 
 func get_current_gravity() -> float:
@@ -200,4 +194,4 @@ func jump() -> void:
 	velocity.y = jump_vel
 
 	# Vibration
-	Input.start_joy_vibration(0, 0.0, 1.0, 0.2 + 0.1 * jump_index)
+	# Input.start_joy_vibration(0, 0.0, 1.0, 0.2 + 0.1 * jump_index)

@@ -1,9 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://yt40srqvcs4y"]
+[gd_scene load_steps=6 format=3 uid="uid://yt40srqvcs4y"]
 
 [ext_resource type="Script" uid="uid://dvvu501emdgsn" path="res://src/character/PlayerController.gd" id="1_gar1i"]
 [ext_resource type="Material" uid="uid://c0myngqkhsb44" path="res://assets/materials/player_material.tres" id="2_kle66"]
-[ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://assets/misc/DefaultEnvironment.tres" id="3_yn75o"]
-[ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://assets/misc/CameraAttributes.tres" id="4_hr358"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_2b623"]
 material = ExtResource("2_kle66")
@@ -19,7 +17,7 @@ size = Vector3(1, 0.1, 0.1)
 radius = 0.3
 height = 1.7
 
-[node name="Character" type="CharacterBody3D"]
+[node name="PlayerCharacter" type="CharacterBody3D"]
 input_ray_pickable = false
 script = ExtResource("1_gar1i")
 

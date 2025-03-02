@@ -26,10 +26,10 @@ static var transition_height_factor: float = 0.5
 static var core_circle_smooth_strength := 0.5
 
 # Extra vertices per hexagon side
-static var extra_verts_per_side := 3
+static var extra_verts_per_side := 4
 
 # Extra vertices per hexagon center
-static var extra_verts_per_center := 4
+static var extra_verts_per_center := 7
 
 # Interpolation for vertex height between 0 / border height and Barycentric Coords
 static var smooth_height_factor_inner := 1.0
@@ -43,7 +43,7 @@ static var trans_type_max_height_diff := 6.0
 static var grass_density := 10.0
 
 
-static var chunk_size: int = 3
+static var chunk_size: int = 4
 
 
 # Use smooth groups

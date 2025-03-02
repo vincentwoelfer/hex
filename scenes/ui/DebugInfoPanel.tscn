@@ -28,7 +28,6 @@ unique_name_in_owner = true
 layout_mode = 2
 theme = ExtResource("1_0cmr8")
 theme_override_fonts/font = ExtResource("2_g7tsr")
-text = "Hex Title"
 
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 5)
@@ -39,6 +38,4 @@ unique_name_in_owner = true
 layout_mode = 2
 theme = ExtResource("1_0cmr8")
 bbcode_enabled = true
-text = "- List
-- dsda"
 fit_content = true

@@ -1,15 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://bi8xpy2pdq81q"]
+[gd_scene load_steps=5 format=3 uid="uid://bi8xpy2pdq81q"]
 
-[ext_resource type="PackedScene" uid="uid://yt40srqvcs4y" path="res://scenes/Character.tscn" id="1_jyhfs"]
 [ext_resource type="Environment" uid="uid://cnhvdutmpoe5p" path="res://assets/misc/DefaultEnvironment.tres" id="2_tbgi4"]
 [ext_resource type="CameraAttributesPractical" uid="uid://dh2vvniv7q67r" path="res://assets/misc/CameraAttributes.tres" id="3_tefeu"]
 [ext_resource type="PackedScene" uid="uid://b3ol067ntho4v" path="res://scenes/ui/DebugInfoPanel.tscn" id="4_o6xl0"]
 [ext_resource type="PackedScene" uid="uid://bs1mtemj2c64i" path="res://scenes/CameraController.tscn" id="4_tbgi4"]
 
 [node name="main" type="Node3D"]
-
-[node name="Character" parent="." instance=ExtResource("1_jyhfs")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, -10)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 unique_name_in_owner = true

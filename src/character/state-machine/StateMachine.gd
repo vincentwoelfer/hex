@@ -23,7 +23,7 @@ func change_state(new_state: State) -> void:
 	current_state = new_state
 	current_state.enter()
 	
-# Pass through functions for the Player to call,
+# Pass through functions for the PlayerData to call,
 # handling state changes as needed.
 func process_physics(delta: float) -> void:
 	var new_state = current_state.process_physics(delta)
