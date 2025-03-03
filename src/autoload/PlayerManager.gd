@@ -112,7 +112,7 @@ func spawn_player(player: PlayerData) -> void:
 
 	# Find spawn pos
 	var shape: CollisionShape3D = player_node.get_node("Collision")
-	var spawn_pos := MapGeneration.get_capsule_spawn_pos_on_map_surface(find_spawn_pos_xz_near_team(player.id), shape)	
+	var spawn_pos := MapGeneration.get_capsule_spawn_pos_on_map_surface(find_spawn_pos_xz_near_team(player.id), shape)
 
 	# Set player color
 	var mesh_instance := player_node.get_node("Mesh") as MeshInstance3D
@@ -155,3 +155,13 @@ func calculate_cam_follow_point() -> Vector3:
 		p += node.global_position
 	p /= float(cam_follow_nodes.size())
 	return p
+
+func calculate_cam_follow_point_max_dist(cam_follow_point: Vector3) -> float:
+	if cam_follow_nodes.is_empty():
+		return 0.0
+
+	var max_dist: float = 0.0
+	for node in cam_follow_nodes:
+		var dist: float = node.global_position.distance_to(cam_follow_point)
+		max_dist = max(max_dist, dist)
+	return max_dist

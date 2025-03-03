@@ -4,16 +4,19 @@ class_name CameraController
 # Positional parameters. Divided into curr (actual camera values) and goal (values to lerp to) + min/max values
 var zoom_curr: float = 15.0
 var zoom_goal: float = zoom_curr
-var zoom_min: float = 8.0
+var zoom_min: float = 15.0
 var zoom_max: float = 30.0
-var zoom_lerp_speed: float = 8.0
+var zoom_lerp_speed: float = 10.0
+
+var zoom_min_at_dist: float = 12.0
+var zoom_max_at_dist: float = 28.0
 
 # rotation = view angle = height of camera
-var tilt_curr: float = deg_to_rad(45.0)
+var tilt_curr: float = deg_to_rad(50.0)
 var tilt_goal: float = tilt_curr
-var tilt_min: float = deg_to_rad(20.0)
-var tilt_max: float = deg_to_rad(80.0)
-var tilt_lerp_speed: float = deg_to_rad(140.0)
+var tilt_min: float = deg_to_rad(25.0) # from side
+var tilt_max: float = deg_to_rad(80.0) # from above
+var tilt_lerp_speed: float = deg_to_rad(150.0)
 
 # rotation arount UP axis
 var orientation_goal: int = 1
@@ -52,12 +55,12 @@ func _input(event: InputEvent) -> void:
 	orientation_angle_goal = compute_orientation_angle_goal(orientation_goal)
 
 	# Zoom (in/out)
-	var zoom_input := 0.0
-	if event.is_action_pressed("cam_zoom_in"):
-		zoom_input -= 1.0
-	if event.is_action_pressed("cam_zoom_out"):
-		zoom_input += 1.0
-	zoom_goal = clampf(zoom_goal + zoom_input * zoom_lerp_speed, zoom_min, zoom_max)
+	# var zoom_input := 0.0
+	# if event.is_action_pressed("cam_zoom_in"):
+	# 	zoom_input -= 1.0
+	# if event.is_action_pressed("cam_zoom_out"):
+	# 	zoom_input += 1.0
+	# zoom_goal = clampf(zoom_goal + zoom_input * zoom_lerp_speed, zoom_min, zoom_max)
 
 
 func handle_continuous_input(delta: float) -> void:
@@ -66,14 +69,19 @@ func handle_continuous_input(delta: float) -> void:
 	tilt_goal = clampf(tilt_goal + tilt_input * tilt_lerp_speed * delta, tilt_min, tilt_max)
 		
 	# Zoom (in/out)
-	var zoom_input := Input.get_axis("cam_zoom_in", "cam_zoom_out")
-	zoom_goal = clampf(zoom_goal + zoom_input * zoom_lerp_speed * delta, zoom_min, zoom_max)
+	# var zoom_input := Input.get_axis("cam_zoom_in", "cam_zoom_out")
+	# zoom_goal = clampf(zoom_goal + zoom_input * zoom_lerp_speed * delta, zoom_min, zoom_max)
 
 
 func _physics_process(delta: float) -> void:
 	handle_continuous_input(delta)
 
 	follow_point_goal = GameStateManager.get_cam_follow_point()
+	var max_dist := GameStateManager.calculate_cam_follow_point_max_dist(follow_point_goal)
+
+	# Calculate zoom goal based on max dist
+	zoom_goal = remap(max_dist, zoom_min_at_dist, zoom_max_at_dist, zoom_min, zoom_max)
+	zoom_goal = clampf(zoom_goal, zoom_min, zoom_max)
 
 	# Compute new current values by lerping towards goal values
 	zoom_curr = Util.lerp_towards_f(zoom_curr, zoom_goal, zoom_lerp_speed, delta)

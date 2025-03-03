@@ -39,6 +39,9 @@ func get_cam_follow_point() -> Vector3:
 	# Depending on game state, this may not follow the players
 	return PlayerManager.calculate_cam_follow_point()
 
+func calculate_cam_follow_point_max_dist(cam_follow_point: Vector3) -> float:
+	return PlayerManager.calculate_cam_follow_point_max_dist(cam_follow_point)
+
 
 func set_global_camera_view_angle(angle: float) -> void:
 	global_camera_view_angle = angle
