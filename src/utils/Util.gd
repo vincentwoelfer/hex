@@ -180,19 +180,19 @@ static func create_mesh_from_triangles(triangles: Array[Triangle]) -> Mesh:
 # LERP
 ######################################################
 static func lerp_towards_f(curr: float, goal: float, speed: float, delta: float) -> float:
-	if abs(goal - curr) < 0.001: # Avoid infinite approach
+	if abs(goal - curr) < 0.01: # Avoid infinite approach
 		return goal
 	return lerp(curr, goal, 1.0 - exp(- speed * delta))
 
 
 static func lerp_towards_angle(curr: float, goal: float, speed: float, delta: float) -> float:
-	if abs(goal - curr) < 0.001: # Avoid infinite approach
+	if abs(goal - curr) < 0.01: # Avoid infinite approach
 		return goal
 	return lerp_angle(curr, goal, 1.0 - exp(- speed * delta))
 
 
 static func lerp_towards_vec3(curr: Vector3, goal: Vector3, speed: float, delta: float) -> Vector3:
-	if curr.distance_to(goal) < 0.001: # Avoid infinite approach
+	if curr.distance_to(goal) < 0.01: # Avoid infinite approach
 		return goal
 	return lerp(curr, goal, 1.0 - exp(- speed * delta))
 

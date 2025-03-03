@@ -1,12 +1,6 @@
 extends Node3D
 class_name CameraController
 
-# Only for debugging
-var debug_mesh: MeshInstance3D
-var draw_debug_follow_point := false
-
-@onready var camera: Camera3D = $Camera
-
 # Positional parameters. Divided into curr (actual camera values) and goal (values to lerp to) + min/max values
 var zoom_curr: float = 15.0
 var zoom_goal: float = zoom_curr
@@ -30,7 +24,14 @@ var orientation_lerp_speed: float = deg_to_rad(360.0)
 # Current follow point (center of players)
 var follow_point_curr: Vector3
 var follow_point_goal: Vector3
-var follow_point_lerp_speed: float = 7.0
+var follow_point_lerp_speed: float = 8.0
+
+
+# Only for debugging
+var debug_mesh: MeshInstance3D
+var draw_debug_follow_point := true
+
+@onready var camera: Camera3D = $Camera
 
 
 # Called when the node enters the scene tree for the first time.
@@ -40,6 +41,7 @@ func _ready() -> void:
 
 	follow_point_goal = GameStateManager.get_cam_follow_point()
 	follow_point_curr = follow_point_goal
+
 
 func _input(event: InputEvent) -> void:
 	# Orientation (rotation left/right)
@@ -86,6 +88,9 @@ func _physics_process(delta: float) -> void:
 
 	camera.look_at_from_position(cam_pos, follow_point_curr, Vector3.UP)
 
+	# Set global cam orientation
+	GameStateManager.set_global_camera_view_angle(orientation_angle_curr)
+
 	draw_debug_mesh(follow_point_curr)
 
 	# TODO this causes stuttering - Invesitage
@@ -110,7 +115,7 @@ func draw_debug_mesh(location: Vector3) -> void:
 			var scene_root := get_tree().root
 			debug_mesh = MeshInstance3D.new()
 			# debug_mesh.mesh = DebugShapes3D.create_capsule(1.8, 0.3, Color.CYAN, true)
-			debug_mesh.mesh = DebugShapes3D.create_sphere(0.3, Color.CYAN)
+			debug_mesh.mesh = DebugShapes3D.create_sphere(0.2, Color.CYAN)
 			scene_root.add_child(debug_mesh)
 
 		debug_mesh.global_transform.origin = location

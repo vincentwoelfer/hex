@@ -112,8 +112,7 @@ func spawn_player(player: PlayerData) -> void:
 
 	# Find spawn pos
 	var shape: CollisionShape3D = player_node.get_node("Collision")
-	var spawn_pos := MapGeneration.get_capsule_spawn_pos_on_map_surface(find_spawn_pos_xz_near_team(player.id), shape)
-	player_node.global_transform.origin = spawn_pos
+	var spawn_pos := MapGeneration.get_capsule_spawn_pos_on_map_surface(find_spawn_pos_xz_near_team(player.id), shape)	
 
 	# Set player color
 	var mesh_instance := player_node.get_node("Mesh") as MeshInstance3D
@@ -125,6 +124,7 @@ func spawn_player(player: PlayerData) -> void:
 	mesh_instance.mesh = new_mesh
 
 	get_tree().root.add_child(player_node)
+	player_node.global_transform.origin = spawn_pos
 
 	player.player_node = player_node
 	register_cam_follow_node(player_node)

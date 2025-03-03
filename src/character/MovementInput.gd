@@ -62,6 +62,9 @@ func update_keys(delta: float) -> void:
 	self.jump_input.update(delta)
 	self.dash_input.update(delta)
 
-	# Directional (WASD)
+	# Directional (WASD/JoyStick)
 	var inputDir := HexInput.get_vector(device_id, "move_left", "move_right", "move_forward", "move_backward")
-	self.input_direction = Vector3(inputDir.x, 0.0, inputDir.y).normalized()
+	self.input_direction = Vector3(inputDir.x, 0.0, inputDir.y)
+
+	# Rotate the input direction by the camera's rotation
+	self.input_direction = self.input_direction.rotated(Vector3.UP, GameStateManager.get_global_camera_view_angle()).normalized()

@@ -4,6 +4,9 @@
 extends Node
 
 
+var global_camera_view_angle: float
+
+
 func _ready() -> void:
 	# Print Input Mappings
 	# pretty_print_actions(get_input_mapping())
@@ -35,6 +38,14 @@ func request_quit_game() -> void:
 func get_cam_follow_point() -> Vector3:
 	# Depending on game state, this may not follow the players
 	return PlayerManager.calculate_cam_follow_point()
+
+
+func set_global_camera_view_angle(angle: float) -> void:
+	global_camera_view_angle = angle
+
+func get_global_camera_view_angle() -> float:
+	return global_camera_view_angle
+
 
 ##################################################################
 # Helper Functions
