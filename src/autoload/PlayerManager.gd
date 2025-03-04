@@ -14,7 +14,10 @@ var cam_follow_nodes: Array[Node3D] = []
 var player_scene: PackedScene = preload('res://scenes/PlayerCharacter.tscn')
 
 func _ready() -> void:
-	pass
+	# Join keyboard player automatically
+	await get_tree().create_timer(0.6).timeout
+	add_player(-1)
+	# pass
 
 
 func _process(delta: float) -> void:
@@ -148,7 +151,7 @@ func unregister_cam_follow_node(node: Node3D) -> void:
 
 func calculate_cam_follow_point() -> Vector3:
 	if cam_follow_nodes.is_empty():
-		return Vector3.ZERO
+		return Vector3(0.0, MapGeneration._get_approx_map_height_at_pos(Vector3.ZERO) + 2.0, 0.0)
 
 	var p: Vector3 = Vector3.ZERO
 	for node in cam_follow_nodes:
