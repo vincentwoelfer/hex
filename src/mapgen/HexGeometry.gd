@@ -196,12 +196,13 @@ func triangulateOuter() -> Array[Triangle]:
 
 func generateCollisionShape() -> void:
 	# Generate faces from triangles
+	var offset: Vector3 = Vector3(0.0, 2.1, 0.0)
 	var faces: PackedVector3Array = []
 	faces.resize(triangles.size() * 3)
 	for idx in range(triangles.size()):
-		faces[idx * 3 + 0] = triangles[idx].a
-		faces[idx * 3 + 1] = triangles[idx].b
-		faces[idx * 3 + 2] = triangles[idx].c
+		faces[idx * 3 + 0] = triangles[idx].a + offset
+		faces[idx * 3 + 1] = triangles[idx].b + offset
+		faces[idx * 3 + 2] = triangles[idx].c + offset
 
 	# Create collision shape
 	collision_shape = ConcavePolygonShape3D.new()
@@ -211,7 +212,6 @@ func generateCollisionShape() -> void:
 # Point must be strictly inside hexagon (not on borders)!
 func computeBarycentricWeightsForInsidePoint(p_3d: Vector3) -> PackedFloat32Array:
 	# See http://www.geometry.caltech.edu/pubs/MHBD02.pdf
-
 	var p := Util.toVec2(p_3d)
 	var weights: PackedFloat32Array = []
 	weights.resize(6)

@@ -14,10 +14,10 @@ var cam_follow_nodes: Array[Node3D] = []
 var player_scene: PackedScene = preload('res://scenes/PlayerCharacter.tscn')
 
 func _ready() -> void:
-	# Join keyboard player automatically
-	await get_tree().create_timer(0.6).timeout
-	add_player(-1)
-	# pass
+	if not Engine.is_editor_hint():
+		# Join keyboard player automatically
+		await get_tree().create_timer(0.6).timeout
+		add_player(-1)
 
 
 func _process(delta: float) -> void:
