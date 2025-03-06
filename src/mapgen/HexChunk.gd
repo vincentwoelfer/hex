@@ -83,7 +83,6 @@ func generate() -> void:
 	var triangles: Array[Triangle] = []
 	for tile: HexTile in tiles:
 		for tri: Triangle in tile.geometry.triangles:
-			#triangles.append(Triangle.new(tri.a + tile.position, tri.b + tile.position, tri.c + tile.position))
 			triangles.append(tri)
 
 	var sampler := PolygonSurfaceSampler.new(triangles).filter_max_incline(40).finalize()

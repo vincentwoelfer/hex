@@ -16,7 +16,7 @@ var geometry: HexGeometry
 # Visual Representation
 # var terrainMesh: MeshInstance3D = null
 var terrainOccluderInstance: OccluderInstance3D = null
-var plant: SurfacePlant = null # TODO must stay here for tick() (i guess). 
+var plant: SurfacePlant = null # TODO must stay here for tick() (i guess).
 var rocks: MeshInstance3D = null
 
 # Collision
@@ -38,7 +38,6 @@ func _init(hex_pos_: HexPos, height_: int) -> void:
 	self.position = Vector3(world_pos.x, height * HexConst.height, world_pos.y)
 
 
-
 func generate(geometry_input: HexGeometryInput) -> void:
 	assert(geometry_input != null)
 	assert(geometry_input.generation_stage == HexGeometryInput.GenerationStage.COMPLETE)
@@ -58,12 +57,23 @@ func generate(geometry_input: HexGeometryInput) -> void:
 	if DebugSettings.visualize_hex_input:
 		geometry_input.create_debug_visualization(self)
 
-	if DebugSettings.generate_collision and self.height > 0:
-		self.collisionBody = StaticBody3D.new()
-		collisionBody.create_shape_owner(self)
-		collisionBody.shape_owner_add_shape(0, geometry.collision_shape)
+	if self.height > 0:
+		collisionBody = StaticBody3D.new()
+
+		if DebugSettings.enable_terrain_collision_visualizations:
+			# Create propper collision shape with visualizations
+			var collision_shape := CollisionShape3D.new()
+			collision_shape.shape = geometry.collision_shape
+			collision_shape.debug_fill = false
+			collisionBody.add_child(collision_shape)
+		else:
+			# Use physics server / shape owner api
+			var owner_id := collisionBody.create_shape_owner(self)
+			collisionBody.shape_owner_add_shape(owner_id, geometry.collision_shape)
+
 		add_child(collisionBody)
 
+		
 	# Remaining steps (=placing stuff on tile) only if tile is a valid non-ocean tile with a horizontal sampler
 	if self.height > 0 and geometry.samplerHorizontal.is_valid():
 		# Add plants
@@ -72,7 +82,6 @@ func generate(geometry_input: HexGeometryInput) -> void:
 		# 	plant.name = "Grass"
 		# 	plant.populate_multimesh(geometry.samplerHorizontal)
 		# 	add_child(plant)
-
 		# Add rocks
 		if DebugSettings.enable_rocks:
 			var rocksMesh := addRocks(geometry.samplerHorizontal)
@@ -82,7 +91,6 @@ func generate(geometry_input: HexGeometryInput) -> void:
 				rocks.material_override = ResLoader.ROCKS_MAT
 				rocks.mesh = rocksMesh
 				add_child(rocks)
-
 
 
 func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
@@ -111,7 +119,6 @@ func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 		var mesh: Mesh = ResLoader.basic_rocks_meshes.pick_random()
 		st_combined.append_from(mesh, 0, t)
 	return st_combined.commit()
-
 
 
 func is_valid() -> bool:

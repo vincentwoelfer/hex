@@ -14,6 +14,8 @@ func _ready() -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
 
+	get_tree().debug_collisions_hint = DebugSettings.enable_debug_collision_visualizations
+
 
 # React to keyboard inputs to directly trigger events
 func _input(event: InputEvent) -> void:
