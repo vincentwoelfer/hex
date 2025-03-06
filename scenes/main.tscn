@@ -14,7 +14,7 @@ camera_attributes = ExtResource("3_tefeu")
 
 [node name="SunLight" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true
-transform = Transform3D(0.650103, -0.356982, 0.670764, 0, 0.882765, 0.469809, -0.759844, -0.305425, 0.573889, 0, 50, 0)
+transform = Transform3D(0.642787, -0.359635, 0.676375, 0, 0.882945, 0.46947, -0.766043, -0.30177, 0.567546, 0, 50, 0)
 light_color = Color(1, 0.94, 0.88, 1)
 light_energy = 3.6
 light_angular_distance = 2.0

@@ -15,7 +15,7 @@ static var outer_radius: float = 2.5
 static var inner_radius: float = 2.3
 
 # Height of one hex cell
-static var height: float = 0.6
+static var height: float = 0.5
 
 # Transition points are at height * this factor above zero.
 # 0.5 = in the middle
@@ -26,7 +26,7 @@ static var transition_height_factor: float = 0.5
 static var core_circle_smooth_strength := 0.5
 
 # Extra vertices per hexagon side
-static var extra_verts_per_side := 4
+static var extra_verts_per_side := 3
 
 # Extra vertices per hexagon center
 static var extra_verts_per_center := 7
