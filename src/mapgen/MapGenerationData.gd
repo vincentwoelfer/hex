@@ -26,7 +26,7 @@ static func determine_height(hex_pos: HexPos) -> int:
 	var height_f: float = remap(noise, 0.0, 1.0, HexConst.MAP_HEIGHT_MIN, max_height)
 	var height: int = roundf(height_f) as int
 
-	# Modify further (away from noise map)	
+	# Modify further (compared to noise map)	
 	height = clampi(height, HexConst.MAP_HEIGHT_MIN + 4, max_height) + 1
 
 	# Add cliff-tops
