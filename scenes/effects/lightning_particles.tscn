@@ -1,0 +1,20 @@
+[gd_scene load_steps=5 format=3 uid="uid://cr63ckbcas20e"]
+
+[ext_resource type="ArrayMesh" uid="uid://bujem01gfx373" path="res://assets/meshes/lightning/lightning_mesh.tres" id="1_7jish"]
+
+[sub_resource type="Gradient" id="Gradient_ix4m7"]
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_e0ex6"]
+gradient = SubResource("Gradient_ix4m7")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_l4e18"]
+gravity = Vector3(0, 0, 0)
+color_ramp = SubResource("GradientTexture1D_e0ex6")
+
+[node name="Node3D" type="Node3D"]
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+amount = 1
+lifetime = 0.25
+process_material = SubResource("ParticleProcessMaterial_l4e18")
+draw_pass_1 = ExtResource("1_7jish")

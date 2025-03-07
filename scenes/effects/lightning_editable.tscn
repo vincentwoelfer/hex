@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=3 uid="uid://b4l3ono7jgxb4"]
+
+[ext_resource type="Shader" uid="uid://dngwq8xnt3hes" path="res://assets/shaders/lightning/lightning_shader.tres" id="1_5r3u0"]
+[ext_resource type="ArrayMesh" uid="uid://bujem01gfx373" path="res://assets/meshes/lightning/lightning_mesh.tres" id="1_do5v7"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_do5v7"]
+render_priority = 0
+shader = ExtResource("1_5r3u0")
+
+[node name="Node3D" type="Node3D"]
+
+[node name="Lightning" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.761158, 1.19209e-07, -0.463739)
+mesh = ExtResource("1_do5v7")
+surface_material_override/1 = SubResource("ShaderMaterial_do5v7")
