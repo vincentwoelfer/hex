@@ -11,7 +11,7 @@ static var grass_density := 8.0
 
 # Debug Visualization. Normal = false
 static var use_distinc_hex_colors: bool = false
-static var use_chunk_colors: bool = true
+static var use_chunk_colors: bool = false
 static var visualize_hex_input: bool = false
 static var visualize_plant_custom_aabb: bool = false
 

@@ -188,9 +188,11 @@ func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 	for i in range(num_rocks):
 		var t: Transform3D = sampler.get_random_point_transform()
 		t = t.rotated_local(Vector3.UP, randf_range(0.0, TAU))
+		# t = t.translated_local(Vector3.UP * -0.01)
 
 		var mesh: Mesh = ResLoader.basic_rocks_meshes.pick_random()
-		var mesh_height := mesh.get_aabb().size.y
+		var size: Vector3 = mesh.get_aabb().size
+		var max_mesh_dim: float = max(size.x, size.y, size.z)
 
 		var rock_type: RockType = RockType.MEDIUM
 		var r := randf()
@@ -199,13 +201,11 @@ func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 
 		if rock_type == RockType.LARGE:
 			var height := randf_range(5.0, 10.0)
-			t = t.scaled_local(Vector3.ONE * (height / mesh_height))
-			t = t.translated_local(Vector3.UP * -0.1)
+			t = t.scaled_local(Vector3.ONE * (height / max_mesh_dim))
 
 		elif rock_type == RockType.MEDIUM:
 			var height := randf_range(1.0, 2.5)
-			t = t.scaled_local(Vector3.ONE * (height / mesh_height))
-			t = t.translated_local(Vector3.UP * -0.05)
+			t = t.scaled_local(Vector3.ONE * (height / max_mesh_dim))
 
 		# elif rock_type == RockType.SMALL:
 		# 	var max_height := randf_range(0.1, 0.15)
