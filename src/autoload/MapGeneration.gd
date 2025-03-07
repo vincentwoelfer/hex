@@ -18,27 +18,20 @@ var generated_queue_mutex: Mutex
 
 # Threads
 var threads: Array[Thread] = []
-# 3-4 is sweet spot on my machine
-var num_threads: int = 2
+var num_threads: int = 3 # 3-4 is sweet spot
 var threads_running: bool = true
 var threads_running_mutex: Mutex
-# Seems to make almost no difference in performance
-var fetch_chunks_count := 1
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
-var tile_generation_distance_hex := HexConst.distance_m_to_hex(50)
-var tile_deletion_distance_hex := HexConst.distance_m_to_hex(100)
 var generation_position: HexPos = HexPos.invalid()
+var tile_generation_distance_hex := HexConst.distance_m_to_hex(75)
+var tile_deletion_distance_hex := HexConst.distance_m_to_hex(125)
 
 
 # Called when the node enters the scene tree. Node, all children and parent (SceneTree) are ready at this point
 func _ready() -> void:
-	var active: bool = true
-	# This is required for the headless LSP to work (since this script is a tool script)
-	if OS.has_feature("Server"): active = false
-
-	# Dont start threads if not active
-	if not active:
+	# This is required for the headless LSP to work (since this script is a tool script). Dont start threads if not active
+	if OS.has_feature("Server"):
 		num_threads = 0
 		return
 
@@ -49,7 +42,7 @@ func _ready() -> void:
 	threads_running_mutex = Mutex.new()
 
 	# Create thread
-	# print("MAIN: Starting %d threads with %d fetch_chunks_count, chunk_size: %d" % [num_threads, fetch_chunks_count, HexConst.chunk_size])
+	# print("MAIN: Starting %d threads with chunk_size: %d" % [num_threads, HexConst.chunk_size])
 	threads.clear()
 	for i in range(num_threads):
 		threads.append(Thread.new())
@@ -109,14 +102,7 @@ func update_generation_position() -> bool:
 
 # Fetch all generated tile hashes, get the tile from the HexTileMap and add them to the scene
 func fetch_and_add_generated_tiles() -> void:
-	# OLD code before chunking
 	# MUTEX LOCK
-	# Fetch ALL
-	# generated_queue_mutex.lock()
-	# var generated_queue_copy: Array[int] = generated_queue.duplicate()
-	# generated_queue.clear()
-	# generated_queue_mutex.unlock()
-	# Fetch only one (because we have chunks now)
 	generated_queue_mutex.lock()
 	var generated_queue_copy: Array[int]
 	if generated_queue.size() > 0:
@@ -143,7 +129,7 @@ func remove_far_away_tiles() -> void:
 			var distance := generation_position.distance_to(chunk.get_hex_pos_center())
 			if distance > tile_deletion_distance_hex:
 				# This is the only place where tiles are removed
-				HexChunkMap.delete_by_pos(chunk.hex_pos_base)
+				HexChunkMap.delete_by_pos(chunk.chunk_hex_pos)
 				HexTileMap.delete_batch_by_poses(chunk.tile_poses)
 				# This will also free the children of the chunk
 				chunk.queue_free()
@@ -219,6 +205,7 @@ func thread_generation_loop_function() -> void:
 		to_generate_mutex.lock()
 
 		# Fetch keys
+		const fetch_chunks_count: int = 1
 		for i in range(fetch_chunks_count):
 			# Fetch and pop key, save hex_pos and create empty tile for it
 			var k: Variant = to_generate_queue.pop_back()

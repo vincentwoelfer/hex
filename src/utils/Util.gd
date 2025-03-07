@@ -177,6 +177,32 @@ static func create_mesh_from_triangles(triangles: Array[Triangle]) -> Mesh:
 
 
 ######################################################
+# Stuff
+######################################################
+# 0 = on a, 1 = on b
+static func compute_t_on_line_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
+	var ab: Vector2 = b - a
+	var ap: Vector2 = p - a
+	return ap.dot(ab) / ab.dot(ab)
+
+
+static func is_point_near_line_segment(p: Vector2, a: Vector2, b: Vector2) -> bool:
+	const epsilon: float = 0.001
+	var ab: Vector2 = b - a
+	var ap: Vector2 = p - a
+	var ab_len: float = ab.length()
+	var cross_product: float = ab.cross(ap)
+	var distance: float = abs(cross_product) / ab_len
+	return distance <= epsilon * ab_len
+
+
+static func cotangent(a: Vector2, b: Vector2, c: Vector2) -> float:
+	var ba := a - b
+	var bc := c - b
+	return bc.dot(ba) / abs(bc.cross(ba))
+
+
+######################################################
 # LERP
 ######################################################
 const EPSILON: float = 0.001

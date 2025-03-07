@@ -7,137 +7,144 @@ extends Node3D
 ######################################################
 
 # Core Variables
-var hex_pos_base: HexPos
+var chunk_hex_pos: HexPos
 
-# Visual Representation
-var terrainMesh: MeshInstance3D
-# var terrainOccluderInstance: OccluderInstance3D
-# var plant: SurfacePlant
-# var rocks: MeshInstance3D
-
-
-# Tiles
 var tile_poses: Array[HexPos] = []
 var tiles: Array[HexTile] = []
 
+# Visual/Phyiscal Components
+var terrain_mesh: MeshInstance3D
+var collision_static_body: StaticBody3D
+
+var samplerAll: PolygonSurfaceSampler
+var samplerHorizontal: PolygonSurfaceSampler
+var samplerVertical: PolygonSurfaceSampler
+
+var grass: SurfacePlant
+var rocks: MeshInstance3D
+
 
 # Does not much, only actual constructor
-func _init(hex_pos_: HexPos) -> void:
-	assert(hex_pos_.is_chunk_base())
-	self.hex_pos_base = hex_pos_
-	if self.hex_pos_base != null:
-		self.name = 'HexChunk' + hex_pos_base._to_string()
+func _init(chunk_hex_pos_: HexPos) -> void:
+	assert(chunk_hex_pos_.is_chunk_base())
+	self.chunk_hex_pos = chunk_hex_pos_
+	if self.chunk_hex_pos != null:
+		self.name = 'HexChunk' + chunk_hex_pos._to_string()
 	else:
 		self.name = 'HexChunk-Invalid'
 
 	# Set position of chunk in world
-	var world_pos: Vector2 = HexPos.hexpos_to_xy(hex_pos_base)
+	var world_pos: Vector2 = HexPos.hexpos_to_xy(chunk_hex_pos)
 	self.position = Vector3(world_pos.x, 0.0, world_pos.y)
 
 
 func generate() -> void:
+	#########################################
 	# Free previous tiles
+	#########################################
 	tiles.clear()
 	tile_poses.clear()
 	for c in self.get_children():
 		c.free()
 
+	#########################################
 	# Generate new tiles
-	tile_poses = hex_pos_base.get_chunk_tile_positions()
-	for hex_pos_tile in tile_poses:
+	#########################################
+	tile_poses = chunk_hex_pos.get_chunk_tile_positions()
+	for tile_hex_pos in tile_poses:
 		# Create new tile
-		var height: int = MapGenerationData.determine_height(hex_pos_tile)
-		var tile := HexTile.new(hex_pos_tile, height)
+		var height: int = MapGenerationData.determine_height(tile_hex_pos)
+		var tile := HexTile.new(tile_hex_pos, height)
 		tiles.append(tile)
 
 		# Generate tile
-		var geometry_input := HexGeometryInputMap.create_complete_hex_geometry_input(hex_pos_tile)
+		var geometry_input := HexGeometryInputMap.create_complete_hex_geometry_input(tile_hex_pos)
 		tile.generate(geometry_input)
-		add_child(tile)
+
+	# Verify
+	assert(tiles.size() == pow(HexConst.CHUNK_SIZE, 2))
+	assert(tiles.size() == tile_poses.size())
 
 	# Add tiles to map as batch
-	assert(tiles.size() == pow(HexConst.CHUNK_SIZE, 2))
 	HexTileMap.add_initialized_tiles_batch(tiles)
 
-	##############################
-	# Merge components from tiles
-	##############################
-
-	# Terrain Mesh
-	var triangle_mesh_tool := TriangleMeshTool.new()
-	# TODO THIs modifies the triangles so the modification does not need to happen again below. Fix this?
+	#########################################
+	# Merge triangles and faces from all tiles
+	#########################################
+	var geometry_merger := HexGeometryMerger.new()
 	for tile: HexTile in tiles:
-		triangle_mesh_tool.add_triangle_list(tile.geometry.triangles, tile.position)
+		geometry_merger.add_triangles(tile.geometry.triangles, tile.position)
 
-	terrainMesh = MeshInstance3D.new()
-	terrainMesh.name = "terrain"
-	terrainMesh.mesh = triangle_mesh_tool.commit()
-	terrainMesh.material_override = ResLoader.DEFAULT_TERRAIN_MAT
-	add_child(terrainMesh)
-
-	# TODO this is only a quick version
-	#  surface samplers
-	var triangles: Array[Triangle] = []
-	for tile: HexTile in tiles:
-		for tri: Triangle in tile.geometry.triangles:
-			triangles.append(tri)
-
-	var sampler := PolygonSurfaceSampler.new(triangles).filter_max_incline(40).finalize()
-
-	if sampler.is_valid():
-		# GRASS
-		if DebugSettings.enable_grass:
-			var plant := SurfacePlant.new()
-			plant.name = "Grass"
-			plant.populate_multimesh(sampler)
-			add_child(plant)
+	#########################################
+	# Terrain
+	#########################################
+	terrain_mesh = MeshInstance3D.new()
+	terrain_mesh.name = "terrain"
+	terrain_mesh.mesh = geometry_merger.generate_mesh()
+	terrain_mesh.material_override = ResLoader.DEFAULT_TERRAIN_MAT
+	add_child(terrain_mesh)
 
 	# Add debug color overlay for tiles
 	if DebugSettings.use_chunk_colors:
 		var material := StandardMaterial3D.new()
 		material.albedo_color = Colors.randColorNoExtreme()
-		terrainMesh.material_override = material
-		
+		terrain_mesh.material_override = material
 
-func _ready() -> void:
-	pass
-	# Signals
-		
+	#########################################
+	# Polygon Surface Samplers
+	#########################################
+	self.samplerAll = PolygonSurfaceSampler.new(geometry_merger.triangles).finalize()
+	self.samplerHorizontal = PolygonSurfaceSampler.new(geometry_merger.triangles).filter_max_incline(45).finalize()
+	self.samplerVertical = PolygonSurfaceSampler.new(geometry_merger.triangles).filter_min_incline(45).finalize()
 
-# func addRocks(sampler: PolygonSurfaceSampler) -> ArrayMesh:
-# 	if not sampler.is_valid():
-# 		return null
+	#########################################
+	# Collision
+	#########################################
+	var polygon_shape := ConcavePolygonShape3D.new()
+	polygon_shape.set_faces(geometry_merger.generate_faces())
 
-# 	var rock_density_per_square_meter: float = 0.25
-# 	# Standard deviation = x means:
-# 	# 66% of samples are within [-x, x] of the mean
-# 	# 96% of samples are within [-2x, 2x] of the mean
-# 	var num_rocks: int = round(randfn(rock_density_per_square_meter, rock_density_per_square_meter)) * sampler.get_total_area()
+	# Generate static body
+	collision_static_body = StaticBody3D.new()
 
-# 	if num_rocks <= 0:
-# 		return null
+	if DebugSettings.enable_terrain_collision_visualizations:
+		# Create propper collision shape with visualizations
+		var collision_shape := CollisionShape3D.new()
+		collision_shape.shape = polygon_shape
+		collision_shape.debug_fill = false
+		collision_static_body.add_child(collision_shape)
+	else:
+		# Use physics server / shape owner api
+		var owner_id := collision_static_body.create_shape_owner(self)
+		collision_static_body.shape_owner_add_shape(owner_id, polygon_shape)
 
-# 	var st_combined: SurfaceTool = SurfaceTool.new()
-# 	for i in range(num_rocks):
-# 		var t: Transform3D = sampler.get_random_point_transform()
-# 		t = t.rotated_local(Vector3.UP, randf_range(0.0, TAU))
+	add_child(collision_static_body)
 
-# 		# Random huge rock
-# 		if randf() <= 0.05:
-# 			t = t.scaled_local(Vector3.ONE * randf_range(6.0, 8.0))
-# 			t = t.translated_local(Vector3.UP * -0.1) # Move down a bit
+	#########################################
+	# Grass / Rocks
+	#########################################
+	if samplerHorizontal.is_valid():
+		# GRASS
+		if DebugSettings.enable_grass:
+			grass = SurfacePlant.new()
+			grass.name = "Grass"
+			grass.populate_multimesh(samplerHorizontal)
+			add_child(grass)
 
-# 		var mesh: Mesh = ResLoader.basic_rocks_meshes.pick_random()
-# 		st_combined.append_from(mesh, 0, t)
-# 	return st_combined.commit()
-
+		# ROCKS
+		if DebugSettings.enable_rocks:
+			var rocksMesh := generate_rocks_mesh(samplerHorizontal)
+			if rocksMesh != null:
+				rocks = MeshInstance3D.new()
+				rocks.name = "Rocks"
+				rocks.material_override = ResLoader.ROCKS_MAT
+				rocks.mesh = rocksMesh
+				add_child(rocks)
 
 
 func get_hex_pos_center() -> HexPos:
 	if tiles.is_empty():
-		return hex_pos_base
+		return chunk_hex_pos
 
-	# TODO test this
 	var front_frac: HexPosFrac = tiles[0].hex_pos.as_frac()
 	var back_frac: HexPosFrac = tiles[tiles.size() - 1].hex_pos.as_frac()
 	var center_frac: HexPosFrac = front_frac.add(back_frac).scale(0.5)
@@ -145,4 +152,32 @@ func get_hex_pos_center() -> HexPos:
 
 
 func is_valid() -> bool:
-	return hex_pos_base != null
+	return chunk_hex_pos != null
+
+
+func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
+	if not sampler.is_valid():
+		return null
+
+	var rock_density_per_square_meter: float = 0.15
+	# Standard deviation = x means:
+	# 66% of samples are within [-x, x] of the mean
+	# 96% of samples are within [-2x, 2x] of the mean
+	var num_rocks: int = round(randfn(rock_density_per_square_meter, rock_density_per_square_meter) * sampler.get_total_area())
+
+	if num_rocks <= 0 or randf() <= 0.3:
+		return null
+
+	var st_combined: SurfaceTool = SurfaceTool.new()
+	for i in range(num_rocks):
+		var t: Transform3D = sampler.get_random_point_transform()
+		t = t.rotated_local(Vector3.UP, randf_range(0.0, TAU))
+
+		# Random huge rock
+		if randf() <= 0.05:
+			t = t.scaled_local(Vector3.ONE * randf_range(5.0, 7.0))
+			t = t.translated_local(Vector3.UP * -0.1) # Move down a bit
+
+		var mesh: Mesh = ResLoader.basic_rocks_meshes.pick_random()
+		st_combined.append_from(mesh, 0, t)
+	return st_combined.commit()

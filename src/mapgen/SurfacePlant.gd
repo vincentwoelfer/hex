@@ -156,7 +156,7 @@ func get_curr_color() -> Color:
 
 func determine_num_blades(surface_sampler: PolygonSurfaceSampler) -> int:
 	# Density per 1d-meter (one line)
-	var density_1d: float = HexConst.grass_density;
+	var density_1d: float = DebugSettings.grass_density
 	var area := surface_sampler.get_total_area()
 	# Square density to get 2d -> weight by area
 	var num_blades : int = round(density_1d * density_1d * area)
