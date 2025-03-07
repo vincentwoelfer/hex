@@ -178,8 +178,8 @@ func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 	# Standard deviation = x means:
 	# 66% of samples are within [-x, x] of the mean
 	# 96% of samples are within [-2x, 2x] of the mean
-	var rock_density_per_square_meter: float = 0.01
-	var num_rocks: int = round(randfn(rock_density_per_square_meter, rock_density_per_square_meter) * sampler.get_total_area())
+	var avg_rock_density_per_square_meter: float = 0.011
+	var num_rocks: int = round(randfn(avg_rock_density_per_square_meter, avg_rock_density_per_square_meter) * sampler.get_total_area())
 
 	if num_rocks <= 0 or randf() <= 0.35:
 		return null
