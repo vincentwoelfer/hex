@@ -156,7 +156,7 @@ func determine_corner_vertex_height(own_height: int, neighbours_height: Array[in
 
 	var heights: Array[int] = [own_height]
 	for n in neighbours_height:
-		if n != HexConst.MAP_INVALID_HEIGHT:
+		if n != HexConst.MAP_HEIGHT_INVALID:
 			heights.append(n)
 
 	# No valid neighbours -> use own height
@@ -182,10 +182,10 @@ func determine_corner_vertex_height(own_height: int, neighbours_height: Array[in
 
 
 func create_transition_between_tiles(from_height: int, to_height: int, dir: int) -> Transition:
-	assert(from_height != HexConst.MAP_INVALID_HEIGHT)
+	assert(from_height != HexConst.MAP_HEIGHT_INVALID)
 	var t := Transition.new()
 
-	if to_height != HexConst.MAP_INVALID_HEIGHT:
+	if to_height != HexConst.MAP_HEIGHT_INVALID:
 		t.height_other = to_height
 		t.type = MapGenerationData.determine_transition_type(hex_pos, from_height, hex_pos.get_neighbour(dir), to_height)
 	else:

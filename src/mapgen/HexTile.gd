@@ -57,7 +57,7 @@ func generate(geometry_input: HexGeometryInput) -> void:
 	if DebugSettings.visualize_hex_input:
 		geometry_input.create_debug_visualization(self)
 
-	if self.height > 0:
+	if self.height > HexConst.MAP_HEIGHT_MIN:
 		collisionBody = StaticBody3D.new()
 
 		if DebugSettings.enable_terrain_collision_visualizations:

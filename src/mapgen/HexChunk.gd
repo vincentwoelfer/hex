@@ -15,9 +15,6 @@ var terrainMesh: MeshInstance3D
 # var plant: SurfacePlant
 # var rocks: MeshInstance3D
 
-# Collision
-# var collisionBody: StaticBody3D
-
 
 # Tiles
 var tile_poses: Array[HexPos] = []
@@ -59,7 +56,7 @@ func generate() -> void:
 		add_child(tile)
 
 	# Add tiles to map as batch
-	assert(tiles.size() == pow(HexConst.chunk_size, 2))
+	assert(tiles.size() == pow(HexConst.CHUNK_SIZE, 2))
 	HexTileMap.add_initialized_tiles_batch(tiles)
 
 	##############################

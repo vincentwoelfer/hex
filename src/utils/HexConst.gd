@@ -35,31 +35,24 @@ static var extra_verts_per_center := 7
 static var smooth_height_factor_inner := 1.0
 static var smooth_height_factor_outer := 1.0
 
-static var trans_type_max_height_diff := 6.0
+# Maximum height difference for smooth transitions
+static var trans_type_max_height_diff := 7.0
 
 
 # NOT HEX CONST - here for editing in edior and hex-geom regeneration triggering
 # 1D-Density. Instances per meter
 static var grass_density := 10.0
 
-
-static var chunk_size: int = 4
-
-
 # Use smooth groups
 static var smooth_vertex_normals: bool = false
 # ========================================================
 # ==================== Actual Constants ==================
 # ========================================================
-const MAP_MIN_HEIGHT: int = 1
-const MAP_MAX_HEIGHT: int = 20
+const CHUNK_SIZE: int = 4
 
-const MAP_OCEAN_HEIGHT: int = 0
-const MAP_INVALID_HEIGHT: int = -999
-
-# Includes one circle of ocean
-# Size = n means n circles around the map origin. So n=1 means 7 tiles (one origin tile and 6 additional tiles)
-const MAP_SIZE: int = 3
+const MAP_HEIGHT_MIN: int = 1
+const MAP_HEIGHT_MAX: int = 18
+const MAP_HEIGHT_INVALID: int = -999
 
 
 # ========================================================

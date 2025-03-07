@@ -87,21 +87,21 @@ func equals(other: HexPos) -> bool:
 # Chunking
 ##########################################################################################
 func to_chunk_base() -> HexPos:
-	var q_: int = q - posmod(q, HexConst.chunk_size)
-	var r_: int = r - posmod(r, HexConst.chunk_size)
+	var q_: int = q - posmod(q, HexConst.CHUNK_SIZE)
+	var r_: int = r - posmod(r, HexConst.CHUNK_SIZE)
 	return HexPos.new(q_, r_, _get_s(q_, r_))
 
 func is_chunk_base() -> bool:
-	return q % HexConst.chunk_size == 0 and r % HexConst.chunk_size == 0
+	return q % HexConst.CHUNK_SIZE == 0 and r % HexConst.CHUNK_SIZE == 0
 
 func get_chunk_tile_positions() -> Array[HexPos]:
 	assert(is_chunk_base())
 
 	var tiles: Array[HexPos] = []
-	tiles.resize(HexConst.chunk_size * HexConst.chunk_size)
+	tiles.resize(HexConst.CHUNK_SIZE * HexConst.CHUNK_SIZE)
 	var idx := 0
-	for dq in range(0, HexConst.chunk_size):
-		for dr in range(0, HexConst.chunk_size):
+	for dq in range(0, HexConst.CHUNK_SIZE):
+		for dr in range(0, HexConst.CHUNK_SIZE):
 			tiles[idx] = HexPos.new(q + dq, r + dr, _get_s(q + dq, r + dr))
 			idx += 1
 	return tiles
