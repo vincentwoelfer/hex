@@ -22,45 +22,40 @@ def generate_palette_image(
     palette = sanitize_palette(palette)
 
     # Create a seamless tiling base
-    image = Image.new("RGB", (width, height), palette[0])
+    image = Image.new("RGB", (width * 3, height * 3), palette[0])
     draw = ImageDraw.Draw(image)
 
     # Generate random dots, ensuring some go beyond the edges
     for _ in range(1000):
         color = random.choice(palette)
-        radius = random.randint(round(width * 0.03), round(width * 0.12))
+        radius = random.randint(round(width * 0.03), round(width * 0.10))
         x = random.randint(-radius, width + radius)
         y = random.randint(-radius, height + radius)
         r = [random.uniform(0.4, 1.6) for _ in range(4)]
-        draw.ellipse(
-            [
-                x - radius * r[0],
-                y - radius * r[1],
-                x + radius * r[2],
-                y + radius * r[3],
-            ],
-            fill=color,
-        )
-
-    # Create seamless tiling by mirroring edges
-    seamless_image = Image.new("RGB", (width * 2, height * 2))
-    seamless_image.paste(image, (0, 0))
-    seamless_image.paste(image.transpose(Image.FLIP_LEFT_RIGHT), (width, 0))
-    seamless_image.paste(image.transpose(Image.FLIP_TOP_BOTTOM), (0, height))
-    seamless_image.paste(image.transpose(Image.ROTATE_180), (width, height))
-
-    # Crop a centered portion to ensure seamless tiling
-    crop_x = width // 2
-    crop_y = height // 2
-    image = seamless_image.crop((crop_x, crop_y, crop_x + width, crop_y + height))
+        # Draw 9 times to create seamless tiling
+        for i in range(3):
+            for j in range(3):
+                draw.ellipse(
+                    [
+                        x - radius * r[0] + i * width,
+                        y - radius * r[1] + j * height,
+                        x + radius * r[2] + i * width,
+                        y + radius * r[3] + j * height,
+                    ],
+                    fill=color,
+                )
 
     # Apply strong Gaussian blur
     image = image.filter(ImageFilter.GaussianBlur(30))
 
-    # Save final image
-    image.save(output_file)
-    print(f"Image saved as {output_file}")
+    # Extract the center tile
+    center_x = width
+    center_y = height
+    final_image = image.crop((center_x, center_y, center_x + width, center_y + height))
 
+    # Save final image
+    final_image.save(output_file)
+    print(f"Image saved as {output_file}")
 
 ############################################################
 #  Palettes
@@ -69,10 +64,10 @@ def generate_palette_image(
 # https://coolors.co/673c4f-7f557d-726e97-7698b3-83b5d1
 palette_1 = ["#FF5733", "#7f557d", "#726e97", "#7698b3", "#83b5d1"]
 
-# https://coolors.co/ffffff-ffcad4-b0d0d3-c08497-f7af9d
-palette_2 = ["#ffffff", "#ffcad4", "#b0d0d3", "#c08497", "#f7af9d"]
+# https://coolors.co/c2c2c2-ffcad4-7cb1b6-b9798d-f4937b
+palette_2 = ["#c2c2c2", "#ffcad4", "#7cb1b6", "#b9798d", "#f4937b"]
 
 # https://coolors.co/334139-1e2d24-c52184-e574bc-f9b4ed
 palette_3 = ["#334139", "#1e2d24", "#c52184", "#47A8BD", "#f9b4ed"]
 
-generate_palette_image(palette_3)
+generate_palette_image(palette_2)

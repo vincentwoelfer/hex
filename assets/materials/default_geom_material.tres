@@ -5,7 +5,7 @@
 [resource]
 albedo_texture = ExtResource("1_25jwv")
 albedo_texture_force_srgb = true
-uv1_scale = Vector3(0.01, 0.01, 0.01)
+uv1_scale = Vector3(0.005, 0.005, 0.005)
 uv1_triplanar = true
 uv1_triplanar_sharpness = 1.45434
 uv1_world_triplanar = true
