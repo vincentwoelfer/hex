@@ -35,11 +35,10 @@ var follow_point_lerp_speed: float = 8.0
 
 
 # Only for debugging
+var draw_debug_follow_point := false
 var debug_mesh: MeshInstance3D
-var draw_debug_follow_point := true
 
 @onready var camera: Camera3D = $Camera
-
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:

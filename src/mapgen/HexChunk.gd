@@ -198,7 +198,7 @@ func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 			rock_type = RockType.LARGE
 
 		if rock_type == RockType.LARGE:
-			var height := randf_range(5.0, 12.0)
+			var height := randf_range(5.0, 10.0)
 			t = t.scaled_local(Vector3.ONE * (height / mesh_height))
 			t = t.translated_local(Vector3.UP * -0.1)
 
