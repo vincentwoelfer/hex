@@ -1,6 +1,7 @@
-[gd_resource type="VisualShader" load_steps=9 format=3 uid="uid://dngwq8xnt3hes"]
+[gd_resource type="VisualShader" load_steps=12 format=3 uid="uid://dngwq8xnt3hes"]
 
 [ext_resource type="Texture2D" uid="uid://6mnbdvtrremc" path="res://assets/textures/lightning/lightning_texture.png" id="1_k5moy"]
+[ext_resource type="Gradient" uid="uid://biqswna7m4kna" path="res://assets/shaders/lightning/lightning_blue_gradient.tres" id="2_fbofu"]
 
 [sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_fbofu"]
 expanded_output_ports = [0]
@@ -12,27 +13,34 @@ texture = ExtResource("1_k5moy")
 input_name = "time"
 
 [sub_resource type="VisualShaderNodeVectorOp" id="VisualShaderNodeVectorOp_ac51a"]
-default_input_values = [0, Vector2(0, 0), 1, Vector2(0, -1)]
+default_input_values = [0, Vector2(0, 0), 1, Vector2(0, -0.2)]
 op_type = 0
 operator = 2
 
 [sub_resource type="VisualShaderNodeSmoothStep" id="VisualShaderNodeSmoothStep_7f0ys"]
-default_input_values = [0, 0.5, 1, 1.0, 2, Quaternion(0.5, 0.5, 0.5, 0.5)]
-op_type = 6
+default_input_values = [0, 0.5, 1, 1.0, 2, 0.5]
 
 [sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_k5moy"]
 expanded_output_ports = [0]
 input_name = "color"
 
 [sub_resource type="VisualShaderNodeRemap" id="VisualShaderNodeRemap_fbofu"]
-default_input_values = [1, 0.0, 2, 1.0, 3, 0.0, 4, 1.0, 0, 0.0]
+default_input_values = [1, 0.0, 2, 1.0, 3, 0.1, 4, 1.0, 0, 0.0]
 expanded_output_ports = [0]
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_fbofu"]
+gradient = ExtResource("2_fbofu")
+
+[sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_atg2d"]
+output_port_for_preview = 0
+texture = SubResource("GradientTexture1D_fbofu")
 
 [resource]
 code = "shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_disabled, diffuse_lambert, specular_schlick_ggx, unshaded;
 
 uniform sampler2D tex_frg_2;
+uniform sampler2D tex_frg_9;
 
 
 
@@ -46,7 +54,7 @@ void fragment() {
 // Remap:8
 	float n_in8p1 = 0.00000;
 	float n_in8p2 = 1.00000;
-	float n_in8p3 = 0.00000;
+	float n_in8p3 = 0.10000;
 	float n_in8p4 = 1.00000;
 	{
 		float __input_range = n_in8p2 - n_in8p1;
@@ -60,7 +68,7 @@ void fragment() {
 
 
 // VectorOp:5
-	vec2 n_in5p1 = vec2(0.00000, -1.00000);
+	vec2 n_in5p1 = vec2(0.00000, -0.20000);
 	vec2 n_out5p0 = vec2(n_out4p0) * n_in5p1;
 
 
@@ -76,18 +84,24 @@ void fragment() {
 
 // SmoothStep:6
 	float n_in6p1 = 1.00000;
-	vec4 n_out6p0 = smoothstep(n_out8p0, n_in6p1, vec4(n_out2p1));
+	float n_out6p0 = smoothstep(n_out8p0, n_in6p1, n_out2p1);
+
+
+// Texture2D:9
+	vec4 n_out9p0 = texture(tex_frg_9, vec2(n_out6p0));
 
 
 // Output:0
-	ALPHA = n_out6p0.x;
+	ALBEDO = vec3(n_out9p0.xyz);
+	ALPHA = n_out6p0;
 
 
 }
 "
-graph_offset = Vector2(-520.916, -76.4088)
+graph_offset = Vector2(-368.717, -122.948)
 modes/cull = 2
 flags/unshaded = true
+nodes/fragment/0/position = Vector2(1260, 140)
 nodes/fragment/2/node = SubResource("VisualShaderNodeTexture_fbofu")
 nodes/fragment/2/position = Vector2(-160, 720)
 nodes/fragment/3/node = SubResource("VisualShaderNodeUVFunc_atg2d")
@@ -99,7 +113,9 @@ nodes/fragment/5/position = Vector2(-750.404, 961.209)
 nodes/fragment/6/node = SubResource("VisualShaderNodeSmoothStep_7f0ys")
 nodes/fragment/6/position = Vector2(120, 340)
 nodes/fragment/7/node = SubResource("VisualShaderNodeInput_k5moy")
-nodes/fragment/7/position = Vector2(-720, 180)
+nodes/fragment/7/position = Vector2(-680, 80)
 nodes/fragment/8/node = SubResource("VisualShaderNodeRemap_fbofu")
 nodes/fragment/8/position = Vector2(-240, 80)
-nodes/fragment/connections = PackedInt32Array(3, 0, 2, 0, 4, 0, 5, 0, 5, 0, 3, 2, 2, 1, 6, 2, 6, 0, 0, 1, 7, 1, 8, 0, 8, 0, 6, 0)
+nodes/fragment/9/node = SubResource("VisualShaderNodeTexture_atg2d")
+nodes/fragment/9/position = Vector2(728.484, -92.4542)
+nodes/fragment/connections = PackedInt32Array(3, 0, 2, 0, 4, 0, 5, 0, 5, 0, 3, 2, 2, 1, 6, 2, 7, 1, 8, 0, 6, 0, 0, 1, 8, 0, 6, 0, 6, 0, 9, 0, 9, 0, 0, 0)
