@@ -20,12 +20,14 @@ var wants_sprint: bool = false
 # Press-Once
 var jump_input: BufferedInputAction
 var dash_input: BufferedInputAction
+var primary_input: BufferedInputAction
 
 func _init(device_id_: int) -> void:
 	device_id = device_id_
 
 	jump_input = BufferedInputAction.new(device_id, "jump", 0.125)
 	dash_input = BufferedInputAction.new(device_id, "dash", 0.08)
+	primary_input = BufferedInputAction.new(device_id, "action0", 0.08)
 
 func handle_input_event(event: InputEvent) -> void:
 	pass
@@ -61,6 +63,8 @@ func update_keys(delta: float) -> void:
 	# Press-Once
 	self.jump_input.update(delta)
 	self.dash_input.update(delta)
+	self.primary_input.update(delta)
+
 
 	# Directional (WASD/JoyStick)
 	var inputDir := HexInput.get_vector(device_id, "move_left", "move_right", "move_forward", "move_backward")

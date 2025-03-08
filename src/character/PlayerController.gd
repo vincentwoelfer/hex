@@ -6,6 +6,7 @@ var walk_speed: float = 5.0
 var sprint_speed: float = 9.0
 var dash_speed: float = 25.0
 var dash_duration: float = 0.2
+var player_data: PlayerData
 
 var time_to_max_acc: float = 0.085
 
@@ -110,6 +111,14 @@ func _physics_process(delta: float) -> void:
 			input.dash_input.consume()
 			is_dashing = true
 			dash_timer = dash_duration
+	
+	# Test lightning
+	if input.primary_input.wants:
+		input.primary_input.consume()
+		player_data.lightning_particles.show()
+
+		var timer = get_tree().create_timer(3.0)
+		timer.timeout.connect(func(): player_data.lightning_particles.hide())
 
 	# Determine target vel based on state -> TODO rework into state machine
 	var target_planar_speed: float

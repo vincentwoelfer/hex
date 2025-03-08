@@ -130,6 +130,20 @@ func spawn_player(player: PlayerData) -> void:
 	player_node.global_transform.origin = spawn_pos
 
 	player.player_node = player_node
+	# Test lightning
+	# Instantiate LightningParticles
+	var lightning_particles_scene = load("res://scenes/effects/lightning_particles.tscn") # Make sure you have this scene preloaded or loaded
+	var lightning_particles = lightning_particles_scene.instantiate()
+	player.player_node.add_child(lightning_particles) # Attach it to the player
+
+	# Position it at the player's initial position
+	lightning_particles.global_transform.origin = spawn_pos 
+	lightning_particles.hide()
+	
+	# Store reference to particles in PlayerData
+	player.lightning_particles = lightning_particles
+	player_node.player_data = player
+	
 	register_cam_follow_node(player_node)
 
 

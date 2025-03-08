@@ -7,7 +7,7 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_upnr2"]
 render_priority = 0
 shader = ExtResource("1_qycqe")
-shader_parameter/mark_color = Color(0, 0.54902, 1, 1)
+shader_parameter/mark_color = Color(1, 0.200608, 0.742761, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_g0f3e"]
 render_priority = 0

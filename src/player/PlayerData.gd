@@ -9,6 +9,7 @@ var input_device: int
 
 # On Runtime
 var player_node: Node3D
+var lightning_particles: LightningParticles
 
 # Called when initializing a new player
 func _init(id_: int, display_name_: String, color_: Color, input_device_: int) -> void:
