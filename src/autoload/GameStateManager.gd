@@ -1,10 +1,14 @@
 # Needs to be tool to read these in other tool scripts!
 # No class_name here, the name of the singleton is set in the autoload
 @tool
-extends Node
+extends Node3D
 
 
 var global_camera_view_angle: float
+
+
+# NAVMAP
+var nav_map: RID
 
 
 func _ready() -> void:
@@ -15,6 +19,13 @@ func _ready() -> void:
 		# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
 
 	get_tree().debug_collisions_hint = DebugSettings.enable_debug_collision_visualizations
+
+	#NAVMAP
+	NavigationServer3D.set_debug_enabled(true)
+	nav_map = get_world_3d().navigation_map
+	NavigationServer3D.map_set_cell_size(nav_map, HexConst.nav_cell_size)
+
+	# NavigationServer3D.map_set_use_edge_connections(nav_map, false)
 
 
 # React to keyboard inputs to directly trigger events

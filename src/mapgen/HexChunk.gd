@@ -24,6 +24,11 @@ var grass: SurfacePlant
 var rocks: MeshInstance3D
 var rocks_collision: StaticBody3D
 
+# Navigation
+var nav_mesh: NavigationMesh
+var nav_source_geometry_data: NavigationMeshSourceGeometryData3D
+# var nav_region_rid: RID
+var nav_region: NavigationRegion3D
 
 # Does not much, only actual constructor
 func _init(chunk_hex_pos_: HexPos) -> void:
@@ -38,6 +43,82 @@ func _init(chunk_hex_pos_: HexPos) -> void:
 	var world_pos: Vector2 = HexPos.hexpos_to_xy(chunk_hex_pos)
 	self.position = Vector3(world_pos.x, 0.0, world_pos.y)
 
+	
+################################################################################
+
+func _enter_tree() -> void:
+	if chunk_hex_pos.q % 8 == 0 and chunk_hex_pos.r % 8 == 0:
+		parse_source_geometry_data.call_deferred()
+
+func parse_source_geometry_data() -> void:
+	nav_source_geometry_data = NavigationMeshSourceGeometryData3D.new()
+
+	var parse_settings: NavigationMesh = NavigationMesh.new()
+	parse_settings.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
+	# parse_settings.agent_radius = 0.0
+	# parse_settings.filter_baking_aabb = AABB(Vector3(-1000, -1000, -1000), Vector3(1000, 1000, 1000))
+
+	NavigationServer3D.parse_source_geometry_data(parse_settings, nav_source_geometry_data, self, on_parsing_done)
+
+
+func on_parsing_done() -> void:
+	nav_mesh = NavigationMesh.new()
+	nav_mesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
+	nav_mesh.cell_size = HexConst.nav_cell_size
+	nav_mesh.cell_height = HexConst.nav_cell_size
+	nav_mesh.agent_radius = HexConst.nav_agent_radius
+
+	# Get AABB for baking
+	var aabb: AABB = nav_source_geometry_data.get_bounds()
+
+	# if chunk_hex_pos.q % 16 == 0 and chunk_hex_pos.r % 16 == 0:
+		# add_visible_aabb(aabb)
+
+	nav_mesh.agent_radius = 0.0
+	# nav_mesh.filter_baking_aabb = aabb
+	# nav_mesh.border_size = 1.0
+	nav_mesh.edge_max_length = 1.0
+	nav_mesh.filter_ledge_spans = false
+	# nav_mesh.edge_max_error = 1.0
+
+
+	# Bake the navigation mesh on a thread with the source geometry data.
+	NavigationServer3D.bake_from_source_geometry_data_async(
+		nav_mesh,
+		nav_source_geometry_data,
+		on_baking_done
+	)
+
+
+func add_visible_aabb(aabb: AABB) -> void:
+	var vis := MeshInstance3D.new()
+	vis.mesh = BoxMesh.new()
+	(vis.mesh as BoxMesh).size = aabb.size
+	vis.position = aabb.get_center()
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(1, 0, 0, 0.5)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	vis.material_override = material
+	add_child(vis)
+
+func on_baking_done() -> void:
+	nav_region = NavigationRegion3D.new()
+
+	nav_region.navigation_mesh = nav_mesh
+	nav_region.enabled = true
+	add_child(nav_region)
+
+	# Update the region with the updated navigation mesh.
+	# NavigationServer3D.region_set_navigation_mesh(nav_region_rid, self.nav_mesh)
+	# Enable the region and set it to the default navigation map.
+	# NavigationServer3D.region_set_enabled(nav_region_rid, true)
+	# NavigationServer3D.region_set_map(nav_region_rid, get_world_3d().get_navigation_map())
+
+	# 
+	
+################################################################################
+################################################################################
+################################################################################
 
 func generate() -> void:
 	#########################################
@@ -188,7 +269,6 @@ func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 	for i in range(num_rocks):
 		var t: Transform3D = sampler.get_random_point_transform()
 		t = t.rotated_local(Vector3.UP, randf_range(0.0, TAU))
-		# t = t.translated_local(Vector3.UP * -0.01)
 
 		var mesh: Mesh = ResLoader.basic_rocks_meshes.pick_random()
 		var size: Vector3 = mesh.get_aabb().size
