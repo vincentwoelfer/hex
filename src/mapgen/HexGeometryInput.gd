@@ -210,7 +210,7 @@ func create_debug_visualization(parent: Node3D) -> void:
 	for i in range(6):
 		var instance := MeshInstance3D.new()
 		var color := Colors.getDistincHexColor(i).darkened(0.5)
-		instance.mesh = DebugShapes3D.create_sphere(0.15 - i * 0.005, color)
+		instance.mesh = DebugShapes3D.create_sphere_mesh(0.15 - i * 0.005, color)
 		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		instance.position = corner_vertices[i]
 		parent.add_child(instance)
@@ -219,7 +219,7 @@ func create_debug_visualization(parent: Node3D) -> void:
 	for i in range(6):
 		var instance := MeshInstance3D.new()
 		var color := Colors.getDistincHexColor(i).lightened(0.3)
-		instance.mesh = DebugShapes3D.create_sphere(0.15 - i * 0.005, color)
+		instance.mesh = DebugShapes3D.create_sphere_mesh(0.15 - i * 0.005, color)
 		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var pos: Vector3 = corner_vertices_smoothing[i]
 		var inwards_factor := HexConst.inner_radius / HexConst.outer_radius

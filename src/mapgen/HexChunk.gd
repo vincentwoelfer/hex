@@ -8,6 +8,7 @@ extends Node3D
 
 # Core Variables
 var chunk_hex_pos: HexPos
+var chunk_aabb: AABB
 
 var tile_poses: Array[HexPos] = []
 var tiles: Array[HexTile] = []
@@ -43,12 +44,43 @@ func _init(chunk_hex_pos_: HexPos) -> void:
 	var world_pos: Vector2 = HexPos.hexpos_to_xy(chunk_hex_pos)
 	self.position = Vector3(world_pos.x, 0.0, world_pos.y)
 
-	
+
 ################################################################################
+## Returns [average_height, height_range]
+func find_height_min_max() -> Array[float]:
+	var min_height: float = 1000
+	var max_height: float = -1000
+	for tile: HexTile in tiles:
+		min_height = min(min_height, tile.height * HexConst.height)
+		max_height = max(max_height, tile.height * HexConst.height)
+
+	var avg := (min_height + max_height) / 2.0
+	var span := max_height - min_height
+	return [avg - 0.5, span + 1.0]
+
+
+func calculate_aabb() -> AABB:
+	var height_info := find_height_min_max()
+
+	var x := HexConst.CHUNK_SIZE / 2.0 * HexConst.outer_radius
+	var z := (HexConst.CHUNK_SIZE + (HexConst.CHUNK_SIZE - 1) * 0.5) * HexConst.outer_radius
+
+	var center: Vector3 = self.position - Vector3(HexConst.outer_radius, 0.0, HexConst.outer_radius) +  Vector3(x, height_info[0], z)
+
+	var dimensions: Vector3 = Vector3(x * 2.0, height_info[1], z * 2.0)
+
+	return AABB(center - dimensions / 2.0, dimensions)
+
 
 func _enter_tree() -> void:
 	if chunk_hex_pos.q % 8 == 0 and chunk_hex_pos.r % 8 == 0:
-		parse_source_geometry_data.call_deferred()
+		self.chunk_aabb = calculate_aabb()
+		var col: Color = Colors.randColorNoExtreme()
+		col.a = 0.65
+		DebugShapes3D.spawn_visible_aabb(chunk_aabb, col, self)
+
+
+		# parse_source_geometry_data.call_deferred()
 
 func parse_source_geometry_data() -> void:
 	nav_source_geometry_data = NavigationMeshSourceGeometryData3D.new()
@@ -89,17 +121,6 @@ func on_parsing_done() -> void:
 		on_baking_done
 	)
 
-
-func add_visible_aabb(aabb: AABB) -> void:
-	var vis := MeshInstance3D.new()
-	vis.mesh = BoxMesh.new()
-	(vis.mesh as BoxMesh).size = aabb.size
-	vis.position = aabb.get_center()
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color(1, 0, 0, 0.5)
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	vis.material_override = material
-	add_child(vis)
 
 func on_baking_done() -> void:
 	nav_region = NavigationRegion3D.new()

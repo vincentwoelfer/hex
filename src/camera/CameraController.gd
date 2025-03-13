@@ -19,7 +19,7 @@ var zoom_manual_override: bool = false
 var tilt_curr: float = deg_to_rad(50.0)
 var tilt_goal: float = tilt_curr
 var tilt_min: float = deg_to_rad(25.0) # from side
-var tilt_max: float = deg_to_rad(80.0) # from above
+var tilt_max: float = deg_to_rad(89.0) # from above
 var tilt_lerp_speed: float = deg_to_rad(150.0)
 
 # rotation arount UP axis
@@ -137,7 +137,7 @@ func draw_debug_mesh(location: Vector3) -> void:
 			var scene_root := get_tree().root
 			debug_mesh = MeshInstance3D.new()
 			# debug_mesh.mesh = DebugShapes3D.create_capsule(1.8, 0.3, Color.CYAN, true)
-			debug_mesh.mesh = DebugShapes3D.create_sphere(0.2, Color.CYAN)
+			debug_mesh.mesh = DebugShapes3D.create_sphere_mesh(0.2, Color.CYAN)
 			scene_root.add_child(debug_mesh)
 
 		debug_mesh.global_transform.origin = location
