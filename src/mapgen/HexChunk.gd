@@ -71,15 +71,21 @@ func calculate_aabb() -> AABB:
 	var dimensions: Vector3 = (last_tile_pos - first_tile_pos).abs()
 	dimensions.y = height_info[1]
 
+	# Exctend dimensions to match rectangular grid
+	# X is indepentent of chunk size
+	dimensions.x += (HexConst.outer_radius * 0.75) * 2.0
+	# Z is dependent on chunk size (TODO fix for chunk-size != 4)
+	dimensions.z -= (HexConst.outer_radius_interior_circle() * 0.5) * 2.0
+
 	return AABB(center - dimensions / 2.0, dimensions)
 
 
 func _enter_tree() -> void:
-	if chunk_hex_pos.q % 8 == 0 and chunk_hex_pos.r % 8 == 0:
-		self.chunk_aabb = calculate_aabb()
-		var col: Color = Colors.randColorNoExtreme()
-		col.a = 0.65
-		DebugShapes3D.spawn_visible_aabb(chunk_aabb, col, self)
+	# if chunk_hex_pos.q % 8 == 0 and chunk_hex_pos.r % 8 == 0:
+	self.chunk_aabb = calculate_aabb()
+	var col: Color = Colors.randColorNoExtreme()
+	col.a = 0.65
+	DebugShapes3D.spawn_visible_aabb(chunk_aabb, col, self)
 
 
 		# parse_source_geometry_data.call_deferred()

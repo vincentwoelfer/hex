@@ -10,7 +10,8 @@ extends Node
 # Also known as "size"
 static var outer_radius: float = 2.5
 
-# Radius of the workable Regular area. Distance from center to the sides.
+# Distance from center to the sides.
+# Radius of the workable Regular area.
 # Must be smaller than outer_radius * 0.86 (size of largest circle in outer hex)
 static var inner_radius: float = 2.3
 
