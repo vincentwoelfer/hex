@@ -40,7 +40,7 @@ func _init(chunk_hex_pos_: HexPos) -> void:
 	else:
 		self.name = 'HexChunk-Invalid'
 
-	# Set position of chunk in world
+	# Set position of chunk in world. y = 0 because height is contained in tile positions
 	var world_pos: Vector2 = HexPos.hexpos_to_xy(chunk_hex_pos)
 	self.position = Vector3(world_pos.x, 0.0, world_pos.y)
 
@@ -62,12 +62,14 @@ func find_height_min_max() -> Array[float]:
 func calculate_aabb() -> AABB:
 	var height_info := find_height_min_max()
 
-	var x := HexConst.CHUNK_SIZE / 2.0 * HexConst.outer_radius
-	var z := (HexConst.CHUNK_SIZE + (HexConst.CHUNK_SIZE - 1) * 0.5) * HexConst.outer_radius
+	var first_tile_pos := tiles[0].position
+	var last_tile_pos := tiles[tiles.size() - 1].position
 
-	var center: Vector3 = self.position - Vector3(HexConst.outer_radius, 0.0, HexConst.outer_radius) +  Vector3(x, height_info[0], z)
+	var center : Vector3 = (first_tile_pos + last_tile_pos) / 2.0
+	center.y = height_info[0]
 
-	var dimensions: Vector3 = Vector3(x * 2.0, height_info[1], z * 2.0)
+	var dimensions: Vector3 = (last_tile_pos - first_tile_pos).abs()
+	dimensions.y = height_info[1]
 
 	return AABB(center - dimensions / 2.0, dimensions)
 
