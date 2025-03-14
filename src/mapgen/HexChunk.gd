@@ -52,6 +52,7 @@ func _enter_tree() -> void:
 	# col.a = 0.3
 	# DebugShapes3D.spawn_visible_aabb(chunk_aabb, col, self)
 
+	# TODO wait efficiently until all neighbouring chunks are loaded
 	await get_tree().create_timer(3.0).timeout
 	parse_source_geometry_data.call_deferred()
 
@@ -97,11 +98,11 @@ func on_parsing_done() -> void:
 
 func on_baking_done() -> void:
 	# Snap vertex positions to avoid most rasterization issues with float precision.
-	var navmesh_vertices: PackedVector3Array = nav_mesh.vertices
-	for i in navmesh_vertices.size():
-		var vertex: Vector3 = navmesh_vertices[i]
-		navmesh_vertices[i] = vertex.snappedf(HexConst.nav_cell_size)
-	nav_mesh.vertices = navmesh_vertices
+	# var navmesh_vertices: PackedVector3Array = nav_mesh.vertices
+	# for i in navmesh_vertices.size():
+	# 	var vertex: Vector3 = navmesh_vertices[i]
+	# 	navmesh_vertices[i] = vertex.snappedf(HexConst.nav_cell_size)
+	# nav_mesh.vertices = navmesh_vertices
 
 	# Create a new navigation region for the navigation mesh.
 	nav_region = NavigationRegion3D.new()

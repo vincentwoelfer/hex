@@ -38,6 +38,9 @@ var dash_timer: float = 0.0
 
 var input: MovementInput
 
+# DEBUG
+var debug_mesh_path: MeshInstance3D
+
 # First person youtube videos:
 # https://www.youtube.com/watch?v=xIKErMgJ1Yk
 
@@ -71,6 +74,36 @@ func _input(event: InputEvent) -> void:
 	# head.rotation.x = clamp(head.rotation.x, deg_to_rad(-85), deg_to_rad(85))
 
 	input.consume_mouse_input()
+
+
+func _process(delta: float) -> void:
+	var map: RID = get_world_3d().navigation_map
+	# Do not query when the map has never synchronized and is empty.
+	if NavigationServer3D.map_get_iteration_id(map) == 0:
+		return
+
+	var start_point: Vector3 = NavigationServer3D.map_get_closest_point(map, global_transform.origin)
+	var origin_point: Vector3 = NavigationServer3D.map_get_closest_point(map, Vector3(0, 0, 0))
+
+	# Returns the navigation path to reach the destination from the origin. navigation_layers is a bitmask of all region navigation layers that are allowed to be in the path.
+	var path := NavigationServer3D.map_get_path(map, start_point, origin_point, true)
+
+	if debug_mesh_path:
+		debug_mesh_path.queue_free()
+
+	if path.size() >= 2:
+		debug_mesh_path = MeshInstance3D.new()
+		debug_mesh_path.mesh = DebugShapes3D.create_path_mesh(path, 0.2)
+		debug_mesh_path.mesh.surface_set_material(0, DebugShapes3D.create_debug_material(Color(1, 0, 0, 1)))
+		get_tree().root.add_child(debug_mesh_path)
+
+	# %DebugPaths.global_position = path_start_position
+
+	# %PathDebugCorridorFunnel.target_position = closest_point_on_navmesh
+	# %PathDebugEdgeCentered.target_position = closest_point_on_navmesh
+
+	# %PathDebugCorridorFunnel.get_next_path_position()
+	# %PathDebugEdgeCentered.get_next_path_position()
 
 
 func _physics_process(delta: float) -> void:

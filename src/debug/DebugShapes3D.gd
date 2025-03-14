@@ -38,6 +38,34 @@ static func create_capsule_mesh(h: float, r: float, color: Color = Color.RED, sh
 	return mesh
 
 
+static func create_path_mesh(path: PackedVector3Array, width: float = 0.1) -> Mesh:
+	var mesh := ImmediateMesh.new()
+	if path.size() < 2:
+		return mesh
+	
+	mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
+	
+	for i in range(path.size() - 1):
+		var start: Vector3 = path[i]
+		var end: Vector3 = path[i + 1]
+		
+		# Compute direction
+		var direction: Vector3 = (end - start).normalized()
+		
+		# Compute perpendicular vector for thickness (approximated using cross product)
+		var up: Vector3 = Vector3.UP if abs(direction.dot(Vector3.UP)) < 0.9 else Vector3.FORWARD
+		var perp: Vector3 = direction.cross(up).normalized() * (width * 0.5)
+		
+		# Create quad (two vertices per point)
+		mesh.surface_add_vertex(start + perp)
+		mesh.surface_add_vertex(start - perp)
+		mesh.surface_add_vertex(end + perp)
+		mesh.surface_add_vertex(end - perp)
+	
+	mesh.surface_end()
+	return mesh
+
+
 static func spawn_visible_aabb(aabb: AABB, color: Color, parent: Node3D) -> void:
 	var vis := MeshInstance3D.new()
 	vis.mesh = BoxMesh.new()
