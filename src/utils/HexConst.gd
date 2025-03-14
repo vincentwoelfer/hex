@@ -53,7 +53,7 @@ const MAP_HEIGHT_INVALID: int = -999
 
 # ========================================================
 # ==================== Navigation ====================
-const nav_cell_size: float = 0.25
+const nav_cell_size: float = 0.125
 const nav_agent_radius: float = 0.5
 
 

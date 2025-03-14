@@ -155,7 +155,7 @@ func calculate_cam_follow_point() -> Vector3:
 
 	var p: Vector3 = Vector3.ZERO
 	for node in cam_follow_nodes:
-		p += node.global_position
+		p += node.get_global_transform_interpolated().origin
 	p /= float(cam_follow_nodes.size())
 	return p
 

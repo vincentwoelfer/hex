@@ -25,7 +25,7 @@ func _ready() -> void:
 	nav_map = get_world_3d().navigation_map
 	NavigationServer3D.map_set_cell_size(nav_map, HexConst.nav_cell_size)
 
-	# NavigationServer3D.map_set_use_edge_connections(nav_map, false)
+	NavigationServer3D.map_set_use_edge_connections(nav_map, false)
 
 
 # React to keyboard inputs to directly trigger events

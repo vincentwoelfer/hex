@@ -26,10 +26,10 @@ var rocks: MeshInstance3D
 var rocks_collision: StaticBody3D
 
 # Navigation
-var nav_mesh: NavigationMesh
 var nav_source_geometry_data: NavigationMeshSourceGeometryData3D
-# var nav_region_rid: RID
+var nav_mesh: NavigationMesh
 var nav_region: NavigationRegion3D
+
 
 # Does not much, only actual constructor
 func _init(chunk_hex_pos_: HexPos) -> void:
@@ -43,82 +43,47 @@ func _init(chunk_hex_pos_: HexPos) -> void:
 	# Set position of chunk in world. y = 0 because height is contained in tile positions
 	var world_pos: Vector2 = HexPos.hexpos_to_xy(chunk_hex_pos)
 	self.position = Vector3(world_pos.x, 0.0, world_pos.y)
-
-
-################################################################################
-## Returns [average_height, height_range]
-func find_height_min_max() -> Array[float]:
-	var min_height: float = 1000
-	var max_height: float = -1000
-	for tile: HexTile in tiles:
-		min_height = min(min_height, tile.height * HexConst.height)
-		max_height = max(max_height, tile.height * HexConst.height)
-
-	var avg := (min_height + max_height) / 2.0
-	var span := max_height - min_height
-	return [avg - 0.5, span + 1.0]
-
-
-func calculate_aabb() -> AABB:
-	var height_info := find_height_min_max()
-
-	var first_tile_pos := tiles[0].position
-	var last_tile_pos := tiles[tiles.size() - 1].position
-
-	var center : Vector3 = (first_tile_pos + last_tile_pos) / 2.0
-	center.y = height_info[0]
-
-	var dimensions: Vector3 = (last_tile_pos - first_tile_pos).abs()
-	dimensions.y = height_info[1]
-
-	# Exctend dimensions to match rectangular grid
-	# X is indepentent of chunk size
-	dimensions.x += (HexConst.outer_radius * 0.75) * 2.0
-	# Z is dependent on chunk size (TODO fix for chunk-size != 4)
-	dimensions.z -= (HexConst.outer_radius_interior_circle() * 0.5) * 2.0
-
-	return AABB(center - dimensions / 2.0, dimensions)
+	add_to_group("chunks")
 
 
 func _enter_tree() -> void:
-	# if chunk_hex_pos.q % 8 == 0 and chunk_hex_pos.r % 8 == 0:
 	self.chunk_aabb = calculate_aabb()
-	var col: Color = Colors.randColorNoExtreme()
-	col.a = 0.65
-	DebugShapes3D.spawn_visible_aabb(chunk_aabb, col, self)
+	# var col: Color = Colors.randColorNoExtreme()
+	# col.a = 0.3
+	# DebugShapes3D.spawn_visible_aabb(chunk_aabb, col, self)
 
+	await get_tree().create_timer(3.0).timeout
+	parse_source_geometry_data.call_deferred()
 
-		# parse_source_geometry_data.call_deferred()
 
 func parse_source_geometry_data() -> void:
 	nav_source_geometry_data = NavigationMeshSourceGeometryData3D.new()
 
 	var parse_settings: NavigationMesh = NavigationMesh.new()
 	parse_settings.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
-	# parse_settings.agent_radius = 0.0
-	# parse_settings.filter_baking_aabb = AABB(Vector3(-1000, -1000, -1000), Vector3(1000, 1000, 1000))
+	parse_settings.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
+	parse_settings.geometry_source_group_name = "chunks"
+
+	# TODO include colliders from 6 neighbouring chunks
 
 	NavigationServer3D.parse_source_geometry_data(parse_settings, nav_source_geometry_data, self, on_parsing_done)
 
 
 func on_parsing_done() -> void:
+	# Create new nav-mesh with parameters
 	nav_mesh = NavigationMesh.new()
 	nav_mesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
 	nav_mesh.cell_size = HexConst.nav_cell_size
 	nav_mesh.cell_height = HexConst.nav_cell_size
 	nav_mesh.agent_radius = HexConst.nav_agent_radius
 
-	# Get AABB for baking
-	var aabb: AABB = nav_source_geometry_data.get_bounds()
+	# Nav-Mesh baking settings regardin geometry
+	var baking_border := 1.5
+	nav_mesh.filter_baking_aabb = self.chunk_aabb.grow(baking_border)
+	nav_mesh.border_size = baking_border
 
-	# if chunk_hex_pos.q % 16 == 0 and chunk_hex_pos.r % 16 == 0:
-		# add_visible_aabb(aabb)
-
-	nav_mesh.agent_radius = 0.0
-	# nav_mesh.filter_baking_aabb = aabb
-	# nav_mesh.border_size = 1.0
-	nav_mesh.edge_max_length = 1.0
-	nav_mesh.filter_ledge_spans = false
+	# nav_mesh.edge_max_length = 1.0
+	# nav_mesh.filter_ledge_spans = false
 	# nav_mesh.edge_max_error = 1.0
 
 
@@ -131,6 +96,14 @@ func on_parsing_done() -> void:
 
 
 func on_baking_done() -> void:
+	# Snap vertex positions to avoid most rasterization issues with float precision.
+	var navmesh_vertices: PackedVector3Array = nav_mesh.vertices
+	for i in navmesh_vertices.size():
+		var vertex: Vector3 = navmesh_vertices[i]
+		navmesh_vertices[i] = vertex.snappedf(HexConst.nav_cell_size)
+	nav_mesh.vertices = navmesh_vertices
+
+	# Create a new navigation region for the navigation mesh.
 	nav_region = NavigationRegion3D.new()
 
 	nav_region.navigation_mesh = nav_mesh
@@ -322,3 +295,37 @@ func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 
 		st_combined.append_from(mesh, 0, t)
 	return st_combined.commit()
+
+
+## Returns [average_height, height_range]
+func find_height_min_max_for_tiles() -> Array[float]:
+	var min_height: float = 1000
+	var max_height: float = -1000
+	for tile: HexTile in tiles:
+		min_height = min(min_height, tile.height * HexConst.height)
+		max_height = max(max_height, tile.height * HexConst.height)
+
+	var avg := (min_height + max_height) / 2.0
+	var span := max_height - min_height
+	return [avg - 0.5, span + 1.0]
+
+
+func calculate_aabb() -> AABB:
+	var height_info := find_height_min_max_for_tiles()
+
+	var first_tile_pos := tiles[0].position
+	var last_tile_pos := tiles[tiles.size() - 1].position
+
+	var center: Vector3 = (first_tile_pos + last_tile_pos) / 2.0
+	center.y = height_info[0]
+
+	var dimensions: Vector3 = (last_tile_pos - first_tile_pos).abs()
+	dimensions.y = height_info[1]
+
+	# Exctend dimensions to match rectangular grid
+	# X is indepentent of chunk size
+	dimensions.x += (HexConst.outer_radius * 0.75) * 2.0
+	# Z is dependent on chunk size (TODO fix for chunk-size != 4)
+	dimensions.z -= (HexConst.outer_radius_interior_circle() * 0.5) * 2.0
+
+	return AABB(center - dimensions / 2.0, dimensions)
