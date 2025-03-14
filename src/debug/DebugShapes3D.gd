@@ -48,13 +48,11 @@ static func create_path_mesh(path: PackedVector3Array, width: float = 0.1) -> Me
 	for i in range(path.size() - 1):
 		var start: Vector3 = path[i]
 		var end: Vector3 = path[i + 1]
-		
-		# Compute direction
 		var direction: Vector3 = (end - start).normalized()
 		
 		# Compute perpendicular vector for thickness (approximated using cross product)
 		var up: Vector3 = Vector3.UP if abs(direction.dot(Vector3.UP)) < 0.9 else Vector3.FORWARD
-		var perp: Vector3 = direction.cross(up).normalized() * (width * 0.5)
+		var perp: Vector3 = direction.cross(up).normalized() * width * 0.5
 		
 		# Create quad (two vertices per point)
 		mesh.surface_add_vertex(start + perp)
@@ -76,4 +74,5 @@ static func spawn_visible_aabb(aabb: AABB, color: Color, parent: Node3D) -> void
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	vis.material_override = material
+	vis.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(vis)
