@@ -30,6 +30,10 @@ var nav_source_geometry_data: NavigationMeshSourceGeometryData3D
 var nav_mesh: NavigationMesh
 var nav_region: NavigationRegion3D
 
+# TODO see CHatGPT: https://chatgpt.com/g/g-p-67c4756268b08191b15ed3439dcabeea-hex/c/67d83666-87d0-8006-88e9-10adb2b90cd7
+# implement with timer, find smart solution to not require mutex lock 6 times every time.
+var nav_chunk_neighbours: Array[HexPos] = []
+
 
 # Does not much, only actual constructor
 func _init(chunk_hex_pos_: HexPos) -> void:
@@ -47,10 +51,13 @@ func _init(chunk_hex_pos_: HexPos) -> void:
 
 
 func _enter_tree() -> void:
-	self.chunk_aabb = calculate_aabb()
+	self.chunk_aabb = calculate_chunk_navigation_aabb()
+	# TODO fix exact dimensions
 	# var col: Color = Colors.randColorNoExtreme()
 	# col.a = 0.3
 	# DebugShapes3D.spawn_visible_aabb(chunk_aabb, col, self)
+
+
 
 	# TODO wait efficiently until all neighbouring chunks are loaded
 	await get_tree().create_timer(3.0).timeout
@@ -65,8 +72,8 @@ func parse_source_geometry_data() -> void:
 	parse_settings.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
 	parse_settings.geometry_source_group_name = "chunks"
 
-	# TODO include colliders from 6 neighbouring chunks
-
+	# TODO Optimization: Maybe create groups and only include colliders from 6 neighbouring chunks.
+	# Using whole tree works fine for now
 	NavigationServer3D.parse_source_geometry_data(parse_settings, nav_source_geometry_data, self, on_parsing_done)
 
 
@@ -103,7 +110,6 @@ func on_baking_done() -> void:
 	# 	var vertex: Vector3 = navmesh_vertices[i]
 	# 	navmesh_vertices[i] = vertex.snappedf(HexConst.nav_cell_size)
 	# nav_mesh.vertices = navmesh_vertices
-
 	# Create a new navigation region for the navigation mesh.
 	nav_region = NavigationRegion3D.new()
 
@@ -123,6 +129,8 @@ func on_baking_done() -> void:
 ################################################################################
 ################################################################################
 
+## Generates the chunk, calls generate on all tiles. This is called in a separate thread
+## and only constructs the chunk as a sub-scene, it doesnt access the main scene tree.
 func generate() -> void:
 	#########################################
 	# Free previous tiles
@@ -308,11 +316,15 @@ func find_height_min_max_for_tiles() -> Array[float]:
 
 	var avg := (min_height + max_height) / 2.0
 	var span := max_height - min_height
-	return [avg - 0.5, span + 1.0]
+	return [avg, span]
 
 
-func calculate_aabb() -> AABB:
+func calculate_chunk_navigation_aabb() -> AABB:
 	var height_info := find_height_min_max_for_tiles()
+
+	# Enlargen aabb on y-axis
+	height_info[0] -= 1.0
+	height_info[1] += 2.0
 
 	var first_tile_pos := tiles[0].position
 	var last_tile_pos := tiles[tiles.size() - 1].position
