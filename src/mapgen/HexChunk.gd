@@ -22,8 +22,7 @@ var samplerHorizontal: PolygonSurfaceSampler
 var samplerVertical: PolygonSurfaceSampler
 
 var grass: SurfacePlant
-var rocks: MeshInstance3D
-var rocks_collision: StaticBody3D
+var rocks: ScatteredRocks
 
 # Navigation
 var nav_source_geometry_data: NavigationMeshSourceGeometryData3D
@@ -59,10 +58,6 @@ func _enter_tree() -> void:
 	add_to_group(chunks_group_name)
 
 	self.chunk_aabb = calculate_chunk_navigation_aabb()
-	# TODO fix exact dimensions
-	# var col: Color = Colors.randColorNoExtreme()
-	# col.a = 0.3
-	# DebugShapes3D.spawn_visible_aabb(chunk_aabb, col, self)
 
 	# Start neighour check timer
 	missing_nav_chunk_timer = Timer.new()
@@ -125,24 +120,12 @@ func on_parsing_done() -> void:
 
 
 func on_baking_done() -> void:
-	# TODO use or remove
-	# Snap vertex positions to avoid most rasterization issues with float precision.
-	# var navmesh_vertices: PackedVector3Array = nav_mesh.vertices
-	# for i in navmesh_vertices.size():
-	# 	var vertex: Vector3 = navmesh_vertices[i]
-	# 	navmesh_vertices[i] = vertex.snappedf(HexConst.nav_cell_size)
-	# nav_mesh.vertices = navmesh_vertices
-	# Create a new navigation region for the navigation mesh.
 	nav_region = NavigationRegion3D.new()
 
 	nav_region.navigation_mesh = nav_mesh
 	nav_region.enabled = true
 	add_child(nav_region)
 
-	
-################################################################################
-################################################################################
-################################################################################
 
 ## Generates the chunk, calls generate on all tiles. This is called in a separate thread
 ## and only constructs the chunk as a sub-scene, it doesnt access the main scene tree.
@@ -240,22 +223,10 @@ func generate() -> void:
 
 		# ROCKS
 		if DebugSettings.enable_rocks:
-			var rocksMesh := generate_rocks_mesh(samplerHorizontal)
-			if rocksMesh != null:
-				rocks = MeshInstance3D.new()
-				rocks.name = "Rocks"
-				rocks.material_override = ResLoader.ROCKS_MAT
-				rocks.mesh = rocksMesh
-				add_child(rocks)
-
-				# Collision
-				rocks_collision = StaticBody3D.new()
-				var rocks_collision_shape := CollisionShape3D.new()
-				rocks_collision_shape.shape = generate_collision_shape_from_array_mesh(rocksMesh)
-				rocks_collision_shape.debug_fill = false
-				terrain_collision.add_child(rocks_collision_shape)
-				add_child(rocks_collision)
-
+			rocks = ScatteredRocks.new(samplerHorizontal)
+			rocks.name = "Rocks"
+			add_child(rocks)
+			
 
 func get_hex_pos_center() -> HexPos:
 	if tiles.is_empty():
@@ -269,56 +240,6 @@ func get_hex_pos_center() -> HexPos:
 
 func is_valid() -> bool:
 	return chunk_hex_pos != null
-
-
-func generate_collision_shape_from_array_mesh(mesh: ArrayMesh) -> ConcavePolygonShape3D:
-	var polygon_shape := ConcavePolygonShape3D.new()
-	polygon_shape.set_faces(mesh.get_faces())
-	return polygon_shape
-
-
-enum RockType {SMALL, MEDIUM, LARGE}
-func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
-	if not sampler.is_valid():
-		return null
-
-	# Standard deviation = x means:
-	# 66% of samples are within [-x, x] of the mean
-	# 96% of samples are within [-2x, 2x] of the mean
-	var avg_rock_density_per_square_meter: float = 0.011
-	var num_rocks: int = round(randfn(avg_rock_density_per_square_meter, avg_rock_density_per_square_meter) * sampler.get_total_area())
-
-	if num_rocks <= 0 or randf() <= 0.35:
-		return null
-
-	var st_combined: SurfaceTool = SurfaceTool.new()
-	for i in range(num_rocks):
-		var t: Transform3D = sampler.get_random_point_transform()
-		t = t.rotated_local(Vector3.UP, randf_range(0.0, TAU))
-
-		var mesh: Mesh = ResLoader.basic_rocks_meshes.pick_random()
-		var size: Vector3 = mesh.get_aabb().size
-		var max_mesh_dim: float = max(size.x, size.y, size.z)
-
-		var rock_type: RockType = RockType.MEDIUM
-		var r := randf()
-		if r <= 0.07:
-			rock_type = RockType.LARGE
-
-		if rock_type == RockType.LARGE:
-			var height := randf_range(5.0, 10.0)
-			t = t.scaled_local(Vector3.ONE * (height / max_mesh_dim))
-
-		elif rock_type == RockType.MEDIUM:
-			var height := randf_range(1.0, 2.5)
-			t = t.scaled_local(Vector3.ONE * (height / max_mesh_dim))
-
-		# elif rock_type == RockType.SMALL:
-		# 	var max_height := randf_range(0.1, 0.15)
-		# 	t = t.scaled_local(Vector3.ONE * (max_height / mesh_height))
-
-		st_combined.append_from(mesh, 0, t)
-	return st_combined.commit()
 
 
 ## Returns [average_height, height_range]
