@@ -138,18 +138,17 @@ func remove_far_away_tiles() -> void:
 func queue_new_tiles_for_generation() -> void:
 	var hashes_in_range_tiles: PackedInt32Array = generation_position.get_neighbours_in_range_as_hash(tile_generation_distance_hex, true)
 
-	# TODO optimize this
 	# Filter to only get hexposes which are chunk bases
-	var hashes_in_range: PackedInt32Array
+	var hashes_in_range_chunks: PackedInt32Array
 	for i in range(hashes_in_range_tiles.size()):
 		var hex_pos: HexPos = HexPos.unhash(hashes_in_range_tiles[i])
 		if hex_pos.is_chunk_base():
-			hashes_in_range.push_back(hashes_in_range_tiles[i])
+			hashes_in_range_chunks.push_back(hashes_in_range_tiles[i])
 
 	# Remove any hashes which are already presend in the map. No mutex needed here.
 	# This might miss some chunks since they are added to the map after this check -> filter again after mutex lock
 	var hashes_filtered: PackedInt32Array
-	for key in hashes_in_range:
+	for key in hashes_in_range_chunks:
 		if HexChunkMap.get_by_hash(key) == null:
 			hashes_filtered.push_back(key)
 
