@@ -30,9 +30,10 @@ var nav_source_geometry_data: NavigationMeshSourceGeometryData3D
 var nav_mesh: NavigationMesh
 var nav_region: NavigationRegion3D
 
-# TODO see CHatGPT: https://chatgpt.com/g/g-p-67c4756268b08191b15ed3439dcabeea-hex/c/67d83666-87d0-8006-88e9-10adb2b90cd7
-# implement with timer, find smart solution to not require mutex lock 6 times every time.
-var nav_chunk_neighbours: Array[HexPos] = []
+# Logic to wait for all neighbours to be loaded
+var chunks_group_name := "hex_chunks"
+var missing_nav_chunk_neighbours: Array[HexPos] = []
+var missing_nav_chunk_timer: Timer
 
 
 # Does not much, only actual constructor
@@ -47,21 +48,43 @@ func _init(chunk_hex_pos_: HexPos) -> void:
 	# Set position of chunk in world. y = 0 because height is contained in tile positions
 	var world_pos: Vector2 = HexPos.hexpos_to_xy(chunk_hex_pos)
 	self.position = Vector3(world_pos.x, 0.0, world_pos.y)
-	add_to_group("chunks")
+	
+	# On start all are missing
+	missing_nav_chunk_neighbours = self.chunk_hex_pos.get_chunk_navigation_neighbours()
 
 
 func _enter_tree() -> void:
+	# Add to group for navigation mesh parsing - This also communicates to other chunks that
+	# this chunk is loaded and neighbouring chunks can use it for generating nav-meshe collision data.
+	add_to_group(chunks_group_name)
+
 	self.chunk_aabb = calculate_chunk_navigation_aabb()
 	# TODO fix exact dimensions
 	# var col: Color = Colors.randColorNoExtreme()
 	# col.a = 0.3
 	# DebugShapes3D.spawn_visible_aabb(chunk_aabb, col, self)
 
+	# Start neighour check timer
+	missing_nav_chunk_timer = Timer.new()
+	missing_nav_chunk_timer.set_wait_time(0.5)
+	missing_nav_chunk_timer.set_one_shot(false)
+	missing_nav_chunk_timer.autostart = true
+	missing_nav_chunk_timer.timeout.connect(_update_missing_nav_chunk_neighbours)
+	add_child(missing_nav_chunk_timer)
 
 
-	# TODO wait efficiently until all neighbouring chunks are loaded
-	await get_tree().create_timer(3.0).timeout
-	parse_source_geometry_data.call_deferred()
+func _update_missing_nav_chunk_neighbours() -> void:
+	var all_chunks: Array[Node] = get_tree().get_nodes_in_group(chunks_group_name)
+	var all_chunks_poses: Array[HexPos] = []
+	all_chunks_poses.assign(all_chunks.map(func(chunk: Node) -> HexPos: return (chunk as HexChunk).chunk_hex_pos))
+	missing_nav_chunk_neighbours = missing_nav_chunk_neighbours.filter(
+		func(hex_pos: HexPos) -> bool:
+			return not all_chunks_poses.any(func(p: HexPos) -> bool: return p.equals(hex_pos))
+	)
+
+	if missing_nav_chunk_neighbours.is_empty():
+		missing_nav_chunk_timer.queue_free()
+		parse_source_geometry_data.call_deferred()
 
 
 func parse_source_geometry_data() -> void:
@@ -70,7 +93,7 @@ func parse_source_geometry_data() -> void:
 	var parse_settings: NavigationMesh = NavigationMesh.new()
 	parse_settings.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
 	parse_settings.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
-	parse_settings.geometry_source_group_name = "chunks"
+	parse_settings.geometry_source_group_name = chunks_group_name
 
 	# TODO Optimization: Maybe create groups and only include colliders from 6 neighbouring chunks.
 	# Using whole tree works fine for now
@@ -89,11 +112,9 @@ func on_parsing_done() -> void:
 	var baking_border := 1.5
 	nav_mesh.filter_baking_aabb = self.chunk_aabb.grow(baking_border)
 	nav_mesh.border_size = baking_border
-
 	# nav_mesh.edge_max_length = 1.0
 	# nav_mesh.filter_ledge_spans = false
 	# nav_mesh.edge_max_error = 1.0
-
 
 	# Bake the navigation mesh on a thread with the source geometry data.
 	NavigationServer3D.bake_from_source_geometry_data_async(
@@ -104,6 +125,7 @@ func on_parsing_done() -> void:
 
 
 func on_baking_done() -> void:
+	# TODO use or remove
 	# Snap vertex positions to avoid most rasterization issues with float precision.
 	# var navmesh_vertices: PackedVector3Array = nav_mesh.vertices
 	# for i in navmesh_vertices.size():
@@ -117,13 +139,6 @@ func on_baking_done() -> void:
 	nav_region.enabled = true
 	add_child(nav_region)
 
-	# Update the region with the updated navigation mesh.
-	# NavigationServer3D.region_set_navigation_mesh(nav_region_rid, self.nav_mesh)
-	# Enable the region and set it to the default navigation map.
-	# NavigationServer3D.region_set_enabled(nav_region_rid, true)
-	# NavigationServer3D.region_set_map(nav_region_rid, get_world_3d().get_navigation_map())
-
-	# 
 	
 ################################################################################
 ################################################################################
