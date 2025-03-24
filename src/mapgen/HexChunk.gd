@@ -30,7 +30,6 @@ var nav_mesh: NavigationMesh
 var nav_region: NavigationRegion3D
 
 # Logic to wait for all neighbours to be loaded
-var chunks_group_name := "hex_chunks"
 var missing_nav_chunk_neighbours: Array[HexPos] = []
 var missing_nav_chunk_timer: Timer
 
@@ -52,10 +51,10 @@ func _init(chunk_hex_pos_: HexPos) -> void:
 	missing_nav_chunk_neighbours = self.chunk_hex_pos.get_chunk_navigation_neighbours()
 
 
-func _enter_tree() -> void:
+func _ready() -> void:
 	# Add to group for navigation mesh parsing - This also communicates to other chunks that
-	# this chunk is loaded and neighbouring chunks can use it for generating nav-meshe collision data.
-	add_to_group(chunks_group_name)
+	# this chunk is loaded and neighbouring chunks can use it for generating nav-mesh collision data.
+	add_to_group(HexConst.NAV_CHUNKS_GROUP_NAME)
 
 	self.chunk_aabb = calculate_chunk_navigation_aabb()
 
@@ -69,7 +68,7 @@ func _enter_tree() -> void:
 
 
 func _update_missing_nav_chunk_neighbours() -> void:
-	var all_chunks: Array[Node] = get_tree().get_nodes_in_group(chunks_group_name)
+	var all_chunks: Array[Node] = get_tree().get_nodes_in_group(HexConst.NAV_CHUNKS_GROUP_NAME)
 	var all_chunks_poses: Array[HexPos] = []
 	all_chunks_poses.assign(all_chunks.map(func(chunk: Node) -> HexPos: return (chunk as HexChunk).chunk_hex_pos))
 	missing_nav_chunk_neighbours = missing_nav_chunk_neighbours.filter(
@@ -79,6 +78,7 @@ func _update_missing_nav_chunk_neighbours() -> void:
 
 	if missing_nav_chunk_neighbours.is_empty():
 		missing_nav_chunk_timer.queue_free()
+		missing_nav_chunk_timer = null
 		parse_source_geometry_data.call_deferred()
 
 
@@ -88,7 +88,7 @@ func parse_source_geometry_data() -> void:
 	var parse_settings: NavigationMesh = NavigationMesh.new()
 	parse_settings.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
 	parse_settings.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
-	parse_settings.geometry_source_group_name = chunks_group_name
+	parse_settings.geometry_source_group_name = HexConst.NAV_CHUNKS_GROUP_NAME
 
 	# TODO Optimization: Maybe create groups and only include colliders from 6 neighbouring chunks.
 	# Using whole tree works fine for now

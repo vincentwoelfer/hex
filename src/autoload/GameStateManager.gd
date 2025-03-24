@@ -10,6 +10,9 @@ var global_camera_view_angle: float
 # NAVMAP
 var nav_map: RID
 
+# Caravan
+var caravan: Caravan
+
 
 func _ready() -> void:
 	# Print Input Mappings
@@ -24,8 +27,16 @@ func _ready() -> void:
 	NavigationServer3D.set_debug_enabled(true)
 	nav_map = get_world_3d().navigation_map
 	NavigationServer3D.map_set_cell_size(nav_map, HexConst.nav_cell_size)
-
 	NavigationServer3D.map_set_use_edge_connections(nav_map, true)
+
+	# Wait for nav chunks to be loaded
+	await Util.wait_until(self, func() -> bool: return get_tree().get_nodes_in_group(HexConst.NAV_CHUNKS_GROUP_NAME).size() > 12)
+
+	spawn_caravan()
+
+	# Always spawn keyboard player for development (not in editor)
+	if not Engine.is_editor_hint():
+		PlayerManager.add_player(-1)
 
 
 # React to keyboard inputs to directly trigger events
@@ -61,6 +72,35 @@ func set_global_camera_view_angle(angle: float) -> void:
 
 func get_global_camera_view_angle() -> float:
 	return global_camera_view_angle
+
+
+##################################################################
+# Spawner Functions
+###################################################################
+
+func spawn_caravan() -> void:
+	if caravan != null:
+		return
+
+	caravan = ResLoader.CARAVAN_SCENE.instantiate()
+
+	# Find spawn height
+	var pos: Vector3 = HexConst.MAP_CENTER
+	var shape: CollisionShape3D = caravan.get_node("Collision")
+	var spawn_pos := MapGeneration.get_capsule_spawn_pos_on_map_surface(pos, shape)
+
+	# Set color
+	var mesh_instance := caravan.get_node("Mesh") as MeshInstance3D
+	var new_mesh: Mesh = mesh_instance.mesh.duplicate(true)
+
+	var new_mat: StandardMaterial3D = new_mesh.surface_get_material(0)
+	new_mat.albedo_color = Color.TEAL
+	new_mesh.surface_set_material(0, new_mat)
+	mesh_instance.mesh = new_mesh
+
+	# Add to scene
+	get_tree().root.add_child(caravan)
+	caravan.global_transform.origin = spawn_pos
 
 
 ##################################################################

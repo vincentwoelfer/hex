@@ -23,7 +23,7 @@ var tilt_max: float = deg_to_rad(89.0) # from above
 var tilt_lerp_speed: float = deg_to_rad(150.0)
 
 # rotation arount UP axis
-var orientation_goal: int = 1
+var orientation_goal: int = 0
 var orientation_angle_curr: float
 var orientation_angle_goal: float
 var orientation_lerp_speed: float = deg_to_rad(360.0)
@@ -42,7 +42,7 @@ var debug_mesh: MeshInstance3D
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	orientation_angle_goal = compute_orientation_angle_goal(orientation_goal)
+	orientation_angle_goal = Util.getHexAngleInterpolated(orientation_goal)
 	orientation_angle_curr = orientation_angle_goal
 
 	follow_point_goal = GameStateManager.get_cam_follow_point()
@@ -55,7 +55,7 @@ func _input(event: InputEvent) -> void:
 		orientation_goal = (orientation_goal + 6 - 1) % 6
 	if event.is_action_pressed("cam_rotate_right"):
 		orientation_goal = (orientation_goal + 6 + 1) % 6
-	orientation_angle_goal = compute_orientation_angle_goal(orientation_goal)
+	orientation_angle_goal = Util.getHexAngleInterpolated(orientation_goal)
 
 	# Zoom (in/out)
 	var zoom_input := 0.0
@@ -154,10 +154,3 @@ func raycast_into_world() -> Dictionary:
 	var space_state := get_world_3d().direct_space_state
 	var result := space_state.intersect_ray(ray_query)
 	return result
-
-
-# Default Orientation = 1 -> Forward = -Z , this is archived with 90° into sin/cos
-# Thats why we subtract 90° to get actual forward
-func compute_orientation_angle_goal(orientation_goal_: float) -> float:
-	var target_forward_angle := deg_to_rad((60.0 * orientation_goal_ + 30.0) - 90.0)
-	return target_forward_angle

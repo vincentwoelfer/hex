@@ -359,6 +359,14 @@ func get_capsule_spawn_pos_on_map_surface(pos: Vector3, shape: CollisionShape3D)
 
 	# Perform query
 	var space_state := get_world_3d().direct_space_state
-	var t: float = space_state.cast_motion(query)[0]
-	var shape_height: float = (shape.shape as CapsuleShape3D).height
+	var t: float = space_state.cast_motion(query)[0]	
+	var shape_height: float
+	
+	if shape.shape is SphereShape3D:
+		shape_height = (shape.shape as SphereShape3D).radius * 2.0
+	elif shape.shape is CapsuleShape3D:
+		shape_height = (shape.shape as CapsuleShape3D).height
+	elif shape.shape is CylinderShape3D:
+		shape_height = (shape.shape as CylinderShape3D).height
+
 	return (query.transform.origin + query.motion * t) - (Vector3.UP * shape_height / 2.0)

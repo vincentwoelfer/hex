@@ -1,0 +1,35 @@
+[gd_scene load_steps=5 format=3 uid="uid://b3mxdfbg5ji4y"]
+
+[ext_resource type="Script" uid="uid://d1h8hxiwq7bok" path="res://src/character/Caravan.gd" id="1_4v2ye"]
+[ext_resource type="Material" uid="uid://c0myngqkhsb44" path="res://assets/materials/player_material.tres" id="2_8py3n"]
+
+[sub_resource type="TorusMesh" id="TorusMesh_4v2ye"]
+material = ExtResource("2_8py3n")
+inner_radius = 0.2
+outer_radius = 0.8
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_4v2ye"]
+height = 0.6
+radius = 0.8
+
+[node name="Caravan" type="CharacterBody3D"]
+# 80deg
+floor_max_angle = 1.39626
+script = ExtResource("1_4v2ye")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+mesh = SubResource("TorusMesh_4v2ye")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+shape = SubResource("CylinderShape3D_4v2ye")
+
+[node name="NavAgent" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.25
+target_desired_distance = 0.25
+simplify_path = true
+simplify_epsilon = 0.5
+debug_enabled = true
+debug_use_custom = true
+debug_path_custom_color = Color(0, 0.407843, 0.164706, 1)

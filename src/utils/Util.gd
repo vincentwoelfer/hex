@@ -24,12 +24,17 @@ static func randCircularOffsetNormalDist(r_max: float) -> Vector3:
 static func as_dir(dir: int) -> int:
 	return (dir + 6) % 6
 
+# Orientation 0 = 0 = Forward -Z
 static var HEX_ANGLES: Array[float] = [0.0, PI / 3.0, 2.0 * PI / 3.0, PI, 4.0 * PI / 3.0, 5.0 * PI / 3.0, 6.0 * PI / 3.0]
 static func getSixHexAngles() -> Array[float]:
 	return HEX_ANGLES
 
+## Returns the angle of a hexagon side in radians
 static func getHexAngle(dir: int) -> float:
 	return HEX_ANGLES[as_dir(dir)]
+
+static func getHexAngleInterpolated(orientation: float) -> float:
+	return PI/3.0 * orientation
 
 
 static func vec3FromRadiusAngle(r: float, angle: float) -> Vector3:
@@ -85,6 +90,13 @@ static func sortVecAccordingToAngles(vecs: Array[Vector3]) -> Array[Vector3]:
 static func clampf(val: float, a: float, b: float) -> float:
 	return clampf(val, minf(a, b), maxf(a, b))
 
+
+######################################################
+# Timing & Waiting
+######################################################
+static func wait_until(node: Node3D, condition: Callable) -> void:
+	while not condition.call():
+		await node.get_tree().process_frame
 
 ######################################################
 # Camera access

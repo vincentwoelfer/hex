@@ -13,12 +13,6 @@ var cam_follow_nodes: Array[Node3D] = []
 
 var player_scene: PackedScene = preload('res://scenes/PlayerCharacter.tscn')
 
-func _ready() -> void:
-	if not Engine.is_editor_hint():
-		# Join keyboard player automatically
-		await get_tree().create_timer(0.6).timeout
-		add_player(-1)
-
 
 func _process(delta: float) -> void:
 	if not Engine.is_editor_hint():
@@ -97,10 +91,11 @@ func _is_device_joined(device: int) -> bool:
 # Spawning
 ###################################################
 func find_spawn_pos_xz_near_team(exclude_id: int) -> Vector3:
+	# TODO Find caravan pos
 	var possible_reference_players: Array[PlayerData] = players.values().filter(func(p: PlayerData) -> bool: return p.id != exclude_id)
 
 	if possible_reference_players.is_empty():
-		return Vector3.ZERO
+		return HexConst.MAP_CENTER + Vector3(0, 0, 3) # TODO this is a hack
 
 	# Next to random player
 	var player: PlayerData = possible_reference_players.pick_random()
@@ -111,11 +106,12 @@ func find_spawn_pos_xz_near_team(exclude_id: int) -> Vector3:
 	
 func spawn_player(player: PlayerData) -> void:
 	var player_node: PlayerController = player_scene.instantiate()
-	player_node.init(player.input_device)
+	player_node.init(player.input_device, player.color)
 
 	# Find spawn pos
 	var shape: CollisionShape3D = player_node.get_node("Collision")
-	var spawn_pos := MapGeneration.get_capsule_spawn_pos_on_map_surface(find_spawn_pos_xz_near_team(player.id), shape)
+	var spawn_pos := find_spawn_pos_xz_near_team(player.id)
+	spawn_pos = MapGeneration.get_capsule_spawn_pos_on_map_surface(spawn_pos, shape)
 
 	# Set player color
 	var mesh_instance := player_node.get_node("Mesh") as MeshInstance3D
@@ -151,7 +147,9 @@ func unregister_cam_follow_node(node: Node3D) -> void:
 
 func calculate_cam_follow_point() -> Vector3:
 	if cam_follow_nodes.is_empty():
-		return Vector3(0.0, MapGeneration._get_approx_map_height_at_pos(Vector3.ZERO) + 2.0, 0.0)
+		var zero := HexConst.MAP_CENTER
+		zero.y = MapGeneration._get_approx_map_height_at_pos(zero) + 2.0
+		return zero
 
 	var p: Vector3 = Vector3.ZERO
 	for node in cam_follow_nodes:

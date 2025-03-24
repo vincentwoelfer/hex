@@ -44,16 +44,19 @@ var debug_mesh_path: DebugPathMeshInstance
 # First person youtube videos:
 # https://www.youtube.com/watch?v=xIKErMgJ1Yk
 
-func init(device: int) -> void:
+func init(device: int, color: Color) -> void:
 	input = MovementInput.new(device)
 
 	# Compute deceleration based on walk speed and time to max acc
 	var walk_accel: float = _get_acc_for_target_vel_and_time(walk_speed, time_to_max_acc)
 	self.deceleration = walk_accel
 
+	# Debugging
+	color.a = 0.3
+	debug_mesh_path = DebugPathMeshInstance.new(color, 0.05)
+
 	
 func _ready() -> void:
-	debug_mesh_path = DebugPathMeshInstance.new(Color(1, 0, 0, 0.3), 0.08)
 	get_tree().root.add_child(debug_mesh_path)
 	
 
@@ -88,12 +91,10 @@ func _process(delta: float) -> void:
 		return
 
 	var start_point: Vector3 = NavigationServer3D.map_get_closest_point(map, global_transform.origin)
-	var origin_point: Vector3 = NavigationServer3D.map_get_closest_point(map, Vector3(0, 0, 0))
+	var origin_point: Vector3 = NavigationServer3D.map_get_closest_point(map, GameStateManager.caravan.get_global_transform().origin)
 	var path := NavigationServer3D.map_get_path(map, start_point, origin_point, true)
-	# path = NavigationServer3D.simplify_path(path, 0.5)
-
+	path = NavigationServer3D.simplify_path(path, 0.5)
 	debug_mesh_path.update_path(path)
-
 
 
 func _physics_process(delta: float) -> void:

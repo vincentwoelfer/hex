@@ -17,6 +17,9 @@ const GRASS_MESH_LRES := preload('res://assets/meshes/basic_grass/basic_grass_lr
 # Terrain
 const DEFAULT_TERRAIN_MAT: Material = preload('res://assets/materials/default_geom_material.tres')
 
+# Caravan
+const CARAVAN_SCENE: PackedScene = preload('res://scenes/Caravan.tscn')
+
 # Highlight
 const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
 
