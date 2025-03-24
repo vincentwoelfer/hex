@@ -5,13 +5,13 @@ extends CharacterBody3D
 # Scene references
 @onready var nav_agent: NavigationAgent3D = $NavAgent
 
-var speed: float = 2.5
+var speed: float = 1.25
 
 # Global Path params
-var min_goal_distance: float = 40.0
+var min_goal_distance: float = 30.0
 var max_goal_distance: float = 50.0
 var path_dir_mean: float = Util.getHexAngleInterpolated(5)
-var path_dir_rand_deviation: float = deg_to_rad(10)
+var path_dir_rand_deviation: float = deg_to_rad(15)
 
 var has_goal: bool = false
 var current_goal: Vector3
