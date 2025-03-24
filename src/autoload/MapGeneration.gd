@@ -24,7 +24,7 @@ var threads_running_mutex: Mutex
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
 var generation_position: HexPos = HexPos.invalid()
-var tile_generation_distance_hex := HexConst.distance_m_to_hex(75)
+var tile_generation_distance_hex := HexConst.distance_m_to_hex(90)
 var tile_deletion_distance_hex := HexConst.distance_m_to_hex(125)
 
 
@@ -112,9 +112,9 @@ func fetch_and_add_generated_tiles() -> void:
 
 	for key: int in generated_queue_copy:
 		var chunk: HexChunk = HexChunkMap.get_by_hash(key)
-		assert(chunk != null) # This should never happen
+		assert(chunk != null)
 		if chunk != null:
-			# Only place where tiles are added to the scene
+			# Only place where tiles/chunks are added to the scene
 			add_child(chunk)
 
 
