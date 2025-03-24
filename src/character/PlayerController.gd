@@ -53,7 +53,7 @@ func init(device: int) -> void:
 
 	
 func _ready() -> void:
-	debug_mesh_path = DebugPathMeshInstance.new(Color(1, 0, 0, 0.7))
+	debug_mesh_path = DebugPathMeshInstance.new(Color(1, 0, 0, 0.3), 0.08)
 	get_tree().root.add_child(debug_mesh_path)
 	
 
@@ -90,12 +90,10 @@ func _process(delta: float) -> void:
 	var start_point: Vector3 = NavigationServer3D.map_get_closest_point(map, global_transform.origin)
 	var origin_point: Vector3 = NavigationServer3D.map_get_closest_point(map, Vector3(0, 0, 0))
 	var path := NavigationServer3D.map_get_path(map, start_point, origin_point, true)
-	path = NavigationServer3D.simplify_path(path, 0.5)
+	# path = NavigationServer3D.simplify_path(path, 0.5)
 
 	debug_mesh_path.update_path(path)
 
-	# %PathDebugCorridorFunnel.get_next_path_position()
-	# %PathDebugEdgeCentered.get_next_path_position()
 
 
 func _physics_process(delta: float) -> void:
