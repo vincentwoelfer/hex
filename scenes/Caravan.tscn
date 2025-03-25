@@ -13,8 +13,6 @@ height = 0.6
 radius = 0.8
 
 [node name="Caravan" type="CharacterBody3D"]
-# 80deg
-floor_max_angle = 1.39626
 script = ExtResource("1_4v2ye")
 
 [node name="Mesh" type="MeshInstance3D" parent="."]
@@ -33,3 +31,10 @@ simplify_epsilon = 0.5
 debug_enabled = true
 debug_use_custom = true
 debug_path_custom_color = Color(0, 0.407843, 0.164706, 1)
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+light_color = Color(0, 0.407843, 0.164706, 1)
+light_energy = 20.0
+shadow_enabled = true
+omni_range = 15.0

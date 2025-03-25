@@ -38,7 +38,7 @@ var dash_timer: float = 0.0
 
 var input: MovementInput
 
-var debug_path: DebugPathMeshInstance
+var debug_path: DebugPathInstance
 
 # First person youtube videos:
 # https://www.youtube.com/watch?v=xIKErMgJ1Yk
@@ -52,7 +52,7 @@ func init(device: int, color: Color) -> void:
 
 	# Debugging
 	color.a = 0.3
-	debug_path = DebugPathMeshInstance.new(color, 0.05)
+	debug_path = DebugPathInstance.new(color, 0.05)
 	add_child(debug_path)
 
 	
