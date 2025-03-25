@@ -45,7 +45,7 @@ func _ready() -> void:
 	orientation_angle_goal = Util.getHexAngleInterpolated(orientation_goal)
 	orientation_angle_curr = orientation_angle_goal
 
-	follow_point_goal = GameStateManager.get_cam_follow_point()
+	follow_point_goal = GameStateManager.cam_follow_point_manager.calculate_cam_follow_point()
 	follow_point_curr = follow_point_goal
 
 
@@ -89,11 +89,11 @@ func update_zoom_manual(zoom_input: float) -> void:
 func _physics_process(delta: float) -> void:
 	handle_continuous_input(delta)
 
-	follow_point_goal = GameStateManager.get_cam_follow_point()
+	follow_point_goal = GameStateManager.cam_follow_point_manager.calculate_cam_follow_point()
 
 	# Calculate zoom goal based on max dist
 	if not zoom_manual_override:
-		var max_dist := GameStateManager.calculate_cam_follow_point_max_dist(follow_point_goal)
+		var max_dist := GameStateManager.cam_follow_point_manager.calculate_cam_follow_point_max_dist(follow_point_goal)
 		zoom_goal = remap(max_dist, zoom_min_at_dist, zoom_max_at_dist, zoom_min, zoom_max)
 		zoom_goal = clampf(zoom_goal, zoom_min, zoom_max)
 
@@ -111,7 +111,7 @@ func _physics_process(delta: float) -> void:
 	camera.look_at_from_position(cam_pos, follow_point_curr, Vector3.UP)
 
 	# Set global cam orientation
-	GameStateManager.set_global_camera_view_angle(orientation_angle_curr)
+	GameStateManager.cam_follow_point_manager.set_global_camera_view_angle(orientation_angle_curr)
 
 	draw_debug_mesh(follow_point_curr)
 

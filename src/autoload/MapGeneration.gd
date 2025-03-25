@@ -86,7 +86,7 @@ func update_generation_position() -> bool:
 	if Engine.is_editor_hint():
 		world_pos = Util.get_global_cam_pos(self)
 	else:
-		world_pos = PlayerManager.calculate_cam_follow_point()
+		world_pos = GameStateManager.cam_follow_point_manager.calculate_cam_follow_point()
 
 	# Transform to hexpos
 	var hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(world_pos).round()

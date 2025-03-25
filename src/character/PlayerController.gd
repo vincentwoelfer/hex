@@ -38,8 +38,7 @@ var dash_timer: float = 0.0
 
 var input: MovementInput
 
-# DEBUG
-var debug_mesh_path: DebugPathMeshInstance
+var debug_path: DebugPathMeshInstance
 
 # First person youtube videos:
 # https://www.youtube.com/watch?v=xIKErMgJ1Yk
@@ -53,14 +52,11 @@ func init(device: int, color: Color) -> void:
 
 	# Debugging
 	color.a = 0.3
-	debug_mesh_path = DebugPathMeshInstance.new(color, 0.05)
+	debug_path = DebugPathMeshInstance.new(color, 0.05)
+	add_child(debug_path)
 
 	
-func _ready() -> void:
-	get_tree().root.add_child(debug_mesh_path)
-	
-
-func get_current_gravity() -> float:
+func _get_current_gravity() -> float:
 	var jump_gravity: float = (-2.0 * jump_height) / (jump_time_to_peak_sec ** 2)
 	var fall_gravity: float = (-2.0 * jump_height) / (jump_time_to_descent_sec ** 2)
 
@@ -94,7 +90,7 @@ func _process(delta: float) -> void:
 	var origin_point: Vector3 = NavigationServer3D.map_get_closest_point(map, GameStateManager.caravan.get_global_transform().origin)
 	var path := NavigationServer3D.map_get_path(map, start_point, origin_point, true)
 	path = NavigationServer3D.simplify_path(path, 0.5)
-	debug_mesh_path.update_path(path)
+	debug_path.update_path(path)
 
 
 func _physics_process(delta: float) -> void:
@@ -105,7 +101,7 @@ func _physics_process(delta: float) -> void:
 
 	# Apply gravity
 	if not is_on_floor():
-		velocity.y += get_current_gravity() * delta
+		velocity.y += _get_current_gravity() * delta
 
 	# Movement input
 	var input_dir := input.input_direction

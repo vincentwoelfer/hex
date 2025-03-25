@@ -11,6 +11,10 @@ func _init(color_: Color, width_: float = 0.1) -> void:
 	self.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 
+func _process(delta: float) -> void:
+	self.global_position = Vector3.ZERO
+
+
 func update_path(path: PackedVector3Array) -> void:
 	if path.size() < 2:
 		visible = false

@@ -4,14 +4,12 @@
 extends Node3D
 
 
-var global_camera_view_angle: float
-
-
-# NAVMAP
-var nav_map: RID
-
 # Caravan
 var caravan: Caravan
+
+
+# Sub-Managers
+var cam_follow_point_manager: CameraFollowPointManager
 
 
 func _ready() -> void:
@@ -23,9 +21,11 @@ func _ready() -> void:
 
 	get_tree().debug_collisions_hint = DebugSettings.enable_debug_collision_visualizations
 
+	cam_follow_point_manager = CameraFollowPointManager.new()
+
 	#NAVMAP
+	var nav_map := get_world_3d().navigation_map
 	NavigationServer3D.set_debug_enabled(true)
-	nav_map = get_world_3d().navigation_map
 	NavigationServer3D.map_set_cell_size(nav_map, HexConst.nav_cell_size)
 	NavigationServer3D.map_set_use_edge_connections(nav_map, true)
 
@@ -59,25 +59,9 @@ func request_quit_game() -> void:
 	MapGeneration.shutdown_threads()
 
 
-func get_cam_follow_point() -> Vector3:
-	# Depending on game state, this may not follow the players
-	return PlayerManager.calculate_cam_follow_point()
-
-func calculate_cam_follow_point_max_dist(cam_follow_point: Vector3) -> float:
-	return PlayerManager.calculate_cam_follow_point_max_dist(cam_follow_point)
-
-
-func set_global_camera_view_angle(angle: float) -> void:
-	global_camera_view_angle = angle
-
-func get_global_camera_view_angle() -> float:
-	return global_camera_view_angle
-
-
 ##################################################################
 # Spawner Functions
 ###################################################################
-
 func spawn_caravan() -> void:
 	if caravan != null:
 		return
@@ -102,52 +86,4 @@ func spawn_caravan() -> void:
 	get_tree().root.add_child(caravan)
 	caravan.global_transform.origin = spawn_pos
 
-
-##################################################################
-# Helper Functions
-###################################################################
-func get_input_mapping() -> Dictionary[String, String]:
-	var mapping: Dictionary[String, String] = {}
-	for action in InputMap.get_actions():
-		if not (action.begins_with("ui_") or action.begins_with("cam_") or action.begins_with("spatial_")):
-			mapping[action] = get_keys_for_action(action)
-	return mapping
-
-
-func get_keys_for_action(action: String) -> String:
-	var key_list := []
-	var events := InputMap.action_get_events(action)
-	for event in events:
-		if event is InputEventKey:
-			# Add the physical key code to the list
-			var key_string: String = (event as InputEventKey).as_text_physical_keycode()
-			key_list.append(key_string)
-		elif event is InputEventJoypadButton:
-			var key_string: String = (event as InputEventJoypadButton).as_text()
-			key_list.append(key_string)
-	return ", ".join(key_list)
-
-
-func pretty_print_actions(actions_dict: Dictionary[String, String]) -> void:
-	var max_action_length: int = 0
-	for action: String in actions_dict.keys():
-		max_action_length = max(max_action_length, action.length())
-
-	# Sort the dictionary by values (hotkeys) alphabetically
-	var sorted_hotkeys: Array[String] = actions_dict.values()
-	sorted_hotkeys.sort_custom(func(a: String, b: String) -> bool: return a < b)
-
-	Util.print_banner("Key Bindings")
-	for hotkey: String in sorted_hotkeys:
-		var action := get_key_by_value(actions_dict, hotkey)
-		var padding: String = " ".repeat(max_action_length - action.length())
-		print("- %s:%s    %s" % [action, padding, actions_dict[action]])
-	Util.print_only_banner()
-
-
-func get_key_by_value(dict: Dictionary[String, String], value: String) -> String:
-	for key: String in dict:
-		if dict[key] == value:
-			return key
-	# Return an empty string if no matching value is found
-	return ""
+	cam_follow_point_manager.register_cam_follow_node(caravan)
