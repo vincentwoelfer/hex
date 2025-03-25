@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3 uid="uid://b8strb7jpy7y8"]
+
+[ext_resource type="Script" uid="uid://b85un111vchva" path="res://src/character/BasicEnemy.gd" id="1_cg60k"]
+[ext_resource type="Material" uid="uid://ddiid83wdl655" path="res://assets/materials/basic_enemy_material.tres" id="2_cg60k"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_84j8r"]
+material = ExtResource("2_cg60k")
+radius = 0.3
+height = 0.6
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cg60k"]
+radius = 0.3
+height = 0.8
+
+[node name="BasicEnemy" type="CharacterBody3D"]
+script = ExtResource("1_cg60k")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("SphereMesh_84j8r")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("CapsuleShape3D_cg60k")
+
+[node name="NavAgent" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.25
+target_desired_distance = 0.25
+simplify_path = true
+simplify_epsilon = 0.5
+debug_enabled = true
+debug_use_custom = true
+debug_path_custom_color = Color(0, 0.407843, 0.164706, 1)
