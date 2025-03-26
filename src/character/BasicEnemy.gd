@@ -4,7 +4,7 @@ extends CharacterBody3D
 # Scene references
 @onready var nav_agent: NavigationAgent3D = $NavAgent
 
-var speed: float = 2.0
+var speed: float = 2.5
 
 var has_goal: bool = false
 var current_goal: Vector3
@@ -16,7 +16,7 @@ var replan_timer: Timer
 func _ready() -> void:
 	nav_agent.debug_enabled = DebugSettings.caravan_debug_path
 
-	var color := nav_agent.debug_path_custom_color
+	var color := Color.RED
 	color.a = 0.3
 	debug_path = DebugPathInstance.new(color, 0.03)
 	add_child(debug_path)

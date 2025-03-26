@@ -106,6 +106,7 @@ func spawn_player(player: PlayerData) -> void:
 
 	get_tree().root.add_child(player_node)
 	player_node.global_position = spawn_pos
+	player_node.reset_physics_interpolation()
 
 	player.player_node = player_node
 	GameStateManager.cam_follow_point_manager.register_cam_follow_node(player_node)

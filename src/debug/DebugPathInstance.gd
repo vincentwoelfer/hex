@@ -9,7 +9,9 @@ var height_offset: float = 0.2
 func _init(color_: Color, width_: float = 0.1) -> void:
 	color = color_
 	width = width_
+
 	self.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	self.physics_interpolation_mode = PhysicsBody3D.PHYSICS_INTERPOLATION_MODE_OFF
 
 
 func _process(delta: float) -> void:

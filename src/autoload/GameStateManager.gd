@@ -39,6 +39,14 @@ func _ready() -> void:
 		PlayerManager.add_player(-1)
 
 
+	# Add enemy spawner
+	var enemy_spawn_timer := Timer.new()
+	enemy_spawn_timer.wait_time = 0.5
+	enemy_spawn_timer.autostart = true
+	enemy_spawn_timer.timeout.connect(spawn_enemy)
+	add_child(enemy_spawn_timer)
+
+
 # React to keyboard inputs to directly trigger events
 func _input(event: InputEvent) -> void:
 	# Only execute in game, check necessary because EventBus is @tool
@@ -65,6 +73,9 @@ func request_quit_game() -> void:
 	MapGeneration.shutdown_threads()
 
 
+##################################################################
+# Spawner Functions
+###################################################################
 func spawn_enemy() -> void:
 	var enemy_node: BasicEnemy = ResLoader.BASIC_ENEMY_SCENE.instantiate()
 
@@ -75,11 +86,9 @@ func spawn_enemy() -> void:
 
 	get_tree().root.add_child(enemy_node)
 	enemy_node.global_position = spawn_pos
+	enemy_node.reset_physics_interpolation()
 
 
-##################################################################
-# Spawner Functions
-###################################################################
 func spawn_caravan() -> void:
 	if caravan != null:
 		return
@@ -103,5 +112,6 @@ func spawn_caravan() -> void:
 	# Add to scene
 	get_tree().root.add_child(caravan)
 	caravan.global_position = spawn_pos
+	caravan.reset_physics_interpolation()
 
 	cam_follow_point_manager.register_cam_follow_node(caravan)
