@@ -16,10 +16,13 @@ func _process(delta: float) -> void:
 	self.global_position = Vector3.ZERO + Vector3(0, height_offset, 0)
 
 
-func update_path(path: PackedVector3Array) -> void:
+func update_path(path: PackedVector3Array, start_pos_override: Vector3 = Vector3.INF) -> void:
 	if path.size() < 2:
 		visible = false
 		return
+
+	if start_pos_override != Vector3.INF:
+		path[0] = start_pos_override
 
 	mesh = DebugShapes3D.create_path_mesh(path, width)
 	mesh.surface_set_material(0, DebugShapes3D.create_debug_material(color))

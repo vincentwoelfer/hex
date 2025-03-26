@@ -9,8 +9,6 @@ const MAX_PLAYERS: int = 4
 # Dictionary of players, indexed by their id
 var players: Dictionary[int, PlayerData] = {}
 
-var player_scene: PackedScene = preload('res://scenes/PlayerCharacter.tscn')
-
 
 func _process(delta: float) -> void:
 	if not Engine.is_editor_hint():
@@ -89,7 +87,7 @@ func _is_device_joined(device: int) -> bool:
 # Spawning
 ###################################################	
 func spawn_player(player: PlayerData) -> void:
-	var player_node: PlayerController = player_scene.instantiate()
+	var player_node: PlayerController = ResLoader.PLAYER_SCENE.instantiate()
 	player_node.init(player.input_device, player.color)
 
 	# Find spawn pos
@@ -107,7 +105,7 @@ func spawn_player(player: PlayerData) -> void:
 	mesh_instance.mesh = new_mesh
 
 	get_tree().root.add_child(player_node)
-	player_node.global_transform.origin = spawn_pos
+	player_node.global_position = spawn_pos
 
 	player.player_node = player_node
 	GameStateManager.cam_follow_point_manager.register_cam_follow_node(player_node)

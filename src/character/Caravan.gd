@@ -35,15 +35,12 @@ func _physics_process(delta: float) -> void:
 		return
 
 	var next_position := nav_agent.get_next_path_position()
-	var direction := (next_position - global_transform.origin).normalized()
+	var direction := (next_position - global_position).normalized()
 	velocity = direction * speed
 	move_and_slide()
 
-	# Update visual path, manually replace first point by own position
-	var path := nav_agent.get_current_navigation_path()
-	if path.size() > 0:
-		path[0] = global_transform.origin
-	debug_path.update_path(path)
+	# Update visual path
+	debug_path.update_path(nav_agent.get_current_navigation_path(), global_position)
 
 
 func choose_new_goal() -> void:
@@ -54,7 +51,7 @@ func choose_new_goal() -> void:
 
 	var r := randf_range(min_goal_distance, max_goal_distance)
 	var angle := randf_range(path_dir_mean - path_dir_rand_deviation, path_dir_mean + path_dir_rand_deviation)
-	var random_goal_pos := global_transform.origin + Util.vec3FromRadiusAngle(r, angle)
+	var random_goal_pos := global_position + Util.vec3FromRadiusAngle(r, angle)
 
 	# Set the new goal for navigation
 	current_goal = NavigationServer3D.map_get_closest_point(nav_map, random_goal_pos)

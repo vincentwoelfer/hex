@@ -4,9 +4,16 @@ class_name Util
 ######################################################
 # Randomness
 ######################################################
+## Gives a random offset in a circle with radius r_max
 static func randCircularOffset(r_max: float) -> Vector3:
 	var angle := randf_range(0.0, 2.0 * PI)
 	var r := randf_range(0.0, r_max)
+	return vec3FromRadiusAngle(r, angle)
+
+## Gives a random offset in a circle betwee radius r_min and r_max
+static func randCircularOffsetRange(r_min: float, r_max: float) -> Vector3:
+	var angle := randf_range(0.0, 2.0 * PI)
+	var r := randf_range(r_min, r_max)
 	return vec3FromRadiusAngle(r, angle)
 
 
@@ -34,7 +41,7 @@ static func getHexAngle(dir: int) -> float:
 	return HEX_ANGLES[as_dir(dir)]
 
 static func getHexAngleInterpolated(orientation: float) -> float:
-	return PI/3.0 * orientation
+	return PI / 3.0 * orientation
 
 
 static func vec3FromRadiusAngle(r: float, angle: float) -> Vector3:
@@ -117,7 +124,7 @@ static func get_global_cam_pos(reference_node: Node) -> Vector3:
 	var cam := get_global_cam(reference_node)
 		
 	if cam != null:
-		return cam.global_transform.origin
+		return cam.global_position
 	else:
 		return Vector3.ZERO
 

@@ -329,7 +329,7 @@ func _exit_tree() -> void:
 		while not threads.is_empty():
 			join_threads()
 			# This fails if node not in tree (if scene was not opened on startup)
-			await get_tree().create_timer(0.01).timeout
+			await get_tree().process_frame
 
 
 ##############################

@@ -140,7 +140,7 @@ func draw_debug_mesh(location: Vector3) -> void:
 			debug_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			scene_root.add_child(debug_mesh)
 
-		debug_mesh.global_transform.origin = location
+		debug_mesh.global_position = location
 
 
 func raycast_into_world() -> Dictionary:

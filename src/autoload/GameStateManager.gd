@@ -53,10 +53,28 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_pressed("quit_game"):
 			request_quit_game()
 
+		# DEBUG
+		# Spawn enemy
+		if event.is_action_pressed("spawn_enemy"):
+			spawn_enemy()
+			pass
+
 
 func request_quit_game() -> void:
 	Util.print_multiline_banner("Quitting game")
 	MapGeneration.shutdown_threads()
+
+
+func spawn_enemy() -> void:
+	var enemy_node: BasicEnemy = ResLoader.BASIC_ENEMY_SCENE.instantiate()
+
+	# Find spawn pos
+	var shape: CollisionShape3D = enemy_node.get_node("Collision")
+	var spawn_pos: Vector3 = caravan.global_position + Util.randCircularOffsetRange(12, 20)
+	spawn_pos = MapGeneration.get_capsule_spawn_pos_on_map_surface(spawn_pos, shape)
+
+	get_tree().root.add_child(enemy_node)
+	enemy_node.global_position = spawn_pos
 
 
 ##################################################################
@@ -84,6 +102,6 @@ func spawn_caravan() -> void:
 
 	# Add to scene
 	get_tree().root.add_child(caravan)
-	caravan.global_transform.origin = spawn_pos
+	caravan.global_position = spawn_pos
 
 	cam_follow_point_manager.register_cam_follow_node(caravan)

@@ -13,7 +13,7 @@ static var outer_radius: float = 2.5
 # Distance from center to the sides.
 # Radius of the workable Regular area.
 # Must be smaller than outer_radius * 0.86 (size of largest circle in outer hex)
-static var inner_radius: float = 2.3
+static var inner_radius: float = 2.15
 
 # Height of one hex cell
 static var height: float = 0.5
