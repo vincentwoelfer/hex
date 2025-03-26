@@ -18,11 +18,7 @@ var current_goal: Vector3
 var debug_path: DebugPathInstance
 
 func _ready() -> void:
-	nav_agent.debug_enabled = DebugSettings.caravan_debug_path
-
-	var color := nav_agent.debug_path_custom_color
-	color.a = 0.5
-	debug_path = DebugPathInstance.new(color, 0.05)
+	debug_path = DebugPathInstance.new(Color(0, 0.407843, 0.164706, 0.5), 0.05, DebugSettings.debug_path_caravan)
 	add_child(debug_path)
 
 	# Set initial goal

@@ -39,6 +39,9 @@ var dash_timer: float = 0.0
 var input: MovementInput
 
 var debug_path: DebugPathInstance
+var debug_path_2: DebugPathInstance
+
+@onready var shape: CollisionShape3D = $Collision
 
 # First person youtube videos:
 # https://www.youtube.com/watch?v=xIKErMgJ1Yk
@@ -51,9 +54,10 @@ func init(device: int, color: Color) -> void:
 	self.deceleration = walk_accel
 
 	# Debugging
-	color.a = 0.3
-	debug_path = DebugPathInstance.new(color, 0.05)
+	debug_path = DebugPathInstance.new(Colors.set_alpha(color, 0.3), 0.05)
+	debug_path_2 = DebugPathInstance.new(Color.DARK_BLUE, 0.05)
 	add_child(debug_path)
+	add_child(debug_path_2)
 
 	
 func _get_current_gravity() -> float:
@@ -89,8 +93,99 @@ func _process(delta: float) -> void:
 	var start_point: Vector3 = NavigationServer3D.map_get_closest_point(map, global_position)
 	var origin_point: Vector3 = NavigationServer3D.map_get_closest_point(map, GameStateManager.caravan.get_global_transform().origin)
 	var path := NavigationServer3D.map_get_path(map, start_point, origin_point, true)
-	path = NavigationServer3D.simplify_path(path, 0.5)
+	# path = NavigationServer3D.simplify_path(path, 0.5)
 	debug_path.update_path(path, global_position)
+
+	
+	var path_simplified := simp_path(path)
+	debug_path_2.update_path(path_simplified, global_position)
+
+
+# func simp_path(path: PackedVector3Array) -> PackedVector3Array:
+# 	if path.size() < 3:
+# 		return path # Nothing to simplify if path has less than 3 points
+
+# 	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
+# 	var simplified_path := PackedVector3Array()
+
+# 	var current_index := 0
+# 	simplified_path.append(path[current_index])
+
+# 	while current_index < path.size() - 1:
+# 		var next_index := path.size() - 1 # Try to jump directly to the end
+
+# 		# Check if we can reach the furthest point directly
+# 		while next_index > current_index + 1:
+# 			var offset := Vector3(0, 0.5, 0)
+# 			var query := PhysicsRayQueryParameters3D.create(path[current_index] + offset, path[next_index] + offset)
+# 			var result := space_state.intersect_ray(query)
+
+# 			if result.is_empty():
+# 				# If no obstacle, we can skip intermediate points
+# 				break
+# 			else:
+# 				# If there's an obstacle, step back
+# 				next_index -= 1
+
+# 		# Move to the next reachable point
+# 		current_index = next_index
+# 		simplified_path.append(path[current_index])
+
+# 	return simplified_path
+
+func simp_path(path: PackedVector3Array) -> PackedVector3Array:
+	if path.size() < 3:
+		return path # Nothing to simplify if path has less than 3 points
+
+	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
+	var simplified_path := PackedVector3Array()
+
+	var current_index := 0
+	simplified_path.append(path[current_index])
+
+	# Define the capsule shape for sweeping
+	var capsule_shape := CapsuleShape3D.new()
+	capsule_shape.radius = (shape.shape as CapsuleShape3D).radius * 0.9
+	capsule_shape.height = (shape.shape as CapsuleShape3D).height * 0.8
+	var offset := Vector3(0, (shape.shape as CapsuleShape3D).height / 2.0, 0)
+
+	while current_index < path.size() - 1:
+		var next_index := path.size() - 1 # Try to jump directly to the end
+
+		# Check if we can reach the furthest point directly
+		while next_index > current_index + 1:
+			var motion := path[next_index] - path[current_index]
+
+			var query := PhysicsShapeQueryParameters3D.new()
+			query.set_shape(capsule_shape)
+			query.transform = Transform3D(Basis(), path[current_index] + offset)
+			query.motion = motion
+			query.collide_with_bodies = true
+			query.collide_with_areas = false
+
+			var result: PackedFloat32Array = space_state.cast_motion(query)
+
+			if result[0] >= 0.98:
+				# If no obstacle, we can skip intermediate points
+				break
+			else:
+				# If there's an obstacle, step back
+				next_index -= 1
+
+		# Move to the next reachable point
+		current_index = next_index
+		simplified_path.append(path[current_index])
+	return simplified_path
+
+
+func perform_raycast(from: Vector3, to: Vector3) -> Dictionary:
+	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
+	var query := PhysicsRayQueryParameters3D.create(from, to)
+	var result := space_state.intersect_ray(query)
+	if result:
+		return result
+	
+	return {}
 
 
 func _physics_process(delta: float) -> void:

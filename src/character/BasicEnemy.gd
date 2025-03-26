@@ -14,11 +14,7 @@ var debug_path: DebugPathInstance
 var replan_timer: Timer
 
 func _ready() -> void:
-	nav_agent.debug_enabled = DebugSettings.caravan_debug_path
-
-	var color := Color.RED
-	color.a = 0.3
-	debug_path = DebugPathInstance.new(color, 0.03)
+	debug_path = DebugPathInstance.new(Color(1, 0, 0, 0.3), 0.03, DebugSettings.debug_path_basic_enemy)
 	add_child(debug_path)
 
 	# Set initial goal

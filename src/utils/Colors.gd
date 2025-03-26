@@ -19,6 +19,11 @@ static func colorVariation(color: Color, variation: float = 0.08) -> Color:
 	var var_b := remap(color.b, 0.0, 1.0, 0.5, 1.3)
 	return (color + Color(randf_range(- variation, variation) * var_r, randf_range(- variation, variation) * var_g, randf_range(- variation, variation) * var_b, 0.0)).clamp()
 
+
+
+static func set_alpha(color: Color, alpha: float) -> Color:
+	return Color(color.r, color.g, color.b, alpha)
+
 #############################################################################
 # Distrinc HEX colors for each side, top and transitions
 #############################################################################
