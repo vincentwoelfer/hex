@@ -131,51 +131,8 @@ func on_parsing_done() -> void:
 	)
 
 
-func is_outlier_vertex(v: Vector3, eps: float = 0.1) -> bool:
-	# forumlar x: -1.875 + n * 15.0
-	# forumlar z: 1.08253192901611 + n * 17.3749990463
-	var snapped_x := -1.875 + snappedf(v.x, 15.0)
-	var snapped_z := 1.08253192901611 + snappedf(v.z, 17.3749990463)
-
-	return (abs(v.x - snapped_x) <= eps and not is_equal_approx(v.x, snapped_x)) or \
-		   (abs(v.z - snapped_z) <= eps and not is_equal_approx(v.z, snapped_z))
-
-func correct_outliert_vertex(v: Vector3, eps: float = 0.1) -> Vector3:
-	var old := v
-	var snapped_x := -1.875 + snappedf(v.x, 15.0)
-	var snapped_z := 1.08253192901611 + snappedf(v.z, 17.3749990463)
-
-	if abs(v.x - snapped_x) <= eps:
-		v.x = snapped_x
-	if abs(v.z - snapped_z) <= eps:
-		v.z = snapped_z
-
-	print("Corrected: ", old, " -> ", v)
-	return v
-
-
 func on_baking_done() -> void:
 	nav_region = NavigationRegion3D.new()
-
-	# Post-process vertices	
-	# var verts := nav_mesh.get_vertices()
-	# for i in range(verts.size()):
-	# 	if is_outlier_vertex(verts[i]):
-	# 		# MODIFY
-	# 		verts[i] = correct_outliert_vertex(verts[i])
-
-	# 		# spawn debug sphere
-	# 		var instance := MeshInstance3D.new()
-	# 		instance.mesh = DebugShapes3D.create_sphere_mesh(0.25, Color.PURPLE)
-	# 		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	# 		instance.position = verts[i] + Vector3(0, 0.8, 0)
-	# 		self.add_child(instance)
-	
-	# for v in verts:
-	# 	if is_outlier_vertex(v):
-	# 		print("DSFSÄDPÖFJÄSLÖDF ", v)
-	# nav_mesh.set_vertices(verts)
-	
 	nav_region.navigation_mesh = nav_mesh
 	nav_region.enabled = true
 	add_child(nav_region)
