@@ -167,7 +167,6 @@ func _update_path() -> void:
 	var start_point: Vector3 = NavigationServer3D.map_get_closest_point(map, global_position)
 	var origin_point: Vector3 = NavigationServer3D.map_get_closest_point(map, GameStateManager.caravan.get_global_transform().origin)
 	var path := NavigationServer3D.map_get_path(map, start_point, origin_point, true)
-	# path = NavigationServer3D.simplify_path(path, 0.5)
 	debug_path.update_path(path, global_position)
 
 	

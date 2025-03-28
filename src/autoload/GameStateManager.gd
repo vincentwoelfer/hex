@@ -35,7 +35,9 @@ func _ready() -> void:
 	# at a distance less than edge_connection_margin to the respective other edge's vertex.
 	# -> THIS DOES NOT WORK FOR US RELIABLY
 	NavigationServer3D.map_set_use_edge_connections(nav_map, true)
-	NavigationServer3D.map_set_edge_connection_margin(nav_map, 0.5) # default 0.25
+
+	# Increase margin for edge connections because we have an artificial border of one cell size
+	NavigationServer3D.map_set_edge_connection_margin(nav_map, 0.25 + HexConst.nav_cell_size) # default 0.25
 
 
 	# Wait for nav chunks to be loaded

@@ -99,19 +99,28 @@ func on_parsing_done() -> void:
 	# Create new nav-mesh with parameters
 	nav_mesh = NavigationMesh.new()
 	nav_mesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
+	nav_mesh.sample_partition_type = NavigationMesh.SAMPLE_PARTITION_MONOTONE
 	nav_mesh.cell_size = HexConst.nav_cell_size
 	nav_mesh.cell_height = HexConst.nav_cell_size
 	nav_mesh.agent_radius = HexConst.nav_agent_radius
 
+	nav_mesh.agent_max_slope = 50.0 # default 45
+	nav_mesh.agent_max_climb = snappedf(0.125, HexConst.nav_cell_size) # default = 0.25
+
 	# Nav-Mesh baking settings regardin geometry
 	var baking_border := snappedf(1.5, HexConst.nav_cell_size)
 	nav_mesh.filter_baking_aabb = self.chunk_aabb.grow(baking_border)
-	nav_mesh.border_size = baking_border + HexConst.nav_cell_size
-	# nav_mesh.edge_max_length = 1.0
-	# nav_mesh.filter_ledge_spans = false
 
-	nav_mesh.edge_max_error = 1.0
-	nav_mesh.region_min_size = 30.0
+	# Keep nav-meshes smaller than the actual geometry by having an artificial border of one cell size
+	nav_mesh.border_size = baking_border + HexConst.nav_cell_size
+
+	nav_mesh.detail_sample_distance = 6.0 # default = 6.0
+	nav_mesh.detail_sample_max_error = 1.0 # default = 1.0
+
+	nav_mesh.edge_max_error = 1.5 # default = 1.3
+
+	nav_mesh.region_min_size = 40.0 # The minimum size of a region for it to be created, default = 2
+	nav_mesh.region_merge_size = 100.0 # smaller than this will be merged, default = 20
 
 
 	# Bake the navigation mesh on a thread with the source geometry data.
