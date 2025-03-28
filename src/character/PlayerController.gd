@@ -55,7 +55,7 @@ func init(device: int, color: Color) -> void:
 
 	# Debugging
 	debug_path = DebugPathInstance.new(Colors.set_alpha(color, 0.3), 0.05)
-	debug_path_2 = DebugPathInstance.new(Color.DARK_BLUE, 0.05)
+	debug_path_2 = DebugPathInstance.new(Colors.set_alpha(Color.DARK_BLUE, 0.3), 0.05)
 	add_child(debug_path)
 	add_child(debug_path_2)
 
@@ -100,28 +100,47 @@ func simp_path(path: PackedVector3Array) -> PackedVector3Array:
 	capsule_shape.height = (shape.shape as CapsuleShape3D).height * 0.8
 	var offset := Vector3(0, (shape.shape as CapsuleShape3D).height / 2.0, 0)
 
+	const max_dist := 10.0
+	const max_height_diff := 2.0
+
+	# Iterate over path, try to connect current_index (from path start) with next_index, (from path end, moving backwards)
 	while current_index < path.size() - 1:
 		var next_index := path.size() - 1 # Try to jump directly to the end
 
 		# Check if we can reach the furthest point directly
 		while next_index > current_index + 1:
-			var motion := path[next_index] - path[current_index]
+			# Only connect if
+			# - path is clear
+			# - distance is short enough
+			# - low height difference
+			# Check distance
+			var distance := path[next_index].distance_to(path[current_index])
+			if distance > max_dist:
+				next_index -= 1
+				continue
 
+			# Check height difference
+			var height_diff := absf(path[next_index].y - path[current_index].y)
+			if height_diff > max_height_diff:
+				next_index -= 1
+				continue
+
+			# Check path is clear
+			var motion := path[next_index] - path[current_index]
 			var query := PhysicsShapeQueryParameters3D.new()
 			query.set_shape(capsule_shape)
 			query.transform = Transform3D(Basis(), path[current_index] + offset)
 			query.motion = motion
 			query.collide_with_bodies = true
 			query.collide_with_areas = false
-
 			var result: PackedFloat32Array = space_state.cast_motion(query)
 
-			if result[0] >= 0.98:
-				# If no obstacle, we can skip intermediate points
-				break
-			else:
-				# If there's an obstacle, step back
+			if result[0] < 0.98:
 				next_index -= 1
+				continue
+
+			# No issue -> Connect path points
+			break
 
 		# Move to the next reachable point
 		current_index = next_index

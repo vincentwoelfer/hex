@@ -4,7 +4,7 @@ extends MeshInstance3D
 var color: Color = Color(1, 0, 0, 0.8)
 var width: float = 0.1
 var enabled: bool = true
-var height_offset: float = 0.2
+var height_offset: float = 0.25
 
 func _init(color_: Color, width_: float = 0.1, enabled_: bool = true) -> void:
 	color = color_

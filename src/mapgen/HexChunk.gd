@@ -106,11 +106,13 @@ func on_parsing_done() -> void:
 	# Nav-Mesh baking settings regardin geometry
 	var baking_border := snappedf(1.5, HexConst.nav_cell_size)
 	nav_mesh.filter_baking_aabb = self.chunk_aabb.grow(baking_border)
-	nav_mesh.border_size = baking_border
+	nav_mesh.border_size = baking_border + HexConst.nav_cell_size
 	# nav_mesh.edge_max_length = 1.0
 	# nav_mesh.filter_ledge_spans = false
+
 	nav_mesh.edge_max_error = 1.0
 	nav_mesh.region_min_size = 30.0
+
 
 	# Bake the navigation mesh on a thread with the source geometry data.
 	NavigationServer3D.bake_from_source_geometry_data_async(
@@ -129,7 +131,6 @@ func is_outlier_vertex(v: Vector3, eps: float = 0.1) -> bool:
 	return (abs(v.x - snapped_x) <= eps and not is_equal_approx(v.x, snapped_x)) or \
 		   (abs(v.z - snapped_z) <= eps and not is_equal_approx(v.z, snapped_z))
 
-
 func correct_outliert_vertex(v: Vector3, eps: float = 0.1) -> Vector3:
 	var old := v
 	var snapped_x := -1.875 + snappedf(v.x, 15.0)
@@ -146,60 +147,25 @@ func correct_outliert_vertex(v: Vector3, eps: float = 0.1) -> Vector3:
 
 func on_baking_done() -> void:
 	nav_region = NavigationRegion3D.new()
+
+	# Post-process vertices	
+	# var verts := nav_mesh.get_vertices()
+	# for i in range(verts.size()):
+	# 	if is_outlier_vertex(verts[i]):
+	# 		# MODIFY
+	# 		verts[i] = correct_outliert_vertex(verts[i])
+
+	# 		# spawn debug sphere
+	# 		var instance := MeshInstance3D.new()
+	# 		instance.mesh = DebugShapes3D.create_sphere_mesh(0.25, Color.PURPLE)
+	# 		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# 		instance.position = verts[i] + Vector3(0, 0.8, 0)
+	# 		self.add_child(instance)
 	
-	var verts := nav_mesh.get_vertices()
-
-	for i in range(verts.size()):
-		if is_outlier_vertex(verts[i]):
-			# MODIFY
-			verts[i] = correct_outliert_vertex(verts[i])
-
-			# spawn debug sphere
-			var instance := MeshInstance3D.new()
-			instance.mesh = DebugShapes3D.create_sphere_mesh(0.25, Color.PURPLE)
-			instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			instance.position = verts[i] + Vector3(0, 0.8, 0)
-			self.add_child(instance)
-	
-	for v in verts:
-		if is_outlier_vertex(v):
-			print("DSFSÄDPÖFJÄSLÖDF ", v)
-
-	nav_mesh.set_vertices(verts)
-
-
-	# var verts_ := nav_mesh.get_vertices()
-	# var verts_x: Array[float] = []
-	# for v in verts_:
-	# 	verts_x.append(v.z)
-	
-	# print("X-min: ", verts_x.min(), "\tX-max: ", verts_x.max())
-
-	# var outlierts: Array[float] = []
-	# var eps := 0.1
-	# for val in verts_x:
-	# 	if abs(val - -1.875) <= eps or abs(val - 13.125) <= eps:
-	# 		if val != -1.875 and val != 13.125:
-	# 			outlierts.append(val)
-
-	# if outlierts.size() > 0:
-	# 	print("=> OUTLIERTS: ", outlierts)
-
-	# 	for o in outlierts:
-	# 		# find original vertex
-	# 		for v in verts_:
-	# 			if is_equal_approx(v.z, o):
-	# 				# spawn debug sphere
-	# 				var instance := MeshInstance3D.new()
-	# 				var color := Color.PURPLE
-	# 				instance.mesh = DebugShapes3D.create_sphere_mesh(0.2, color)
-	# 				instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	# 				instance.position = v + Vector3(0, 0.8, 0)
-	# 				self.add_child(instance)
-
-
-	# # X-min: -1.875	X-max: 13.125
-
+	# for v in verts:
+	# 	if is_outlier_vertex(v):
+	# 		print("DSFSÄDPÖFJÄSLÖDF ", v)
+	# nav_mesh.set_vertices(verts)
 	
 	nav_region.navigation_mesh = nav_mesh
 	nav_region.enabled = true
