@@ -49,7 +49,7 @@ func _ready() -> void:
 		threads[i].start(thread_generation_loop_function)
 
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	# This is required for the headless LSP to work (since this script is a tool script)
 	if OS.has_feature("Server"): return
 
@@ -66,9 +66,9 @@ func _process(delta: float) -> void:
 			join_threads()
 		return # Dont queue anything new
 
-	self.tick_check_map_regeneration()
+	tick_check_map_reset()
 
-	# Empty generated queue and add to scene, regardless of player position
+	# Add generated queue to scene, regardless of player position
 	fetch_and_add_generated_tiles()
 
 	# Add tiles near player to queue and delete far away
@@ -243,7 +243,7 @@ func set_regenerate() -> void:
 	self.regenerate = true
 
 
-func tick_check_map_regeneration() -> void:
+func tick_check_map_reset() -> void:
 	var now := Time.get_unix_time_from_system()
 	if self.regenerate and (now - last_regeneration_timestamp) > max_regeneration_delay:
 		last_regeneration_timestamp = now

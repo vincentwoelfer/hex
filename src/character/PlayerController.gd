@@ -84,55 +84,6 @@ func _input(event: InputEvent) -> void:
 	input.consume_mouse_input()
 
 
-func _process(delta: float) -> void:
-	var map: RID = get_world_3d().navigation_map
-	# Do not query when the map has never synchronized and is empty.
-	if NavigationServer3D.map_get_iteration_id(map) == 0:
-		return
-
-	var start_point: Vector3 = NavigationServer3D.map_get_closest_point(map, global_position)
-	var origin_point: Vector3 = NavigationServer3D.map_get_closest_point(map, GameStateManager.caravan.get_global_transform().origin)
-	var path := NavigationServer3D.map_get_path(map, start_point, origin_point, true)
-	# path = NavigationServer3D.simplify_path(path, 0.5)
-	debug_path.update_path(path, global_position)
-
-	
-	var path_simplified := simp_path(path)
-	debug_path_2.update_path(path_simplified, global_position)
-
-
-# func simp_path(path: PackedVector3Array) -> PackedVector3Array:
-# 	if path.size() < 3:
-# 		return path # Nothing to simplify if path has less than 3 points
-
-# 	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
-# 	var simplified_path := PackedVector3Array()
-
-# 	var current_index := 0
-# 	simplified_path.append(path[current_index])
-
-# 	while current_index < path.size() - 1:
-# 		var next_index := path.size() - 1 # Try to jump directly to the end
-
-# 		# Check if we can reach the furthest point directly
-# 		while next_index > current_index + 1:
-# 			var offset := Vector3(0, 0.5, 0)
-# 			var query := PhysicsRayQueryParameters3D.create(path[current_index] + offset, path[next_index] + offset)
-# 			var result := space_state.intersect_ray(query)
-
-# 			if result.is_empty():
-# 				# If no obstacle, we can skip intermediate points
-# 				break
-# 			else:
-# 				# If there's an obstacle, step back
-# 				next_index -= 1
-
-# 		# Move to the next reachable point
-# 		current_index = next_index
-# 		simplified_path.append(path[current_index])
-
-# 	return simplified_path
-
 func simp_path(path: PackedVector3Array) -> PackedVector3Array:
 	if path.size() < 3:
 		return path # Nothing to simplify if path has less than 3 points
@@ -186,6 +137,23 @@ func perform_raycast(from: Vector3, to: Vector3) -> Dictionary:
 		return result
 	
 	return {}
+
+
+func _update_path() -> void:
+	var map: RID = get_world_3d().navigation_map
+	# Do not query when the map has never synchronized and is empty.
+	if NavigationServer3D.map_get_iteration_id(map) == 0:
+		return
+
+	var start_point: Vector3 = NavigationServer3D.map_get_closest_point(map, global_position)
+	var origin_point: Vector3 = NavigationServer3D.map_get_closest_point(map, GameStateManager.caravan.get_global_transform().origin)
+	var path := NavigationServer3D.map_get_path(map, start_point, origin_point, true)
+	# path = NavigationServer3D.simplify_path(path, 0.5)
+	debug_path.update_path(path, global_position)
+
+	
+	var path_simplified := simp_path(path)
+	debug_path_2.update_path(path_simplified, global_position)
 
 
 func _physics_process(delta: float) -> void:
@@ -257,6 +225,8 @@ func _physics_process(delta: float) -> void:
 	# 	print("vel: %6.2f target_vel: %6.2f, delta_vel: %6.2f, accel: %.2f, decel: %.2f" % [cur_vel, target_planar_speed, delta_vel, acceleration, deceleration])
 
 	move_and_slide()
+
+	_update_path()
 
 
 # Speed = float

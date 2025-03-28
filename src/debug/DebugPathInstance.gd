@@ -15,7 +15,8 @@ func _init(color_: Color, width_: float = 0.1, enabled_: bool = true) -> void:
 	self.physics_interpolation_mode = PhysicsBody3D.PHYSICS_INTERPOLATION_MODE_OFF
 
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	# Counteract parents movement
 	self.global_position = Vector3.ZERO + Vector3(0, height_offset, 0)
 
 
