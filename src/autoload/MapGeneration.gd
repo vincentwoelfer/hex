@@ -274,7 +274,7 @@ func delete_everything() -> void:
 ##############################
 # Shutdown
 ##############################
-func shutdown_threads() -> void:
+func request_shutdown_threads() -> void:
 	# Signal exit
 	threads_running_mutex.lock()
 	threads_running = false
@@ -324,7 +324,7 @@ func _exit_tree() -> void:
 
 	if not threads.is_empty():
 		Util.print_multiline_banner("MapGeneration cleaning up on _exit_tree")
-		shutdown_threads()
+		request_shutdown_threads()
 
 		while not threads.is_empty():
 			join_threads()
@@ -359,7 +359,7 @@ func get_capsule_spawn_pos_on_map_surface(pos: Vector3, shape: CollisionShape3D)
 
 	# Perform query
 	var space_state := get_world_3d().direct_space_state
-	var t: float = space_state.cast_motion(query)[0]	
+	var t: float = space_state.cast_motion(query)[0]
 	var shape_height: float
 	
 	if shape.shape is SphereShape3D:

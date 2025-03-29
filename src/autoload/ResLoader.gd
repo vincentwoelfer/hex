@@ -27,6 +27,7 @@ const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_
 
 func _ready() -> void:
 	basic_rocks_meshes = load_all_meshes_from_dir(basic_rocks_path)
+
 	# Util.print_banner("Resource Loader")
 	# print("- Basic rocks meshes: " + str(basic_rocks_meshes.size()))
 	# Util.print_only_banner()

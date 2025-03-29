@@ -57,7 +57,9 @@ func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 
 		var rock_type: RockType = RockType.MEDIUM
 		var r := randf()
-		if r <= 0.07:
+		#if r <= 0.07:
+		# TODO only for navmesh tesitng
+		if r <= 0.3:
 			rock_type = RockType.LARGE
 
 		if rock_type == RockType.LARGE:

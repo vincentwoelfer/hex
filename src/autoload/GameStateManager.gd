@@ -87,7 +87,7 @@ func _input(event: InputEvent) -> void:
 
 func request_quit_game() -> void:
 	Util.print_multiline_banner("Quitting game")
-	MapGeneration.shutdown_threads()
+	MapGeneration.request_shutdown_threads()
 
 
 ##################################################################
@@ -109,6 +109,8 @@ func spawn_enemy() -> void:
 func remove_small_islands() -> void:
 	var nav_map: RID = get_world_3d().navigation_map
 	var all_regions: Array[RID] = NavigationServer3D.map_get_regions(nav_map)
+
+	# TODO implement
 	
 	# print("========= REGIONS AABB =========")
 	# for region_id in all_regions:

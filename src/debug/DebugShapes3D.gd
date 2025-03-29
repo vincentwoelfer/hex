@@ -5,8 +5,13 @@ class_name DebugShapes3D
 static func create_debug_material(color: Color = Color.RED, shading: bool = false) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
+	if color.a < 1.0:
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	if !shading:
 		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+
+	# material.set_flag(BaseMaterial3D.FLAG_DISABLE_DEPTH_TEST, true)
+
 	return material
 
 

@@ -171,6 +171,10 @@ dev_toggle_cam_follow_caravan={
 ]
 }
 
+[navigation]
+
+3d/merge_rasterizer_cell_scale=0.001
+
 [physics]
 
 common/physics_jitter_fix=0.0

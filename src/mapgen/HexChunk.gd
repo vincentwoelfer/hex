@@ -137,6 +137,19 @@ func on_baking_done() -> void:
 	nav_region.enabled = true
 	add_child(nav_region)
 
+	if self.chunk_hex_pos.magnitude() > 8:
+		return
+
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	sample_navmesh_points()
+	group_by_connectivity()
+	draw_regions()
+
 
 ## Generates the chunk, calls generate on all tiles. This is called in a separate thread
 ## and only constructs the chunk as a sub-scene, it doesnt access the main scene tree.
@@ -289,3 +302,116 @@ func calculate_chunk_navigation_aabb() -> AABB:
 	dimensions.z -= (HexConst.outer_radius_interior_circle() * 0.5) * 2.0
 
 	return AABB(center - dimensions / 2.0, dimensions)
+
+
+# ====================================================================
+# TODO USE alternative approach and sample from each nav-mesh polygon once. Much cleaner, faster, works in 3d (top of rocks) aswell.
+var sample_grid_size: float = 1.0
+
+var sampled_points: Array[Vector3] = []
+var connected_groups: Array = []
+
+func sample_navmesh_points() -> void:
+	sampled_points.clear()
+
+	var bounds: AABB = nav_region.get_bounds()
+	
+	var x: float = bounds.position.x + HexConst.nav_cell_size
+	while x < bounds.end.x - HexConst.nav_cell_size:
+		var z: float = bounds.position.z + HexConst.nav_cell_size
+		while z < bounds.end.z - HexConst.nav_cell_size:
+			var point := Vector3(x, bounds.position.y, z)
+			point += global_position
+			point = NavigationServer3D.map_get_closest_point_to_segment(nav_region.get_navigation_map(), point - Vector3(0, 10, 0), point + Vector3(0, 10, 0), false)
+			if point != Vector3.ZERO and not sampled_points.has(point):
+				sampled_points.append(point)
+			
+			z += sample_grid_size
+		x += sample_grid_size
+
+	# print("Sampled %d points" % sampled_points.size())
+
+func group_by_connectivity() -> void:
+	connected_groups.clear()
+	var map: RID = nav_region.get_navigation_map()
+
+	for point in sampled_points:
+		var placed: bool = false
+		for i in range(connected_groups.size()):
+			if can_path_between(map, point, connected_groups[i][0]):
+				connected_groups[i].append(point)
+				placed = true
+				break
+		if not placed:
+			connected_groups.append([point])
+
+	if connected_groups.size() > 1:
+		print("Created %d connected groups" % connected_groups.size())
+	else:
+		print("Only 1 connected group found:")
+
+
+func can_path_between(map: RID, a: Vector3, b: Vector3) -> bool:
+	if not is_inside_tree():
+		return false
+	# Use global position here
+	var path := NavigationServer3D.map_get_path(map, a, b, false)
+
+	if path.size() == 0:
+		return false
+
+	# Check if path is valid
+	return is_equal_approx(path[0].x, a.x) and is_equal_approx(path[0].z, a.z) and \
+		   is_equal_approx(path[path.size() - 1].x, b.x) and is_equal_approx(path[path.size() - 1].z, b.z)
+
+	# if randf() < 0.08:
+	# 	var col := Colors.randColorNoExtreme()
+	# 	var h := randf_range(0.05, 0.5)
+	# 	var p: DebugPathInstance = DebugPathInstance.new(col, 0.05)
+	# 	for i in range(path.size()):
+	# 		path[i].y += h
+	# 	p.update_path(path)
+	# 	add_child(p)
+
+	# 	# Draw spheres at start and end		
+	# 	add_sphere(a + Vector3(0, h, 0), 0.1, col)
+	# 	add_sphere(b + Vector3(0, h, 0), 0.1, col)
+
+
+func add_sphere(pos: Vector3, radius: float, color: Color) -> void:
+	var debug_mesh := MeshInstance3D.new()
+	debug_mesh.mesh = DebugShapes3D.create_sphere_mesh(radius, color)
+	debug_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	debug_mesh.mesh.surface_get_material(0).set_flag(BaseMaterial3D.FLAG_DISABLE_DEPTH_TEST, true)
+	add_child(debug_mesh)
+	debug_mesh.global_position = pos + Vector3(0, 1.0, 0)
+
+
+func draw_regions() -> void:
+	if connected_groups.size() == 0:
+		return
+	# if connected_groups.size() == 1:
+	# 	# Draw only in small
+	# 	var color := Colors.randColorNoExtreme()
+	# 	for point in connected_groups[0]:
+	# 		add_sphere(point, 0.06, color)
+	# 	return
+
+	var largest_size: int = 0
+	var largest_index: int = -1
+
+	for i in range(connected_groups.size()):
+		if connected_groups[i].size() > largest_size:
+			largest_size = connected_groups[i].size()
+			largest_index = i
+
+	if largest_index >= 0:
+		print("Removing largest group at index ", largest_index, " with size: ", connected_groups[largest_index].size())
+		connected_groups.remove_at(largest_index)
+
+	############
+
+	for group in connected_groups:
+		var color := Colors.randColorNoExtreme()
+		for point in group:
+			add_sphere(point, 0.3, color)
