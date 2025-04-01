@@ -61,33 +61,14 @@ static func getAngleDiff(v1: Vector3, v2: Vector3) -> float:
 static func isClockwiseOrder(v1: Vector3, v2: Vector3) -> bool:
 	return getAngleDiff(v1, v2) > 0.0
 
-
+## Converts vec3 -> vec2, y is ignored
 static func toVec2(v: Vector3) -> Vector2:
 	return Vector2(v.x, v.z)
 
 
-## Convert 2D vector to 3D vector, y is set to 0
+## Convert vec2 -> vec3, y is set to 0
 static func toVec3(v: Vector2) -> Vector3:
 	return Vector3(v.x, 0.0, v.y)
-
-
-# More advanced angle stuff
-static func sortVecAccordingToAngles(vecs: Array[Vector3]) -> Array[Vector3]:
-	# TODO this does not work correclty for cases >180 deg
-	# => Correctly check that all vectors lie in a 180deg segment. Currently this assert cant trigger since the angle between any two points is at most exactly 180deg.
-	var max_angle_diff := 0.0
-
-	# Compare every pair of vectors
-	for i in range(vecs.size()):
-		for j in range(i + 1, vecs.size()):
-			max_angle_diff = max(max_angle_diff, getAngleDiff(vecs[i], vecs[j]))
-
-	var all_in_segment := max_angle_diff < PI
-	assert(all_in_segment, "Angles must be within an 180deg sector, max angle diff is %f" % rad_to_deg(max_angle_diff))
-
-	# Need to invert the result to have the vectors in ascending angle-order 
-	vecs.sort_custom(func(a: Vector3, b: Vector3) -> bool: return !isClockwiseOrder(a, b))
-	return vecs
 
 
 ######################################################
@@ -229,19 +210,19 @@ const EPSILON: float = 0.001
 static func lerp_towards_f(curr: float, goal: float, speed: float, delta: float) -> float:
 	if abs(goal - curr) < EPSILON:
 		return goal
-	return lerp(curr, goal, 1.0 - exp(- speed * delta))
+	return lerp(curr, goal, 1.0 - exp(-speed * delta))
 
 
 static func lerp_towards_angle(curr: float, goal: float, speed: float, delta: float) -> float:
 	if abs(goal - curr) < EPSILON:
 		return goal
-	return lerp_angle(curr, goal, 1.0 - exp(- speed * delta))
+	return lerp_angle(curr, goal, 1.0 - exp(-speed * delta))
 
 
 static func lerp_towards_vec3(curr: Vector3, goal: Vector3, speed: float, delta: float) -> Vector3:
 	if curr.distance_to(goal) < EPSILON:
 		return goal
-	return lerp(curr, goal, 1.0 - exp(- speed * delta))
+	return lerp(curr, goal, 1.0 - exp(-speed * delta))
 
 ######################################################
 # HEXAGON
@@ -302,3 +283,19 @@ static func isTriangleOutsideOfPolygon(tri: Array[Vector3], polygon: PackedVecto
 		if Util.isPointOutsidePolygon(Util.toVec2(m), polygon):
 			return true
 	return false
+
+
+######################################################
+# Physics stuff
+######################################################
+static func get_scene_root() -> Node3D:
+	return (Engine.get_main_loop() as SceneTree).current_scene
+
+
+func perform_raycast(from: Vector3, to: Vector3, world: World3D) -> Dictionary:
+	var space_state: PhysicsDirectSpaceState3D = world.direct_space_state
+	var query := PhysicsRayQueryParameters3D.create(from, to)
+	var result := space_state.intersect_ray(query)
+	if result:
+		return result
+	return {}

@@ -2,23 +2,23 @@
 class_name DebugShapes3D
 
 
-static func create_debug_material(color: Color = Color.RED, shading: bool = false) -> StandardMaterial3D:
+static func create_mat(color: Color = Color.RED, xray: bool = false, shading: bool = false) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
 	if color.a < 1.0:
 		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	if !shading:
 		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-
-	# material.set_flag(BaseMaterial3D.FLAG_DISABLE_DEPTH_TEST, true)
+	if xray:
+		material.set_flag(BaseMaterial3D.FLAG_DISABLE_DEPTH_TEST, true)
 
 	return material
 
 
-static func create_sphere_mesh(r: float, color: Color = Color.RED, shading: bool = false) -> PrimitiveMesh:
-	var material := create_debug_material(color, shading)
+static func create_sphere_mesh(r: float, mat: StandardMaterial3D = null) -> PrimitiveMesh:
 	var sphere := SphereMesh.new()
-	sphere.material = material
+	if mat != null:
+		sphere.material = mat
 
 	var quality: int = clampi(roundi(r * 40.0), 4, 16)
 	sphere.radial_segments = quality + 2
@@ -29,11 +29,10 @@ static func create_sphere_mesh(r: float, color: Color = Color.RED, shading: bool
 	return sphere
 
 
-static func create_capsule_mesh(h: float, r: float, color: Color = Color.RED, shading: bool = false) -> PrimitiveMesh:
-	var material := create_debug_material(color, shading)
-
+static func create_capsule_mesh(h: float, r: float, mat: StandardMaterial3D = null) -> PrimitiveMesh:
 	var mesh := CapsuleMesh.new()
-	mesh.material = material
+	if mat != null:
+		mesh.material = mat
 
 	mesh.radial_segments = 12
 	mesh.rings = 12
@@ -67,6 +66,13 @@ static func create_path_mesh(path: PackedVector3Array, width: float = 0.1) -> Me
 	
 	mesh.surface_end()
 	return mesh
+
+
+static func spawn_mesh_static(pos: Vector3, mesh: Mesh, root: Node3D, ) -> void:
+	var instance := MeshInstance3D.new()
+	instance.mesh = mesh
+	instance.position = pos
+	root.add_child(instance)
 
 
 static func spawn_visible_aabb(aabb: AABB, color: Color, parent: Node3D) -> void:

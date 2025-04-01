@@ -6,6 +6,7 @@ var zoom_curr: float = 15.0
 var zoom_goal: float = zoom_curr
 var zoom_min: float = 15.0
 var zoom_max: float = 30.0
+var zoom_input_speed: float = 4.0
 var zoom_lerp_speed: float = 10.0
 
 var zoom_min_at_dist: float = 12.0
@@ -18,8 +19,9 @@ var zoom_manual_override: bool = false
 # rotation = view angle = height of camera
 var tilt_curr: float = deg_to_rad(50.0)
 var tilt_goal: float = tilt_curr
-var tilt_min: float = deg_to_rad(25.0) # from side
-var tilt_max: float = deg_to_rad(89.0) # from above
+var tilt_min: float = deg_to_rad(15.0) # from side
+var tilt_max: float = deg_to_rad(89.5) # from above
+var tilt_input_speed: float = deg_to_rad(200.0)
 var tilt_lerp_speed: float = deg_to_rad(150.0)
 
 # rotation arount UP axis
@@ -73,7 +75,7 @@ func _input(event: InputEvent) -> void:
 func handle_continuous_input(delta: float) -> void:
 	# Tilt (rotation up/down)
 	var tilt_input := Input.get_axis("cam_tilt_down", "cam_tilt_up")
-	tilt_goal = clampf(tilt_goal + tilt_input * tilt_lerp_speed * delta, tilt_min, tilt_max)
+	tilt_goal = clampf(tilt_goal + tilt_input * tilt_input_speed * delta, tilt_min, tilt_max)
 		
 	# Zoom (in/out)
 	var zoom_input := Input.get_axis("cam_zoom_in", "cam_zoom_out")
@@ -83,7 +85,7 @@ func handle_continuous_input(delta: float) -> void:
 func update_zoom_manual(zoom_input: float) -> void:
 	if zoom_input != 0.0:
 		zoom_manual_override = true
-		zoom_goal = clampf(zoom_goal + zoom_input * zoom_lerp_speed, zoom_min_manual, zoom_max_manual)
+		zoom_goal = clampf(zoom_goal + zoom_input * zoom_input_speed, zoom_min_manual, zoom_max_manual)
 
 
 func _physics_process(delta: float) -> void:
@@ -136,7 +138,7 @@ func draw_debug_mesh(location: Vector3) -> void:
 		if debug_mesh == null:
 			var scene_root := get_tree().root
 			debug_mesh = MeshInstance3D.new()
-			debug_mesh.mesh = DebugShapes3D.create_sphere_mesh(0.2, Color.CYAN)
+			debug_mesh.mesh = DebugShapes3D.create_sphere_mesh(0.2, DebugShapes3D.create_mat(Color.CYAN))
 			debug_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			scene_root.add_child(debug_mesh)
 

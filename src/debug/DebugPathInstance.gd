@@ -29,5 +29,5 @@ func update_path(path: PackedVector3Array, start_pos_override: Vector3 = Vector3
 		path[0] = start_pos_override
 
 	mesh = DebugShapes3D.create_path_mesh(path, width)
-	mesh.surface_set_material(0, DebugShapes3D.create_debug_material(color))
+	mesh.surface_set_material(0, DebugShapes3D.create_mat(color))
 	visible = enabled

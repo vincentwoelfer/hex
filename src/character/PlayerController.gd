@@ -148,16 +148,6 @@ func simp_path(path: PackedVector3Array) -> PackedVector3Array:
 	return simplified_path
 
 
-func perform_raycast(from: Vector3, to: Vector3) -> Dictionary:
-	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
-	var query := PhysicsRayQueryParameters3D.create(from, to)
-	var result := space_state.intersect_ray(query)
-	if result:
-		return result
-	
-	return {}
-
-
 func _update_path() -> void:
 	var map: RID = get_world_3d().navigation_map
 	# Do not query when the map has never synchronized and is empty.
@@ -169,7 +159,6 @@ func _update_path() -> void:
 	var path := NavigationServer3D.map_get_path(map, start_point, origin_point, true)
 	debug_path.update_path(path, global_position)
 
-	
 	var path_simplified := simp_path(path)
 	debug_path_2.update_path(path_simplified, global_position)
 
