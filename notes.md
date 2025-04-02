@@ -5,7 +5,6 @@ TODO
 
 # TODO
 
-- collision layer -> path smoothing only with rocks, not floor (or enemies ...)
 - detect nav-mesh islands -> delete / prevent
 - detect stuck enemies
 

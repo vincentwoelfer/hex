@@ -23,6 +23,7 @@ func _init(sampler: PolygonSurfaceSampler) -> void:
 		rocks_collision_shape.shape = generate_collision_shape_from_array_mesh(rocksMesh)
 		rocks_collision_shape.debug_fill = false
 		rocks_collision.add_child(rocks_collision_shape)
+		rocks_collision.set_collision_layer_value(Layers.L.STATIC_GEOM, true)
 		add_child(rocks_collision)
 
 

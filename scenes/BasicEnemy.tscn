@@ -13,6 +13,7 @@ radius = 0.3
 height = 0.8
 
 [node name="BasicEnemy" type="CharacterBody3D"]
+collision_layer = 17
 script = ExtResource("1_cg60k")
 
 [node name="Mesh" type="MeshInstance3D" parent="."]

@@ -289,35 +289,43 @@ static func isTriangleOutsideOfPolygon(tri: Array[Vector3], polygon: PackedVecto
 # Physics stuff
 ######################################################
 static func get_scene_root() -> Node3D:
-	return (Engine.get_main_loop() as SceneTree).current_scene
+	if Engine.is_editor_hint():
+		return EditorInterface.get_edited_scene_root() as Node3D
+	else:
+		return (Engine.get_main_loop() as SceneTree).current_scene
+
 
 static func get_world() -> World3D:
 	return get_scene_root().get_world_3d()
 
+
 ## Vectors in world space
-static func perform_raycast(from: Vector3, to: Vector3) -> Dictionary:
+static func raycast(from: Vector3, to: Vector3, mask: int = Layers.L.ALL) -> bool:
 	var space_state: PhysicsDirectSpaceState3D = get_world().direct_space_state
-	var query := PhysicsRayQueryParameters3D.create(from, to)
-	var result := space_state.intersect_ray(query)
-	if result:
-		return result
-	return {}
+	var query := PhysicsRayQueryParameters3D.create(from, to, mask)
+	query.hit_from_inside = true
+	var hit := not space_state.intersect_ray(query).is_empty()
+
+	# Debug shape
+	# var color := Color(1, 0, 0) if hit else Color(0, 0, 1)
+	# DebugShapes3D.spawn_mesh(Vector3.ZERO, DebugShapes3D.line_mesh(from, to, DebugShapes3D.material(color, true)), Util.get_scene_root())
+
+	return hit
 
 
 ## Perform a point collision test at the given position (in world space)
-static func perform_static_collision_point_test(pos: Vector3) -> bool:
+static func collision_point_test(pos: Vector3, mask: int = Layers.L.ALL) -> bool:
 	var space_state: PhysicsDirectSpaceState3D = get_world().direct_space_state
 
 	var query := PhysicsPointQueryParameters3D.new()
 	query.collide_with_areas = false
 	query.collide_with_bodies = true
 	query.position = pos
+	query.collision_mask = mask
 	var hit := not (space_state.intersect_point(query, 1).is_empty())
 
 	# Debug shape
 	# var color := Color(1, 0, 0) if hit else Color(0, 0, 1)
-	# DebugShapes3D.spawn_mesh_static(pos,
-	# 						DebugShapes3D.create_sphere_mesh(0.15, DebugShapes3D.create_mat(color, true)
-	# 						), Util.get_scene_root())
+	# DebugShapes3D.spawn_mesh(pos, DebugShapes3D.sphere_mesh(0.15, DebugShapes3D.material(color, true)), Util.get_scene_root())
 
 	return hit

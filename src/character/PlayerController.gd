@@ -59,7 +59,7 @@ func init(device: int, color: Color) -> void:
 	add_child(debug_path)
 	add_child(debug_path_2)
 
-	
+
 func _get_current_gravity() -> float:
 	var jump_gravity: float = (-2.0 * jump_height) / (jump_time_to_peak_sec ** 2)
 	var fall_gravity: float = (-2.0 * jump_height) / (jump_time_to_descent_sec ** 2)
@@ -133,6 +133,7 @@ func simp_path(path: PackedVector3Array) -> PackedVector3Array:
 			query.motion = motion
 			query.collide_with_bodies = true
 			query.collide_with_areas = false
+			query.collision_mask = Layers.mask([Layers.L.TERRAIN, Layers.L.STATIC_GEOM])
 			var result: PackedFloat32Array = space_state.cast_motion(query)
 
 			if result[0] < 0.98:

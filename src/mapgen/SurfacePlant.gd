@@ -178,7 +178,7 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	# Compute custom aabb
 	mesh_instance.custom_aabb = surface_sampler.compute_custom_aabb(max_height)
 	if DebugSettings.visualize_plant_custom_aabb:
-		DebugShapes3D.spawn_visible_aabb(mesh_instance.custom_aabb, Color(1, 0, 0, 0.5), self)
+		DebugShapes3D.spawn_aabb(mesh_instance.custom_aabb, Color(1, 0, 0, 0.5), self)
 
 	# Create multi-mesh
 	var multi_mesh := MultiMesh.new()

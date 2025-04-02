@@ -138,7 +138,7 @@ func draw_debug_mesh(location: Vector3) -> void:
 		if debug_mesh == null:
 			var scene_root := get_tree().root
 			debug_mesh = MeshInstance3D.new()
-			debug_mesh.mesh = DebugShapes3D.create_sphere_mesh(0.2, DebugShapes3D.create_mat(Color.CYAN))
+			debug_mesh.mesh = DebugShapes3D.sphere_mesh(0.2, DebugShapes3D.material(Color.CYAN))
 			debug_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			scene_root.add_child(debug_mesh)
 

@@ -14,6 +14,7 @@ radius = 0.3
 height = 1.7
 
 [node name="PlayerCharacter" type="CharacterBody3D"]
+collision_layer = 9
 script = ExtResource("1_gar1i")
 
 [node name="Mesh" type="MeshInstance3D" parent="."]

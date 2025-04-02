@@ -226,6 +226,7 @@ func generate() -> void:
 		var owner_id := terrain_collision.create_shape_owner(self)
 		terrain_collision.shape_owner_add_shape(owner_id, polygon_shape)
 
+	terrain_collision.set_collision_layer_value(Layers.L.TERRAIN, true)
 	add_child(terrain_collision)
 
 	#########################################
