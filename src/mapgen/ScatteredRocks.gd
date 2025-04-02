@@ -41,10 +41,11 @@ func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 	# Standard deviation = x means:
 	# 66% of samples are within [-x, x] of the mean
 	# 96% of samples are within [-2x, 2x] of the mean
-	var avg_rock_density_per_square_meter: float = 0.011
+	var avg_rock_density_per_square_meter: float = 0.005
 	var num_rocks: int = round(randfn(avg_rock_density_per_square_meter, avg_rock_density_per_square_meter) * sampler.get_total_area())
 
-	if num_rocks <= 0 or randf() <= 0.35:
+	# No rocks
+	if num_rocks <= 0 or randf() <= 0.25:
 		return null
 
 	var st_combined: SurfaceTool = SurfaceTool.new()
@@ -59,9 +60,7 @@ func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 
 		var rock_type: RockType = RockType.MEDIUM
 		var r := randf()
-		#if r <= 0.07:
-		# TODO only for navmesh tesitng
-		if r <= 0.3:
+		if r <= 0.15:
 			rock_type = RockType.LARGE
 
 		# Spawn rocks according to type
@@ -72,7 +71,7 @@ func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 
 		elif rock_type == RockType.MEDIUM:
 			var height_factor := randf_range(1.75, 2.5) / mesh_height
-			var side_factor := randf_range(1.25, 2.5) / max_mesh_side_length
+			var side_factor := randf_range(1.25, 3.0) / max_mesh_side_length
 			t = t.scaled_local(Vector3(side_factor, height_factor, side_factor))
 
 		# elif rock_type == RockType.SMALL:

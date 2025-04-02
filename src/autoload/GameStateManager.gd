@@ -96,9 +96,8 @@ func spawn_enemy() -> void:
 	var shape: CollisionShape3D = enemy_node.get_node("Collision")
 	var spawn_pos: Vector3 = caravan.global_position + Util.randCircularOffsetRange(20, 25)
 
+	# Match to navmesh, get height
 	spawn_pos = NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, spawn_pos)
-
-	# Determine spawn height
 	spawn_pos = MapGeneration.get_spawn_pos_height_on_map_surface(spawn_pos, shape)
 
 	get_tree().root.add_child(enemy_node)
@@ -113,9 +112,12 @@ func spawn_caravan() -> void:
 	caravan = ResLoader.CARAVAN_SCENE.instantiate()
 
 	# Find spawn height
-	var pos: Vector3 = HexConst.MAP_CENTER
+	var spawn_pos: Vector3 = HexConst.MAP_CENTER
 	var shape: CollisionShape3D = caravan.get_node("Collision")
-	var spawn_pos := MapGeneration.get_spawn_pos_height_on_map_surface(pos, shape)
+
+	# Match to navmesh, get height
+	spawn_pos = NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, spawn_pos)
+	spawn_pos = MapGeneration.get_spawn_pos_height_on_map_surface(spawn_pos, shape)
 
 	# Set color
 	var mesh_instance := caravan.get_node("Mesh") as MeshInstance3D
