@@ -5,30 +5,28 @@ class_name NavMeshAnalyzer
 class Cluster:
 	var polygon_indices: PackedInt32Array
 	var vertex_indices: PackedInt32Array
-	var area: float
+	# var area: float
 	var has_external_edge: bool
 	var is_inside_geometry: bool
 
-	func _init(polygon_indices_: PackedInt32Array, vertex_indices_: PackedInt32Array, area_: float, has_external_edge_: bool, is_inside_geometry_: bool) -> void:
+	func _init(polygon_indices_: PackedInt32Array, vertex_indices_: PackedInt32Array, has_external_edge_: bool, is_inside_geometry_: bool) -> void:
 		self.polygon_indices = polygon_indices_
 		self.vertex_indices = vertex_indices_
-		self.area = area_
+		# self.area = area_
 		self.has_external_edge = has_external_edge_
 		self.is_inside_geometry = is_inside_geometry_
 
 # Input - these are in local space of the nav mesh
 var nav_mesh: NavigationMesh
 var nav_mesh_aabb: AABB
-var world: World3D
 var world_pos: Vector3
 
 # Intermediate
 var clusters: Array[Cluster] = []
 
-func _init(nav_mesh_: NavigationMesh, nav_mesh_aabb_: AABB, world_: World3D, world_pos_: Vector3) -> void:
+func _init(nav_mesh_: NavigationMesh, nav_mesh_aabb_: AABB, world_pos_: Vector3) -> void:
 	self.nav_mesh = nav_mesh_
 	self.nav_mesh_aabb = nav_mesh_aabb_
-	self.world = world_
 	self.world_pos = world_pos_
 
 
@@ -69,23 +67,12 @@ func analyze() -> void:
 					if _polygons_are_adjacent(poly_indices, other_indices):
 						to_visit.append(j)
 
-		var area := _calculate_polygon_area(cluster_vertex_indices, vertices)
+		# var area := _calculate_polygon_area(cluster_vertex_indices, vertices)
 		var has_external_edge := _has_external_edge(cluster_vertex_indices, vertices)
-		var is_inside_geometry := _is_inside_static_collider(vertices[cluster_vertex_indices[0]] + Vector3(0, 0.2, 0))
-		clusters.append(Cluster.new(cluster_polygon_indices, cluster_vertex_indices, area, has_external_edge, is_inside_geometry))
 
-	# Print stats
-	# print("============== NavMesh ==============")
-	# print("Polygon count: ", polygon_count)
-	# print("Cluster count: ", clusters.size())
-	# for i in range(clusters.size()):
-		# var cluster := clusters[i]
-		# print("Cluster ", i, ":")
-		# print("  Polygon count: ", cluster.polygon_indices.size())
-		# print("  Vertex count: ", cluster.vertex_indices.size())
-		# print("  Area: ", cluster.area)
-		# print("  Has external edge: ", cluster.has_external_edge)
-		# print("  Is inside geometry: ", cluster.is_inside_geometry)
+		var collision_point := vertices[cluster_vertex_indices[0]] + Vector3(0, 0.2, 0) + self.world_pos
+		var is_inside_geometry := Util.perform_static_collision_point_test(collision_point)
+		clusters.append(Cluster.new(cluster_polygon_indices, cluster_vertex_indices, has_external_edge, is_inside_geometry))
 
 
 func _polygons_are_adjacent(poly_a: PackedInt32Array, poly_b: PackedInt32Array) -> bool:
@@ -98,21 +85,21 @@ func _polygons_are_adjacent(poly_a: PackedInt32Array, poly_b: PackedInt32Array) 
 	return false
 
 
-func _calculate_polygon_area(vertex_indices: PackedInt32Array, vertices: PackedVector3Array) -> float:
-	var area: float = 0.0
+# func _calculate_polygon_area(vertex_indices: PackedInt32Array, vertices: PackedVector3Array) -> float:
+# 	var area: float = 0.0
 	
-	if vertex_indices.size() < 3:
-		return 0.0 # Not a polygon
+# 	if vertex_indices.size() < 3:
+# 		return 0.0 # Not a polygon
 	
-	# Use the first vertex as the anchor point for triangle fan
-	var anchor: Vector3 = vertices[vertex_indices[0]]
+# 	# Use the first vertex as the anchor point for triangle fan
+# 	var anchor: Vector3 = vertices[vertex_indices[0]]
 	
-	for i in range(1, vertex_indices.size() - 1):
-		var v1: Vector3 = vertices[vertex_indices[i]] - anchor
-		var v2: Vector3 = vertices[vertex_indices[i + 1]] - anchor
-		area += 0.5 * v1.cross(v2).length()
+# 	for i in range(1, vertex_indices.size() - 1):
+# 		var v1: Vector3 = vertices[vertex_indices[i]] - anchor
+# 		var v2: Vector3 = vertices[vertex_indices[i + 1]] - anchor
+# 		area += 0.5 * v1.cross(v2).length()
 	
-	return area
+# 	return area
 
 
 func _has_external_edge(vertex_indices: PackedInt32Array, vertices: PackedVector3Array) -> bool:
@@ -123,21 +110,6 @@ func _has_external_edge(vertex_indices: PackedInt32Array, vertices: PackedVector
 		if is_equal_approx(v.z, nav_mesh_aabb.position.z) or is_equal_approx(v.z, nav_mesh_aabb.position.z + nav_mesh_aabb.size.z):
 			return true
 	return false
-
-
-# Perform a collision test at the given position
-func _is_inside_static_collider(pos: Vector3) -> bool:
-	var query := PhysicsPointQueryParameters3D.new()
-	query.collide_with_areas = false
-	query.collide_with_bodies = true
-	query.position = pos + self.world_pos
-	var hit := not (self.world.direct_space_state.intersect_point(query, 1).is_empty())
-	var color := Color(1, 0, 0) if hit else Color(0, 0, 1)
-	DebugShapes3D.spawn_mesh_static(pos + self.world_pos,
-							DebugShapes3D.create_sphere_mesh(0.15, DebugShapes3D.create_mat(color, true)
-							), Util.get_scene_root())
-
-	return hit
 
 
 func build_clean_nav_mesh() -> NavigationMesh:

@@ -134,7 +134,7 @@ func on_baking_done() -> void:
 	nav_region = NavigationRegion3D.new()
 
 	# Use smaller aabb because we increase the border size for the nav-mesh generation above by one cell size
-	var analyzer: NavMeshAnalyzer = NavMeshAnalyzer.new(nav_mesh, self.chunk_nav_area_aabb_local_coordinates.grow(-HexConst.nav_cell_size), get_world_3d(), self.global_position)
+	var analyzer: NavMeshAnalyzer = NavMeshAnalyzer.new(nav_mesh, self.chunk_nav_area_aabb_local_coordinates.grow(-HexConst.nav_cell_size), self.global_position)
 	analyzer.analyze()
 	nav_mesh = analyzer.build_clean_nav_mesh()
 

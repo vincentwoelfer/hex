@@ -57,10 +57,6 @@ func _ready() -> void:
 	enemy_spawn_timer.timeout.connect(spawn_enemy)
 	add_child(enemy_spawn_timer)
 
-	# TODO TEST ONLY
-	await get_tree().create_timer(2.0).timeout
-	remove_small_islands()
-
 
 # React to keyboard inputs to directly trigger events
 func _input(event: InputEvent) -> void:
@@ -105,25 +101,6 @@ func spawn_enemy() -> void:
 	enemy_node.global_position = spawn_pos
 	enemy_node.reset_physics_interpolation()
 
-
-func remove_small_islands() -> void:
-	var nav_map: RID = get_world_3d().navigation_map
-	var all_regions: Array[RID] = NavigationServer3D.map_get_regions(nav_map)
-
-	# TODO implement
-	
-	# print("========= REGIONS AABB =========")
-	# for region_id in all_regions:
-	# 	var aabb := NavigationServer3D.region_get_bounds(region_id)
-	# 	if aabb.position.x >= -15 and aabb.position.x < 30:
-	# 		print("X-min: ", aabb.position.x, "\tX-max: ", aabb.position.x + aabb.size.x)
-	# print("========= END =========")
-	
-	# print("====== CHUNKS ======")
-	# for c: HexChunk in HexChunkMap.chunks.values():
-	# 	print(c.global_position)
-	# print("========= END =========")
-	
 
 func spawn_caravan() -> void:
 	if caravan != null:
