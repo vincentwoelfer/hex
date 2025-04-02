@@ -93,7 +93,7 @@ func spawn_player(player: PlayerData) -> void:
 	# Find spawn pos
 	var shape: CollisionShape3D = player_node.get_node("Collision")
 	var spawn_pos := _find_spawn_pos_xz_near_team(player.id)
-	spawn_pos = MapGeneration.get_capsule_spawn_pos_on_map_surface(spawn_pos, shape)
+	spawn_pos = MapGeneration.get_spawn_pos_height_on_map_surface(spawn_pos, shape)
 
 	# Set player color
 	var mesh_instance := player_node.get_node("Mesh") as MeshInstance3D

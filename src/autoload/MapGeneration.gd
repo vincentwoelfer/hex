@@ -346,7 +346,7 @@ func _get_approx_map_height_at_pos(pos: Vector3) -> float:
 		return 0.0
 
 
-func get_capsule_spawn_pos_on_map_surface(pos: Vector3, shape: CollisionShape3D) -> Vector3:
+func get_spawn_pos_height_on_map_surface(pos: Vector3, shape: CollisionShape3D) -> Vector3:
 	pos.y = _get_approx_map_height_at_pos(pos)
 
 	# Prepare shape query
@@ -355,7 +355,9 @@ func get_capsule_spawn_pos_on_map_surface(pos: Vector3, shape: CollisionShape3D)
 	var distance := 50.0
 	query.transform.origin = pos + Vector3.UP * distance / 2.0
 	query.motion = Vector3.DOWN * distance
-	# TODO query.collision_mask = ...
+
+	# Set collision mask
+	query.collision_mask = Layers.mask([Layers.L.TERRAIN, Layers.L.STATIC_GEOM])
 
 	# Perform query
 	var space_state := get_world_3d().direct_space_state
