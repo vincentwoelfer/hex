@@ -6,6 +6,7 @@ var visual_path_raw: DebugPathInstance
 var visual_path: DebugPathInstance
 var update_visual_path_start: bool = false
 var update_visual_path_goal: bool = false
+var show_path: bool = true
 
 # Target & Tracking
 var target: Vector3
@@ -163,6 +164,9 @@ func _process(delta: float) -> void:
 	visual_path_raw.update_path(path_raw, global_position)
 	visual_path.update_path(path, global_position)
 
+	visual_path_raw.enabled = show_path
+	visual_path.enabled = show_path
+		 
 
 func _update_target_from_tracking() -> void:
 	if not is_tracking_target:

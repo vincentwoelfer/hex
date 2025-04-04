@@ -115,6 +115,7 @@ func fetch_and_add_generated_tiles() -> void:
 		assert(chunk != null)
 		if chunk != null:
 			# Only place where tiles/chunks are added to the scene
+			chunk.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 			add_child(chunk)
 
 

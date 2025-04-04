@@ -58,6 +58,8 @@ func init(device: int, color_: Color) -> void:
 func _ready() -> void:
 	path_finding_agent.init(color, collision.shape)
 
+	path_finding_agent.set_track_target(GameStateManager.caravan)
+
 	
 func _get_current_gravity() -> float:
 	var jump_gravity: float = (-2.0 * jump_height) / (jump_time_to_peak_sec ** 2)
@@ -153,6 +155,8 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
+	# Update path for visualization only
+	
 
 # Speed = float
 # Velocity = Vector
