@@ -13,8 +13,6 @@ var cam_follow_point_manager: CameraFollowPointManager
 
 
 func _ready() -> void:
-	# Print Input Mappings
-	# pretty_print_actions(get_input_mapping())
 	if not Engine.is_editor_hint():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
@@ -39,16 +37,24 @@ func _ready() -> void:
 	# Increase margin for edge connections because we have an artificial border of one cell size
 	NavigationServer3D.map_set_edge_connection_margin(nav_map, 0.25 + HexConst.nav_cell_size) # default 0.25
 
+	if Engine.is_editor_hint():
+		return
 
 	# Wait for nav chunks to be loaded
-	await Util.wait_until(self, func() -> bool: return get_tree().get_nodes_in_group(HexConst.NAV_CHUNKS_GROUP_NAME).size() > 12)
+	var map_center_chunk_pos: HexPos = HexPos.xyz_to_hexpos_frac(HexConst.MAP_CENTER).round().to_chunk_base()
+	await Util.wait_until(self, func() -> bool: return HexChunkMap.get_by_pos(map_center_chunk_pos) != null)
+	var map_center_chunk: HexChunk = HexChunkMap.get_by_pos(map_center_chunk_pos)
+	await Util.wait_until(self, func() -> bool: return map_center_chunk.find_child("@NavigationRegion*", true, false) != null)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
 
 	spawn_caravan()
+	await get_tree().physics_frame
+	await get_tree().physics_frame
 
 	# Always spawn keyboard player for development (not in editor)
 	if not Engine.is_editor_hint():
 		PlayerManager.add_player(-1)
-
 
 	# Add enemy spawner
 	var enemy_spawn_timer := Timer.new()
@@ -115,7 +121,7 @@ func spawn_caravan() -> void:
 	var spawn_pos: Vector3 = HexConst.MAP_CENTER
 	var shape: CollisionShape3D = caravan.get_node("Collision")
 
-	# Match to navmesh, get height
+	# Match to navmesh, get height - this requires a navmesh
 	spawn_pos = NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, spawn_pos)
 	spawn_pos = MapGeneration.get_spawn_pos_height_on_map_surface(spawn_pos, shape)
 

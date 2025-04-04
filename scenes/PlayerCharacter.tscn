@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://yt40srqvcs4y"]
+[gd_scene load_steps=6 format=3 uid="uid://yt40srqvcs4y"]
 
 [ext_resource type="Script" uid="uid://dvvu501emdgsn" path="res://src/character/PlayerController.gd" id="1_gar1i"]
 [ext_resource type="Material" uid="uid://c0myngqkhsb44" path="res://assets/materials/player_material.tres" id="2_kle66"]
+[ext_resource type="Script" uid="uid://dcbt26awrgsip" path="res://src/character/PathFindingAgent.gd" id="3_kn48b"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_2b623"]
 material = ExtResource("2_kle66")
@@ -24,4 +25,8 @@ mesh = SubResource("CapsuleMesh_2b623")
 [node name="Collision" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
 shape = SubResource("CapsuleShape3D_e2xsl")
-debug_color = Color(1, 0, 0, 0.419608)
+debug_color = Color(1, 0, 0, 0.784314)
+
+[node name="PathFindingAgent" type="Node3D" parent="."]
+script = ExtResource("3_kn48b")
+metadata/_custom_type_script = "uid://dcbt26awrgsip"

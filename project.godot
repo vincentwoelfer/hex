@@ -39,6 +39,7 @@ gdscript/warnings/unsafe_property_access=1
 gdscript/warnings/unsafe_method_access=1
 gdscript/warnings/unsafe_cast=1
 gdscript/warnings/unsafe_call_argument=1
+shapes/collision/shape_color=Color(0, 0.6, 0.701961, 0.784314)
 
 [display]
 

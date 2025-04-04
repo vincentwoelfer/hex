@@ -34,12 +34,13 @@ func calculate_cam_follow_point() -> Vector3:
 
 	if active_cam_follow_nodes.is_empty():
 		var zero := HexConst.MAP_CENTER
-		zero.y = MapGeneration._get_approx_map_height_at_pos(zero) + 2.0
+		zero.y = MapGeneration._get_approx_map_height_at_pos(zero)
 		return zero
 
 	var p: Vector3 = Vector3.ZERO
 	for node in active_cam_follow_nodes:
 		p += node.get_global_transform_interpolated().origin
+		#p += node.global_position
 	p /= float(active_cam_follow_nodes.size())
 	return p
 

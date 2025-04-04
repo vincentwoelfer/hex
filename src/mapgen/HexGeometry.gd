@@ -95,7 +95,7 @@ func setOuterVertexHeights() -> void:
 
 func triangulateCenter() -> Array[Triangle]:
 	var tris: Array[Triangle] = []
-	var col := Colors.getDistinctHexColorTopSide()
+	var col := Colors.get_distinct_hex_color_top_side()
 
 	# Generate PackedVec2Array
 	var verts_center_packed: PackedVector2Array = []
@@ -125,7 +125,7 @@ func triangulateCenter() -> Array[Triangle]:
 		if all_vertices_on_circle and Util.isTriangleOutsideOfPolygon([p1, p2, p3], verts_polygon_packed):
 			continue
 
-		tris.append(Triangle.new(p1, p2, p3, Colors.colorVariation(col)))
+		tris.append(Triangle.new(p1, p2, p3, Colors.rand_variation(col)))
 
 	return tris
 
@@ -137,9 +137,9 @@ func triangulateOuter() -> Array[Triangle]:
 
 	# Per Side
 	for dir in range(6):
-		var sideColor := Colors.getDistincHexColor(dir)
-		var corner_color := Colors.modifyColorForCornerArea(sideColor)
-		sideColor = Colors.modifyColorForTransitionType(sideColor, input.transitions[dir].type)
+		var sideColor := Colors.get_distinct_hex_color(dir)
+		var corner_color := Colors.modify_color_for_corner_area(sideColor)
+		sideColor = Colors.modify_color_for_transition_type(sideColor, input.transitions[dir].type)
 
 		# start inner & outer
 		var i := dir * (1 + HexConst.extra_verts_per_side)
@@ -155,7 +155,7 @@ func triangulateOuter() -> Array[Triangle]:
 
 		# Only transition area between hexes, without corners!
 		while i < n1 or j < n2:
-			var col := Colors.colorVariation(sideColor)
+			var col := Colors.rand_variation(sideColor)
 			var outer_is_clockwise_further := Util.isClockwiseOrder(verts_inner[i % s_in], verts_outer[j % s_out])
 
 			if j == n2 or (i < n1 and outer_is_clockwise_further):

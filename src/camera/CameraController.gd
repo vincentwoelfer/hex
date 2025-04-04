@@ -49,7 +49,8 @@ func _ready() -> void:
 
 	follow_point_goal = GameStateManager.cam_follow_point_manager.calculate_cam_follow_point()
 	follow_point_curr = follow_point_goal
-
+	update_position()
+	camera.reset_physics_interpolation()
 
 func _input(event: InputEvent) -> void:
 	# Orientation (rotation left/right)
@@ -106,11 +107,7 @@ func _physics_process(delta: float) -> void:
 
 	follow_point_curr = Util.lerp_towards_vec3(follow_point_curr, follow_point_goal, follow_point_lerp_speed, delta)
 
-	# Compute new camera position
-	var cam_direction := Vector3.BACK.rotated(Vector3.LEFT, tilt_curr).rotated(Vector3.UP, orientation_angle_curr)
-	var cam_pos := follow_point_curr + (cam_direction * zoom_curr)
-
-	camera.look_at_from_position(cam_pos, follow_point_curr, Vector3.UP)
+	update_position()
 
 	# Set global cam orientation
 	GameStateManager.cam_follow_point_manager.set_global_camera_view_angle(orientation_angle_curr)
@@ -121,6 +118,11 @@ func _physics_process(delta: float) -> void:
 	#RenderingServer.call_on_render_thread(update_shader_parameters)
 	# RenderingServer.global_shader_parameter_set("global_camera_view_direction", actual_curr_rotation)
 	# RenderingServer.global_shader_parameter_set("global_player_position", lookAtPoint)
+
+func update_position() -> void:
+	var cam_direction := Vector3.BACK.rotated(Vector3.LEFT, tilt_curr).rotated(Vector3.UP, orientation_angle_curr)
+	var cam_pos := follow_point_curr + (cam_direction * zoom_curr)
+	camera.look_at_from_position(cam_pos, follow_point_curr, Vector3.UP)
 
 
 func check_for_selection() -> void:

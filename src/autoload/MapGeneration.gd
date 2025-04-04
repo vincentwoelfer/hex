@@ -23,7 +23,7 @@ var threads_running: bool = true
 var threads_running_mutex: Mutex
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
-var generation_position: HexPos = HexPos.invalid()
+var generation_position: HexPos = HexPos.invalid() # Gets updated before first generation-tick. Needs to be invalid to instantly trigger "changed position"
 var tile_generation_distance_hex := HexConst.distance_m_to_hex(90)
 var tile_deletion_distance_hex := HexConst.distance_m_to_hex(125)
 
@@ -352,7 +352,7 @@ func get_spawn_pos_height_on_map_surface(pos: Vector3, shape: CollisionShape3D) 
 	# Prepare shape query
 	var query: PhysicsShapeQueryParameters3D = PhysicsShapeQueryParameters3D.new()
 	query.shape = shape.shape
-	var distance := 50.0
+	var distance := 30.0
 	query.transform.origin = pos + Vector3.UP * distance / 2.0
 	query.motion = Vector3.DOWN * distance
 
@@ -370,5 +370,8 @@ func get_spawn_pos_height_on_map_surface(pos: Vector3, shape: CollisionShape3D) 
 		shape_height = (shape.shape as CapsuleShape3D).height
 	elif shape.shape is CylinderShape3D:
 		shape_height = (shape.shape as CylinderShape3D).height
+	else:
+		push_error("Shape not supported for spawn pos height query")
 
+	# Offset upwards by half the shape height
 	return (query.transform.origin + query.motion * t) - (Vector3.UP * shape_height / 2.0)

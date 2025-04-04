@@ -38,28 +38,27 @@ var dash_timer: float = 0.0
 
 var input: MovementInput
 
-var debug_path: DebugPathInstance
-var debug_path_2: DebugPathInstance
-
-@onready var shape: CollisionShape3D = $Collision
+@onready var collision: CollisionShape3D = $Collision
+@onready var path_finding_agent: PathFindingAgent = $PathFindingAgent
 
 # First person youtube videos:
 # https://www.youtube.com/watch?v=xIKErMgJ1Yk
 
-func init(device: int, color: Color) -> void:
+var color: Color
+
+func init(device: int, color_: Color) -> void:
 	input = MovementInput.new(device)
+	self.color = color_
 
 	# Compute deceleration based on walk speed and time to max acc
 	var walk_accel: float = _get_acc_for_target_vel_and_time(walk_speed, time_to_max_acc)
 	self.deceleration = walk_accel
 
-	# Debugging
-	debug_path = DebugPathInstance.new(Colors.set_alpha(color, 0.3), 0.05)
-	debug_path_2 = DebugPathInstance.new(Colors.set_alpha(Color.DARK_BLUE, 0.3), 0.05)
-	add_child(debug_path)
-	add_child(debug_path_2)
 
+func _ready() -> void:
+	path_finding_agent.init(color, collision.shape)
 
+	
 func _get_current_gravity() -> float:
 	var jump_gravity: float = (-2.0 * jump_height) / (jump_time_to_peak_sec ** 2)
 	var fall_gravity: float = (-2.0 * jump_height) / (jump_time_to_descent_sec ** 2)
@@ -84,95 +83,11 @@ func _input(event: InputEvent) -> void:
 	input.consume_mouse_input()
 
 
-func simp_path(path: PackedVector3Array) -> PackedVector3Array:
-	if path.size() < 3:
-		return path # Nothing to simplify if path has less than 3 points
-
-	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
-	var simplified_path := PackedVector3Array()
-
-	var current_index := 0
-	simplified_path.append(path[current_index])
-
-	# Define the capsule shape for sweeping
-	var capsule_shape := CapsuleShape3D.new()
-	capsule_shape.radius = (shape.shape as CapsuleShape3D).radius * 0.9
-	capsule_shape.height = (shape.shape as CapsuleShape3D).height * 0.8
-	var offset := Vector3(0, (shape.shape as CapsuleShape3D).height / 2.0, 0)
-
-	const max_dist := 10.0
-	const max_height_diff := 2.0
-
-	# Iterate over path, try to connect current_index (from path start) with next_index, (from path end, moving backwards)
-	while current_index < path.size() - 1:
-		var next_index := path.size() - 1 # Try to jump directly to the end
-
-		# Check if we can reach the furthest point directly
-		while next_index > current_index + 1:
-			# Only connect if
-			# - path is clear
-			# - distance is short enough
-			# - low height difference
-			# Check distance
-			var distance := path[next_index].distance_to(path[current_index])
-			if distance > max_dist:
-				next_index -= 1
-				continue
-
-			# Check height difference
-			var height_diff := absf(path[next_index].y - path[current_index].y)
-			if height_diff > max_height_diff:
-				next_index -= 1
-				continue
-
-			# Check path is clear
-			var motion := path[next_index] - path[current_index]
-			var query := PhysicsShapeQueryParameters3D.new()
-			query.set_shape(capsule_shape)
-			query.transform = Transform3D(Basis(), path[current_index] + offset)
-			query.motion = motion
-			query.collide_with_bodies = true
-			query.collide_with_areas = false
-			query.collision_mask = Layers.mask([Layers.L.TERRAIN, Layers.L.STATIC_GEOM])
-			var result: PackedFloat32Array = space_state.cast_motion(query)
-
-			if result[0] < 0.98:
-				next_index -= 1
-				continue
-
-			# No issue -> Connect path points
-			break
-
-		# Move to the next reachable point
-		current_index = next_index
-		simplified_path.append(path[current_index])
-	return simplified_path
-
-
-func _update_path() -> void:
-	var map: RID = get_world_3d().navigation_map
-	# Do not query when the map has never synchronized and is empty.
-	if NavigationServer3D.map_get_iteration_id(map) == 0:
-		return
-
-	var start_point: Vector3 = NavigationServer3D.map_get_closest_point(map, global_position)
-	var origin_point: Vector3 = NavigationServer3D.map_get_closest_point(map, GameStateManager.caravan.get_global_transform().origin)
-	var path := NavigationServer3D.map_get_path(map, start_point, origin_point, true)
-	debug_path.update_path(path, global_position)
-
-	var path_simplified := simp_path(path)
-	debug_path_2.update_path(path_simplified, global_position)
-
-
 func _physics_process(delta: float) -> void:
 	input.update_keys(delta)
 
 	# Timers
 	dash_timer -= delta
-
-	# Apply gravity
-	if not is_on_floor():
-		velocity.y += _get_current_gravity() * delta
 
 	# Movement input
 	var input_dir := input.input_direction
@@ -225,6 +140,10 @@ func _physics_process(delta: float) -> void:
 	velocity.x = new_vel_horizontal.x
 	velocity.z = new_vel_horizontal.y
 
+	# Apply gravity
+	if not is_on_floor():
+		velocity.y += _get_current_gravity() * delta
+
 	# print_timer -= delta
 	# print_timer = -1.0
 	# if print_timer <= 0.0:
@@ -233,8 +152,6 @@ func _physics_process(delta: float) -> void:
 	# 	print("vel: %6.2f target_vel: %6.2f, delta_vel: %6.2f, accel: %.2f, decel: %.2f" % [cur_vel, target_planar_speed, delta_vel, acceleration, deceleration])
 
 	move_and_slide()
-
-	_update_path()
 
 
 # Speed = float

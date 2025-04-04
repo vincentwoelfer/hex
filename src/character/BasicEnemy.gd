@@ -2,54 +2,59 @@ class_name BasicEnemy
 extends CharacterBody3D
 
 # Scene references
-@onready var nav_agent: NavigationAgent3D = $NavAgent
+@onready var path_finding_agent: PathFindingAgent = $PathFindingAgent
+@onready var collision: CollisionShape3D = $Collision
 
 var speed: float = 2.5
+var gravity: float = - ProjectSettings.get_setting("physics/3d/default_gravity")
 
-var has_goal: bool = false
-var current_goal: Vector3
-
-var debug_path: DebugPathInstance
+var has_target: bool
+var target: Node3D
 
 var replan_timer: Timer
 
 func _ready() -> void:
-	debug_path = DebugPathInstance.new(Color(1, 0, 0, 0.3), 0.03, DebugSettings.debug_path_basic_enemy)
-	add_child(debug_path)
+	path_finding_agent.init(Color(1.0, 0.0, 0.0), collision.shape)
 
 	# Set initial goal
 	choose_new_goal()
 
+	# This is for choosing a new goal, replanning to same goal happens periodically inside path_finding_agent
 	replan_timer = Timer.new()
-	replan_timer.wait_time = 0.2
+	replan_timer.wait_time = 0.75
 	replan_timer.autostart = true
 	replan_timer.timeout.connect(choose_new_goal)
 	add_child(replan_timer)
 
 
 func _physics_process(delta: float) -> void:
-	if not has_goal:
+	if not has_target:
 		velocity = Vector3.ZERO
 		move_and_slide()
 		return
 
 	# Reached target
-	if global_position.distance_to(current_goal) <= 1.2:
+	if global_position.distance_to(target.global_position) <= 1.0:
 		queue_free()
 		return
 
 	# Move
-	var next_position := nav_agent.get_next_path_position()
-	var direction := (next_position - global_position).normalized()
-	velocity = direction * speed
-	move_and_slide()
+	var direction := path_finding_agent.get_direction()
+	var movement := direction * speed
 
-	# Update visual path
-	debug_path.update_path(nav_agent.get_current_navigation_path(), global_position)
+	# Dont touch y
+	velocity.x = movement.x
+	velocity.z = movement.z
+
+	# Apply gravity
+	if not is_on_floor():
+		velocity.y += gravity * delta
+
+	move_and_slide()
 
 
 func choose_new_goal() -> void:
-	has_goal = false
+	has_target = false
 
 	var nav_map: RID = get_world_3d().navigation_map
 	if NavigationServer3D.map_get_iteration_id(nav_map) == 0:
@@ -73,12 +78,9 @@ func choose_new_goal() -> void:
 			min_distance = distance
 			closest_goal_idx = i
 
-	current_goal = NavigationServer3D.map_get_closest_point(nav_map, possible_goals[closest_goal_idx].get_global_transform().origin)
-	if current_goal == Vector3.ZERO:
-		return
-
-	nav_agent.set_target_position(current_goal)
-	has_goal = true
+	target = possible_goals[closest_goal_idx]
+	path_finding_agent.set_track_target(target)
+	has_target = true
 
 
 func get_total_path_length(points: PackedVector3Array) -> float:

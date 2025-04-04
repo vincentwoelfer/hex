@@ -196,7 +196,7 @@ func generate() -> void:
 	# Add debug color overlay for tiles
 	if DebugSettings.use_chunk_colors:
 		var material := StandardMaterial3D.new()
-		material.albedo_color = Colors.randColorNoExtreme()
+		material.albedo_color = Colors.rand_color_no_extreme()
 		terrain_mesh.material_override = material
 
 	#########################################
@@ -220,6 +220,7 @@ func generate() -> void:
 		var collision_shape := CollisionShape3D.new()
 		collision_shape.shape = polygon_shape
 		collision_shape.debug_fill = false
+		collision_shape.debug_color = Color(1, 0, 1, 0.5)
 		terrain_collision.add_child(collision_shape)
 	else:
 		# Use physics server / shape owner api
@@ -236,14 +237,14 @@ func generate() -> void:
 		# GRASS
 		if DebugSettings.enable_grass:
 			grass = SurfacePlant.new()
-			grass.name = "Grass"
+			# grass.name = "Grass"
 			grass.populate_multimesh(samplerHorizontal)
 			add_child(grass)
 
 		# ROCKS
 		if DebugSettings.enable_rocks:
 			rocks = ScatteredRocks.new(samplerHorizontal)
-			rocks.name = "Rocks"
+			# rocks.name = "Rocks"
 			add_child(rocks)
 			
 

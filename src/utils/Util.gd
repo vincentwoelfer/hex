@@ -84,7 +84,7 @@ static func clampf(val: float, a: float, b: float) -> float:
 ######################################################
 static func wait_until(node: Node3D, condition: Callable) -> void:
 	while not condition.call():
-		await node.get_tree().process_frame
+		await node.get_tree().physics_frame
 
 ######################################################
 # Camera access

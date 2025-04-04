@@ -209,7 +209,7 @@ func create_debug_visualization(parent: Node3D) -> void:
 	# Corner vertices
 	for i in range(6):
 		var instance := MeshInstance3D.new()
-		var color := Colors.getDistincHexColor(i).darkened(0.5)
+		var color := Colors.get_distinct_hex_color(i).darkened(0.5)
 		instance.mesh = DebugShapes3D.sphere_mesh(0.15 - i * 0.005, DebugShapes3D.material(color))
 		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		instance.position = corner_vertices[i]
@@ -218,7 +218,7 @@ func create_debug_visualization(parent: Node3D) -> void:
 	# Smoothed corner vertices
 	for i in range(6):
 		var instance := MeshInstance3D.new()
-		var color := Colors.getDistincHexColor(i).lightened(0.3)
+		var color := Colors.get_distinct_hex_color(i).lightened(0.3)
 		instance.mesh = DebugShapes3D.sphere_mesh(0.15 - i * 0.005, DebugShapes3D.material(color))
 		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var pos: Vector3 = corner_vertices_smoothing[i]

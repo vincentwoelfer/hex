@@ -23,7 +23,7 @@ func add_player(device: int) -> int:
 		print("No more player slots available")
 		return -1
 
-	players[id] = PlayerData.new(id, "Player-" + str(id), Colors.getPlayerColor(id), device)
+	players[id] = PlayerData.new(id, "Player-" + str(id), Colors.get_player_color(id), device)
 	var player: PlayerData = players[id]
 	spawn_player(player)
 	print("%s joined with device %s" % [player.display_name, HexInput.get_device_display_name(player.input_device)])
@@ -118,5 +118,5 @@ func despawn_player(player: PlayerData) -> void:
 
 
 func _find_spawn_pos_xz_near_team(exclude_id: int) -> Vector3:
-	var reference_pos: Vector3 = GameStateManager.caravan.get_global_transform().origin
-	return reference_pos + Util.vec3FromRadiusAngle(3.0, randf_range(0, TAU))
+	var reference_pos: Vector3 = GameStateManager.caravan.global_position
+	return reference_pos + Util.randCircularOffsetRange(3.0, 3.0)
