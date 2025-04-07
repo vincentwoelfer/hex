@@ -1,9 +1,6 @@
 class_name Caravan
 extends CharacterBody3D
 
-# Scene references
-@onready var nav_agent: NavigationAgent3D = $NavAgent
-
 var speed: float = 1.25
 
 # Global Path params
@@ -15,28 +12,35 @@ var path_dir_rand_deviation: float = deg_to_rad(15)
 var has_goal: bool = false
 var current_goal: Vector3
 
-var debug_path: DebugPathInstance
+# Scene references
+@onready var path_finding_agent: PathFindingAgent = $PathFindingAgent
+@onready var collision: CollisionShape3D = $Collision
+
 
 func _ready() -> void:
-	debug_path = DebugPathInstance.new(Color(0, 0.407843, 0.164706, 0.5), 0.05, DebugSettings.debug_path_caravan)
-	add_child(debug_path)
+	path_finding_agent.init(HexConst.COLOR_CARAVAN, collision.shape)
+	path_finding_agent.show_path = DebugSettings.debug_path_caravan
 
 	# Set initial goal
 	choose_new_goal()
 
 
 func _physics_process(delta: float) -> void:
-	if nav_agent.is_navigation_finished() or not has_goal:
+	if path_finding_agent.is_navigation_done() or not has_goal:
 		choose_new_goal()
+		move_and_slide()
 		return
 
-	var next_position := nav_agent.get_next_path_position()
-	var direction := (next_position - global_position).normalized()
-	velocity = direction * speed
-	move_and_slide()
+	# Move, Dont touch y to not mess with gravity
+	var movement := path_finding_agent.get_direction() * speed
+	velocity.x = movement.x
+	velocity.z = movement.z
 
-	# Update visual path
-	debug_path.update_path(nav_agent.get_current_navigation_path(), global_position)
+	# Apply gravity
+	if not is_on_floor():
+		velocity.y += HexConst.GRAVITY * delta
+
+	move_and_slide()
 
 
 func choose_new_goal() -> void:
@@ -55,6 +59,6 @@ func choose_new_goal() -> void:
 		has_goal = false
 		return
 
-	nav_agent.set_target_position(current_goal)
+	path_finding_agent.set_target(current_goal)
 	print("Caravan has new goal : ", current_goal)
 	has_goal = true

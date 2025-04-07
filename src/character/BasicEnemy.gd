@@ -6,7 +6,6 @@ extends CharacterBody3D
 @onready var collision: CollisionShape3D = $Collision
 
 var speed: float = 2.5
-var gravity: float = - ProjectSettings.get_setting("physics/3d/default_gravity")
 
 var has_target: bool
 var target: Node3D
@@ -29,27 +28,24 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if not has_target:
+	if not has_target or path_finding_agent.is_navigation_done():
 		velocity = Vector3.ZERO
 		move_and_slide()
 		return
 
-	# Reached target
+	# Reached target - custom larger radius to enable "explosion" later on
 	if global_position.distance_to(target.global_position) <= 1.0:
 		queue_free()
 		return
 
-	# Move
-	var direction := path_finding_agent.get_direction()
-	var movement := direction * speed
-
-	# Dont touch y
+	# Move, Dont touch y to not mess with gravity
+	var movement := path_finding_agent.get_direction() * speed
 	velocity.x = movement.x
 	velocity.z = movement.z
 
 	# Apply gravity
 	if not is_on_floor():
-		velocity.y += gravity * delta
+		velocity.y += HexConst.GRAVITY * delta
 
 	move_and_slide()
 

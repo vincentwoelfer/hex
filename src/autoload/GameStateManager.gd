@@ -130,7 +130,7 @@ func spawn_caravan() -> void:
 	var new_mesh: Mesh = mesh_instance.mesh.duplicate(true)
 
 	var new_mat: StandardMaterial3D = new_mesh.surface_get_material(0)
-	new_mat.albedo_color = Color.TEAL
+	new_mat.albedo_color = HexConst.COLOR_CARAVAN
 	new_mesh.surface_set_material(0, new_mat)
 	mesh_instance.mesh = new_mesh
 

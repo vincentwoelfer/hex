@@ -41,6 +41,7 @@ static var trans_type_max_height_diff := 7.0
 
 # Use smooth groups
 static var smooth_vertex_normals: bool = false
+
 # ========================================================
 # ==================== Actual Constants ==================
 # ========================================================
@@ -52,14 +53,18 @@ const MAP_HEIGHT_INVALID: int = -999
 
 
 # ==================== Navigation ========================
-const nav_cell_size: float = 0.125
-const nav_agent_radius: float = 0.5
+const NAV_CELL_SIZE: float = 0.125
+const NAV_AGENT_RADIUS: float = 0.5
 const NAV_CHUNKS_GROUP_NAME: String = "nav_chunks"
 
 
 # ==================== STUFF =============================
 const MAP_CENTER: Vector3 = Vector3(-10, 0, -10)
 
+static var GRAVITY: float = - ProjectSettings.get_setting("physics/3d/default_gravity")
+
+# ==================== COLORS =============================
+const COLOR_CARAVAN: Color = Color.TEAL
 
 # ========================================================
 # ==================== Derived values ====================

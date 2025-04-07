@@ -38,6 +38,17 @@ var sweeping_shape: Shape3D
 var shape_cast_height_offset: Vector3
 var radius: float
 
+# TODO
+# Mix these two. Write own agent class using NavServer API directly.
+# https://docs.godotengine.org/en/4.0/tutorials/navigation/navigation_using_navigationagents.html#actor-as-characterbody3d
+# https://docs.godotengine.org/en/4.0/tutorials/navigation/navigation_using_agent_avoidance.html
+# https://docs.godotengine.org/en/4.0/tutorials/navigation/navigation_using_navigationservers.html#server-avoidance-callbacks
+
+# => Use different nav-maps for pathfinding/querrying (depending on size, see below) but use one single map for avoidance-agents so they can all see each other.
+
+# Different Nav-Mesh Maps/Sizes
+# https://docs.godotengine.org/en/4.0/tutorials/navigation/navigation_different_actor_types.html
+
 
 func init(color: Color, sweeping_shape_reference: Shape3D) -> void:
 	self.sweeping_shape = sweeping_shape_reference.duplicate(false)
@@ -99,6 +110,9 @@ func set_track_target(track_target_: Node3D) -> void:
 	self.has_target = true
 	self.target = track_target_.global_position
 
+func is_navigation_done() -> bool:
+	return navigation_done
+
 func get_target() -> Vector3:
 	if not has_target:
 		return Vector3.ZERO
@@ -152,9 +166,9 @@ func _update_path_progress() -> void:
 		return
 
 	var dist_next_waypoint: float = path[1].distance_to(global_position)
-	if dist_next_waypoint < 0.5:
+	if dist_next_waypoint <= radius:
 		path.remove_at(1)
-		#path_raw.remove_at(1) indices are not the same, this doesnt work
+		#path_raw.remove_at(1) indices are not the same, this doesnt work. Just wait for replanning to solve this.
 
 	pass
 
