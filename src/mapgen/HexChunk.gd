@@ -100,19 +100,19 @@ func on_parsing_done() -> void:
 	nav_mesh = NavigationMesh.new()
 	nav_mesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
 	nav_mesh.sample_partition_type = NavigationMesh.SAMPLE_PARTITION_MONOTONE
-	nav_mesh.cell_size = HexConst.nav_cell_size
-	nav_mesh.cell_height = HexConst.nav_cell_size
+	nav_mesh.cell_size = HexConst.NAV_CELL_SIZE
+	nav_mesh.cell_height = HexConst.NAV_CELL_SIZE
 	nav_mesh.agent_radius = HexConst.nav_agent_radius
 
 	nav_mesh.agent_max_slope = 50.0 # default 45
-	nav_mesh.agent_max_climb = snappedf(0.125, HexConst.nav_cell_size) # default = 0.25
+	nav_mesh.agent_max_climb = snappedf(0.125, HexConst.NAV_CELL_SIZE) # default = 0.25
 
 	# Nav-Mesh baking settings regardin geometry
-	var baking_border := snappedf(1.5, HexConst.nav_cell_size)
+	var baking_border := snappedf(1.5, HexConst.NAV_CELL_SIZE)
 	nav_mesh.filter_baking_aabb = self.chunk_nav_area_aabb_local_coordinates.grow(baking_border)
 
 	# Keep nav-meshes smaller than the actual geometry by having an artificial border of one cell size
-	nav_mesh.border_size = baking_border + HexConst.nav_cell_size
+	nav_mesh.border_size = baking_border + HexConst.NAV_CELL_SIZE
 
 	nav_mesh.detail_sample_distance = 6.0 # default = 6.0
 	nav_mesh.detail_sample_max_error = 1.0 # default = 1.0
@@ -134,7 +134,7 @@ func on_baking_done() -> void:
 	nav_region = NavigationRegion3D.new()
 
 	# Use smaller aabb because we increase the border size for the nav-mesh generation above by one cell size
-	var analyzer: NavMeshAnalyzer = NavMeshAnalyzer.new(nav_mesh, self.chunk_nav_area_aabb_local_coordinates.grow(-HexConst.nav_cell_size), self.global_position)
+	var analyzer: NavMeshAnalyzer = NavMeshAnalyzer.new(nav_mesh, self.chunk_nav_area_aabb_local_coordinates.grow(-HexConst.NAV_CELL_SIZE), self.global_position)
 	analyzer.analyze()
 	nav_mesh = analyzer.build_clean_nav_mesh()
 

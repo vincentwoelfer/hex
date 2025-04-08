@@ -24,8 +24,8 @@ func _ready() -> void:
 	#NAVMAP
 	var nav_map := get_world_3d().navigation_map
 	NavigationServer3D.set_debug_enabled(true)
-	NavigationServer3D.map_set_cell_size(nav_map, HexConst.nav_cell_size)
-	NavigationServer3D.map_set_cell_height(nav_map, HexConst.nav_cell_size)
+	NavigationServer3D.map_set_cell_size(nav_map, HexConst.NAV_CELL_SIZE)
+	NavigationServer3D.map_set_cell_height(nav_map, HexConst.NAV_CELL_SIZE)
 
 	# EDGE MERGING
 	# For two regions to be connected to each other, they must share a similar edge.
@@ -35,7 +35,7 @@ func _ready() -> void:
 	NavigationServer3D.map_set_use_edge_connections(nav_map, true)
 
 	# Increase margin for edge connections because we have an artificial border of one cell size
-	NavigationServer3D.map_set_edge_connection_margin(nav_map, 0.25 + HexConst.nav_cell_size) # default 0.25
+	NavigationServer3D.map_set_edge_connection_margin(nav_map, 0.25 + HexConst.NAV_CELL_SIZE) # default 0.25
 
 	if Engine.is_editor_hint():
 		return
