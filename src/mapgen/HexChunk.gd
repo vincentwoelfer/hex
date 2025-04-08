@@ -102,7 +102,7 @@ func on_parsing_done() -> void:
 	nav_mesh.sample_partition_type = NavigationMesh.SAMPLE_PARTITION_MONOTONE
 	nav_mesh.cell_size = HexConst.NAV_CELL_SIZE
 	nav_mesh.cell_height = HexConst.NAV_CELL_SIZE
-	nav_mesh.agent_radius = HexConst.nav_agent_radius
+	nav_mesh.agent_radius = HexConst.NAV_AGENT_RADIUS
 
 	nav_mesh.agent_max_slope = 50.0 # default 45
 	nav_mesh.agent_max_climb = snappedf(0.125, HexConst.NAV_CELL_SIZE) # default = 0.25

@@ -13,8 +13,8 @@ var target: Node3D
 var replan_timer: Timer
 
 func _ready() -> void:
-	path_finding_agent.init(Color(1.0, 0.0, 0.0), collision.shape)
-	path_finding_agent.show_path = DebugSettings.debug_path_basic_enemy
+	path_finding_agent.init(Color.RED, collision.shape)
+	path_finding_agent.show_path = DebugSettings.show_path_basic_enemy
 
 	# Set initial goal
 	choose_new_goal()

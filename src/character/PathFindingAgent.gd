@@ -80,11 +80,15 @@ func init(color: Color, sweeping_shape_reference: Shape3D) -> void:
 
 	self.shape_cast_height_offset = Vector3(0, original_height / 2.0, 0)
 
-	visual_path_raw = DebugPathInstance.new(Colors.set_alpha(Colors.rotate_color(color, 90), 0.1), 0.05)
-	visual_path = DebugPathInstance.new(Colors.set_alpha(color, 0.65), 0.05)
-	add_child(visual_path_raw)
+	const width := 0.06
+	visual_path = DebugPathInstance.new(color, width)
 	add_child(visual_path)
 
+	if DebugSettings.show_raw_debug_path:
+		var debug_color := Colors.set_alpha(Colors.mod_sat_val_hue(color, -0.4, 0.0, 0.05), color.a * 0.75)
+		visual_path_raw = DebugPathInstance.new(debug_color, width * 0.75)
+		add_child(visual_path_raw)
+	
 
  # ==================== PUBLIC API ========================
 # Set target/tracking target
@@ -175,13 +179,14 @@ func _update_path_progress() -> void:
 
 func _process(delta: float) -> void:
 	# Update visual path
-	visual_path_raw.update_path(path_raw, global_position)
 	visual_path.update_path(path, global_position)
-
-	visual_path_raw.enabled = show_path
 	visual_path.enabled = show_path
-		 
 
+	if DebugSettings.show_raw_debug_path:
+		visual_path_raw.update_path(path_raw, global_position)
+		visual_path_raw.enabled = show_path
+	
+		 
 func _update_target_from_tracking() -> void:
 	if not is_tracking_target:
 		return

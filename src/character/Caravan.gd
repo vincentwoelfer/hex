@@ -19,7 +19,7 @@ var current_goal: Vector3
 
 func _ready() -> void:
 	path_finding_agent.init(HexConst.COLOR_CARAVAN, collision.shape)
-	path_finding_agent.show_path = DebugSettings.debug_path_caravan
+	path_finding_agent.show_path = DebugSettings.show_path_caravan
 
 	# Set initial goal
 	choose_new_goal()

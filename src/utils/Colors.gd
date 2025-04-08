@@ -24,9 +24,31 @@ static func set_alpha(color: Color, alpha: float) -> Color:
 	return Color(color.r, color.g, color.b, alpha)
 
 
-static func rotate_color(color: Color, degrees: float) -> Color:
-	color.h = fmod(color.h + degrees / 360.0, 1.0)
+## Change hue, input [-1, 1]
+static func rotate_hue(color: Color, hue_d: float) -> Color:
+	color.h = fmod(color.h + hue_d, 1.0)
 	return color
+
+
+## Get a color with a different saturation and value.
+## Sat=0 -> fade to white
+## Val=0 -> fade to black
+static func mod_sat_val(color: Color, sat_d: float = 0.0, val_d: float = 0.0) -> Color:
+	var h: float = color.h
+	var s: float = clamp(color.s + sat_d, 0.0, 1.0)
+	var v: float = clamp(color.v + val_d, 0.0, 1.0)
+	return Color.from_hsv(h, s, v, color.a)
+
+
+## Get a color with a different saturation and value.
+## Sat=0 -> fade to white
+## Val=0 -> fade to black
+## Hue +- 1 
+static func mod_sat_val_hue(color: Color, sat_d: float = 0.0, val_d: float = 0.0, hue_d: float = 0.0) -> Color:
+	var h: float = fmod(color.h + hue_d, 1.0)
+	var s: float = clamp(color.s + sat_d, 0.0, 1.0)
+	var v: float = clamp(color.v + val_d, 0.0, 1.0)
+	return Color.from_hsv(h, s, v, color.a)
 
 
 #############################################################################
