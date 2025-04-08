@@ -29,9 +29,10 @@ var last_target_replan_time: float
 const replan_distance: float = 1.0
 const replan_interval_s: float = 1.0
 
-# Simplify
+# Simplify parameters
 const max_simplify_dist := 10.0
-const max_simplify_height_diff := 1.5
+const max_simplify_height_diff_upwards := 2.0
+const max_simplify_slope_deg_upwards := HexConst.NAV_AGENT_MAX_SLOPE_BASIS_DEG * 0.6
 
 # Define the shape for sweeping
 var sweeping_shape: Shape3D
@@ -56,25 +57,29 @@ func init(color: Color, sweeping_shape_reference: Shape3D) -> void:
 	# Make shape smaller - depends on type
 	var original_height: float = 0.0
 	const height_factor: float = 0.9
-	const radius_factor: float = 0.9
+	const radius_factor: float = 1.0
 	
 	if sweeping_shape is SphereShape3D:
-		original_height = (sweeping_shape as SphereShape3D).radius * 2.0
-		radius = (sweeping_shape as SphereShape3D).radius
+		var s := sweeping_shape as SphereShape3D
+		original_height = s.radius * 2.0
+		radius = s.radius
+		s.radius *= radius_factor
 
-		(sweeping_shape as SphereShape3D).radius *= radius_factor
 	elif sweeping_shape is CapsuleShape3D:
-		original_height = (sweeping_shape as CapsuleShape3D).height
-		radius = (sweeping_shape as CapsuleShape3D).radius
+		var s := sweeping_shape as CapsuleShape3D
 
-		(sweeping_shape as CapsuleShape3D).radius *= radius_factor
-		(sweeping_shape as CapsuleShape3D).height *= height_factor
+		original_height = s.height
+		radius = s.radius
+		s.radius *= radius_factor
+		s.height *= height_factor
+
 	elif sweeping_shape is CylinderShape3D:
-		original_height = (sweeping_shape as CylinderShape3D).height
-		radius = (sweeping_shape as CylinderShape3D).radius
+		var s := sweeping_shape as CylinderShape3D
 
-		(sweeping_shape as CylinderShape3D).radius *= radius_factor
-		(sweeping_shape as CylinderShape3D).height *= height_factor
+		original_height = s.height
+		radius = s.radius
+		s.radius *= radius_factor
+		s.height *= height_factor
 	else:
 		push_error("Unsupported shape type")
 
@@ -133,6 +138,7 @@ func get_direction() -> Vector3:
 
 
 # ===================== PRIVATE =========================
+# Main process loop
 func _physics_process(delta: float) -> void:
 	_update_target_from_tracking()
 
@@ -172,7 +178,11 @@ func _update_path_progress() -> void:
 	var dist_next_waypoint: float = path[1].distance_to(global_position)
 	if dist_next_waypoint <= radius:
 		path.remove_at(1)
-		#path_raw.remove_at(1) indices are not the same, this doesnt work. Just wait for replanning to solve this.
+			
+		# Indices are not the same, this is only a workaround. But raw_path has same or more so this kinda works.
+		# Just wait for replanning to solve this.
+		if DebugSettings.show_raw_debug_path and path_raw.size() > 1:
+			path_raw.remove_at(1)
 
 	pass
 
@@ -217,6 +227,7 @@ func _plan_new_path() -> void:
 	if NavigationServer3D.map_get_iteration_id(map) == 0:
 		return
 	
+	# TODO this plans towards the nearest point on the map, not the target. Maybe manually add target to path.
 	path_raw = NavigationServer3D.map_get_path(map, self.global_position, target, true)
 	if path_raw.size() == 0:
 		return
@@ -232,9 +243,8 @@ func simplify_path(p: PackedVector3Array) -> PackedVector3Array:
 	if p.size() < 3:
 		return p
 
-	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
+	# Check if we can reach the end directly	
 	var simplified_p := PackedVector3Array()
-
 	var current_index := 0
 	simplified_p.append(p[current_index])
 	
@@ -244,41 +254,66 @@ func simplify_path(p: PackedVector3Array) -> PackedVector3Array:
 
 		# Check if we can reach the furthest point directly
 		while next_index > current_index + 1:
-			# Only connect if
-			# - p is clear
-			# - distance is short enough
-			# - low height difference
-			# Check distance
-			var distance := p[next_index].distance_to(p[current_index])
-			if distance > max_simplify_dist:
+			# Check if we can connect current_index with next_index
+			if can_connect_points(p[current_index], p[next_index]):
+				break
+			else:
 				next_index -= 1
-				continue
-
-			# Check height difference
-			var height_diff := absf(p[next_index].y - p[current_index].y)
-			if height_diff > max_simplify_height_diff:
-				next_index -= 1
-				continue
-
-			# Check p is clear
-			var motion := p[next_index] - p[current_index]
-			var query := PhysicsShapeQueryParameters3D.new()
-			query.set_shape(sweeping_shape)
-			query.transform = Transform3D(Basis(), p[current_index] + shape_cast_height_offset)
-			query.motion = motion
-			query.collide_with_bodies = true
-			query.collide_with_areas = false
-			query.collision_mask = Layers.mask([Layers.L.TERRAIN, Layers.L.STATIC_GEOM])
-			var result: PackedFloat32Array = space_state.cast_motion(query)
-
-			if result[0] < 0.98:
-				next_index -= 1
-				continue
-
-			# No issue -> Connect p points
-			break
 
 		# Move to the next reachable point
 		current_index = next_index
 		simplified_p.append(p[current_index])
 	return simplified_p
+
+
+func can_connect_points(curr: Vector3, next: Vector3) -> bool:
+	# Only connect if
+	# - path is clear
+	# - distance is short enough
+	# - low height difference
+	# - low slope
+	# Check distance
+	var distance := curr.distance_to(next)
+	if distance > max_simplify_dist:
+		return false
+
+	# Check height difference
+	var height_diff := next.y - curr.y
+	if height_diff > max_simplify_height_diff_upwards:
+		return false
+
+	# Check slope
+	var slope_deg := rad_to_deg(atan(height_diff / distance))
+	if slope_deg > max_simplify_slope_deg_upwards:
+		return false
+
+	# Check if path sweep is clear
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.set_shape(sweeping_shape)
+	query.transform = Transform3D(Basis(), curr + self.shape_cast_height_offset)
+	query.motion = next - curr
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+	query.collision_mask = Layers.mask([Layers.L.TERRAIN, Layers.L.STATIC_GEOM])
+
+	var result: PackedFloat32Array = get_world_3d().direct_space_state.cast_motion(query)
+	if result[0] < 1.0:
+		return false
+
+	# Everything is fine -> can connect
+	return true
+
+# TODO optimioze by creating shape once and use rid
+# Example code:
+
+# var shape_rid = PhysicsServer3D.shape_create(PhysicsServer3D.SHAPE_SPHERE)
+# var radius = 2.0
+# PhysicsServer3D.shape_set_data(shape_rid, radius)
+
+# var params = PhysicsShapeQueryParameters3D.new()
+# params.shape_rid = shape_rid
+
+# # Execute physics queries here...
+
+# # Release the shape when done with physics queries.
+# PhysicsServer3D.free_rid(shape_rid)

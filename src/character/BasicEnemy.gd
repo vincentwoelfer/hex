@@ -7,14 +7,16 @@ extends CharacterBody3D
 
 var speed: float = 2.5
 
-var has_target: bool
-var target: Node3D
+var target: Node3D = null
+var target_reached_dist: float
 
 var replan_timer: Timer
 
 func _ready() -> void:
 	path_finding_agent.init(Color.RED, collision.shape)
 	path_finding_agent.show_path = DebugSettings.show_path_basic_enemy
+
+	self.floor_max_angle = deg_to_rad(HexConst.NAV_AGENT_MAX_SLOPE_BASIS_DEG + HexConst.NAV_AGENT_MAX_SLOPE_ACTUAL_OFFSET_DEG)
 
 	# Set initial goal
 	choose_new_goal()
@@ -28,13 +30,13 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if not has_target or path_finding_agent.is_navigation_done():
+	if target == null or path_finding_agent.is_navigation_done():
 		velocity = Vector3.ZERO
 		move_and_slide()
 		return
 
 	# Reached target - custom larger radius to enable "explosion" later on
-	if global_position.distance_to(target.global_position) <= 1.0:
+	if global_position.distance_to(target.global_position) <= target_reached_dist:
 		queue_free()
 		return
 
@@ -51,7 +53,7 @@ func _physics_process(delta: float) -> void:
 
 
 func choose_new_goal() -> void:
-	has_target = false
+	target = null
 
 	var nav_map: RID = get_world_3d().navigation_map
 	if NavigationServer3D.map_get_iteration_id(nav_map) == 0:
@@ -77,8 +79,26 @@ func choose_new_goal() -> void:
 
 	target = possible_goals[closest_goal_idx]
 	path_finding_agent.set_track_target(target)
-	has_target = true
+	target_reached_dist = _compute_target_done_dist()
 
+
+func _compute_target_done_dist() -> float:
+	# This is a bit hacky, but we need to get the target's collision shape
+	# and use its extents to determine how far we need to be from the target
+	var target_radius: float = 0.0
+	if target != null:
+		for child in target.get_children():
+			if child is CollisionShape3D:
+				var shape: Shape3D = (child as CollisionShape3D).shape
+				if shape is SphereShape3D:
+					target_radius = (shape as SphereShape3D).radius
+				elif shape is CapsuleShape3D:
+					target_radius = (shape as CapsuleShape3D).radius
+				elif shape is CylinderShape3D:
+					target_radius = (shape as CylinderShape3D).radius
+				# Add more shape types if needed
+
+	return path_finding_agent.radius + target_radius + 0.2
 
 func get_total_path_length(points: PackedVector3Array) -> float:
 	if points.size() <= 1:

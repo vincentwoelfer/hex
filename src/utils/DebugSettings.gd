@@ -19,8 +19,8 @@ static var enable_debug_collision_visualizations: bool = false
 static var enable_terrain_collision_visualizations: bool = false
 
 # Navigation visualization
-static var show_raw_debug_path: bool = false
+static var show_raw_debug_path: bool = true
 
 static var show_path_caravan: bool = true
-static var show_path_basic_enemy: bool = false
+static var show_path_basic_enemy: bool = true
 static var show_path_player_to_caravan: bool = true

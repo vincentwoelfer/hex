@@ -104,7 +104,7 @@ func on_parsing_done() -> void:
 	nav_mesh.cell_height = HexConst.NAV_CELL_SIZE
 	nav_mesh.agent_radius = HexConst.NAV_AGENT_RADIUS
 
-	nav_mesh.agent_max_slope = 50.0 # default 45
+	nav_mesh.agent_max_slope = HexConst.NAV_AGENT_MAX_SLOPE_BASIS_DEG + HexConst.NAV_AGENT_MAX_SLOPE_NAV_MESH_OFFSET_DEG
 	nav_mesh.agent_max_climb = snappedf(0.125, HexConst.NAV_CELL_SIZE) # default = 0.25
 
 	# Nav-Mesh baking settings regardin geometry
@@ -114,10 +114,9 @@ func on_parsing_done() -> void:
 	# Keep nav-meshes smaller than the actual geometry by having an artificial border of one cell size
 	nav_mesh.border_size = baking_border + HexConst.NAV_CELL_SIZE
 
-	nav_mesh.detail_sample_distance = 6.0 # default = 6.0
-	nav_mesh.detail_sample_max_error = 1.0 # default = 1.0
-
-	nav_mesh.edge_max_error = 1.5 # default = 1.3
+	# nav_mesh.detail_sample_distance = 6.0 # default = 6.0
+	# nav_mesh.detail_sample_max_error = 1.0 # default = 1.0
+	# nav_mesh.edge_max_error = 1.3 # default = 1.3
 
 	nav_mesh.region_min_size = 40.0 # The minimum size of a region for it to be created, default = 2
 	nav_mesh.region_merge_size = 100.0 # smaller than this will be merged, default = 20

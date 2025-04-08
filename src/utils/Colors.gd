@@ -82,15 +82,6 @@ static func modify_color_for_transition_type(base: Color, trans_type: HexGeometr
 	return base.lerp(Color.BLACK, 0.9)
 
 
-const PLAYER_COLORS: Array[Color] = [Color.DEEP_PINK, Color.ROYAL_BLUE, Color.WEB_GREEN, Color.GOLD]
-static func get_player_colors() -> Array[Color]:
-	return PLAYER_COLORS
-
-static func get_player_color(i: int) -> Color:
-	assert(i >= 0 and i < PLAYER_COLORS.size())
-	return PLAYER_COLORS[i]
-
-
 static func get_color_for_incline(incline_deg: float) -> Color:
 	# Remap & clamp
 	incline_deg = remap(incline_deg, 30.0, 70.0, 0.0, 1.0)
@@ -106,3 +97,18 @@ static func get_color_for_incline(incline_deg: float) -> Color:
 	var color := ground.lerp(wall, incline_deg)
 
 	return color
+
+#############################################################################
+# STATIC COLOR DEFINITIONS
+#############################################################################
+# For players
+const PLAYER_COLORS: Array[Color] = [Color.FUCHSIA, Color.ROYAL_BLUE, Color.WEB_GREEN, Color.GOLD]
+static func get_player_colors() -> Array[Color]:
+	return PLAYER_COLORS
+
+static func get_player_color(i: int) -> Color:
+	assert(i >= 0 and i < PLAYER_COLORS.size())
+	return PLAYER_COLORS[i]
+
+# Caravan
+const COLOR_CARAVAN: Color = Color.TEAL

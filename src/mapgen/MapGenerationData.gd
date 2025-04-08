@@ -30,8 +30,8 @@ static func determine_height(hex_pos: HexPos) -> int:
 	height = clampi(height, HexConst.MAP_HEIGHT_MIN + 4, max_height) + 1
 
 	# Add cliff-tops
-	if height > max_height * 0.85:
-		height += 7
+	if height > max_height * 0.88:
+		height += 6
 
 	return height
 
@@ -44,7 +44,7 @@ static func determine_transition_type(from_hex_pos: HexPos, from_height: int, to
 	var height_diff: int = abs(to_height - from_height)
 
 	# Make some connections smoother
-	if rand_cond and height_diff in [8, 14, 15, 16]:
+	if rand_cond and height_diff in [14, 15, 16]:
 		return HexGeometryInput.TransitionType.SMOOTH
 
 	# Normal cases

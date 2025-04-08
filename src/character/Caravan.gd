@@ -1,7 +1,7 @@
 class_name Caravan
 extends CharacterBody3D
 
-var speed: float = 1.25
+var speed: float = 3.25
 
 # Global Path params
 var min_goal_distance: float = 30.0
@@ -18,8 +18,11 @@ var current_goal: Vector3
 
 
 func _ready() -> void:
-	path_finding_agent.init(HexConst.COLOR_CARAVAN, collision.shape)
+	path_finding_agent.init(Colors.COLOR_CARAVAN, collision.shape)
 	path_finding_agent.show_path = DebugSettings.show_path_caravan
+
+	# Caravan can climb more to avoid getting stuck
+	self.floor_max_angle = deg_to_rad(HexConst.NAV_AGENT_MAX_SLOPE_BASIS_DEG + HexConst.NAV_AGENT_MAX_SLOPE_ACTUAL_OFFSET_DEG)
 
 	# Set initial goal
 	choose_new_goal()

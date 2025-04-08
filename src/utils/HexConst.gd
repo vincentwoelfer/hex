@@ -57,14 +57,17 @@ const NAV_CELL_SIZE: float = 0.125
 const NAV_AGENT_RADIUS: float = 0.5
 const NAV_CHUNKS_GROUP_NAME: String = "nav_chunks"
 
+# Define a basis slope angle, then give the agents more ability (to compensate for small path errors)
+# but also reduce the nav-mesh generation a bit to avoid too steep slopes
+const NAV_AGENT_MAX_SLOPE_BASIS_DEG := 47.5
+const NAV_AGENT_MAX_SLOPE_ACTUAL_OFFSET_DEG := 12.5
+const NAV_AGENT_MAX_SLOPE_NAV_MESH_OFFSET_DEG := -2.5
+
 
 # ==================== STUFF =============================
 const MAP_CENTER: Vector3 = Vector3(-10, 0, -10)
 
 static var GRAVITY: float = - ProjectSettings.get_setting("physics/3d/default_gravity")
-
-# ==================== COLORS =============================
-const COLOR_CARAVAN: Color = Color.TEAL
 
 # ========================================================
 # ==================== Derived values ====================
