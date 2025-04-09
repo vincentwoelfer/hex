@@ -3,14 +3,7 @@ class_name HexGeometry
 extends Node3D
 
 # Class variables
-var mesh: Mesh
 var triangles: Array[Triangle]
-var samplerAll: PolygonSurfaceSampler
-var samplerHorizontal: PolygonSurfaceSampler
-var samplerVertical: PolygonSurfaceSampler
-
-# Only shape ressource, no collision, no visualization
-var collision_shape: ConcavePolygonShape3D
 
 # Input Variables. The height is absolute!
 var input: HexGeometryInput
@@ -44,29 +37,12 @@ func generate() -> void:
 
 	#########################################
 	# Triangulate
-	#########################################
+	#########################################	
 	triangles.clear()
 	triangles += triangulateCenter()
 	triangles += triangulateOuter()
 
-	#########################################
-	# Build mesh from triangles
-	#########################################
-	#mesh = Util.create_mesh_from_triangles(triangles)
-
-	#########################################
-	# Create polygon samplers from triangles
-	#########################################
-	self.samplerAll = PolygonSurfaceSampler.new(self.triangles).finalize()
-	self.samplerHorizontal = PolygonSurfaceSampler.new(self.triangles).filter_max_incline(45).finalize()
-	self.samplerVertical = PolygonSurfaceSampler.new(self.triangles).filter_min_incline(45).finalize()
-
-	########################################
-	# Collision Shape
-	########################################	
-	generateCollisionShape()
-
-
+	
 func setInnerAndCenterVertexHeights() -> void:
 	if HexConst.smooth_height_factor_inner == 0.0:
 		return
@@ -90,7 +66,7 @@ func getInterpolatedHeightInside(p: Vector3) -> float:
 func setOuterVertexHeights() -> void:
 	# For each CORNER: Take corner vertex height from input. No transition height here, corner_vertices[].height is already final height
 	for dir in range(6):
-		verts_outer[dir_to_corner_index(dir)].y = input.corner_vertices[dir].y
+		verts_outer[HexConst.dir_to_corner_index(dir)].y = input.corner_vertices[dir].y
 
 	# For each DIRECTION: Adjust height of outer vertices according do adjacent tiles.
 	# This does not modify the corner vertices
@@ -99,8 +75,8 @@ func setOuterVertexHeights() -> void:
 		var base_height: float = HexConst.transition_height(input.transitions[dir].height_other - input.height)
 		
 		# +1 to ommit corners
-		var start_idx := dir_to_corner_index(dir) + 1
-		var end_idx := dir_to_corner_index(Util.as_dir(dir + 1))
+		var start_idx := HexConst.dir_to_corner_index(dir) + 1
+		var end_idx := HexConst.dir_to_corner_index(Util.as_dir(dir + 1))
 
 		# Here we only need 2d x/z information so we can always use strict corner vertices
 		var start_corner: Vector2 = Util.toVec2(input.corner_vertices[dir])
@@ -109,7 +85,7 @@ func setOuterVertexHeights() -> void:
 		# Loop over side vertices excluding actual corner vertices (these are set above)
 		var x: int = start_idx
 		while x != end_idx:
-			var t := compute_t_on_line_segment(Util.toVec2(verts_outer[x]), start_corner, end_corner)
+			var t := Util.compute_t_on_line_segment(Util.toVec2(verts_outer[x]), start_corner, end_corner)
 			var smoothed_height: float = (1.0 - t) * input.transitions[dir].smoothing_start_height + t * input.transitions[dir].smoothing_end_height
 			verts_outer[x].y = lerpf(base_height, smoothed_height, HexConst.smooth_height_factor_outer)
 
@@ -119,7 +95,7 @@ func setOuterVertexHeights() -> void:
 
 func triangulateCenter() -> Array[Triangle]:
 	var tris: Array[Triangle] = []
-	var col := Colors.getDistinctHexColorTopSide()
+	var col := Colors.get_distinct_hex_color_top_side()
 
 	# Generate PackedVec2Array
 	var verts_center_packed: PackedVector2Array = []
@@ -149,7 +125,7 @@ func triangulateCenter() -> Array[Triangle]:
 		if all_vertices_on_circle and Util.isTriangleOutsideOfPolygon([p1, p2, p3], verts_polygon_packed):
 			continue
 
-		tris.append(Triangle.new(p1, p2, p3, Colors.colorVariation(col)))
+		tris.append(Triangle.new(p1, p2, p3, Colors.rand_variation(col)))
 
 	return tris
 
@@ -161,9 +137,9 @@ func triangulateOuter() -> Array[Triangle]:
 
 	# Per Side
 	for dir in range(6):
-		var sideColor := Colors.getDistincHexColor(dir)
-		var corner_color := Colors.modifyColorForCornerArea(sideColor)
-		sideColor = Colors.modifyColorForTransitionType(sideColor, input.transitions[dir].type)
+		var sideColor := Colors.get_distinct_hex_color(dir)
+		var corner_color := Colors.modify_color_for_corner_area(sideColor)
+		sideColor = Colors.modify_color_for_transition_type(sideColor, input.transitions[dir].type)
 
 		# start inner & outer
 		var i := dir * (1 + HexConst.extra_verts_per_side)
@@ -179,7 +155,7 @@ func triangulateOuter() -> Array[Triangle]:
 
 		# Only transition area between hexes, without corners!
 		while i < n1 or j < n2:
-			var col := Colors.colorVariation(sideColor)
+			var col := Colors.rand_variation(sideColor)
 			var outer_is_clockwise_further := Util.isClockwiseOrder(verts_inner[i % s_in], verts_outer[j % s_out])
 
 			if j == n2 or (i < n1 and outer_is_clockwise_further):
@@ -194,20 +170,6 @@ func triangulateOuter() -> Array[Triangle]:
 
 	return tris
 	
-
-func generateCollisionShape() -> void:
-	# Generate faces from triangles
-	var faces: PackedVector3Array = []
-	faces.resize(triangles.size() * 3)
-	for idx in range(triangles.size()):
-		faces[idx * 3 + 0] = triangles[idx].a
-		faces[idx * 3 + 1] = triangles[idx].b
-		faces[idx * 3 + 2] = triangles[idx].c
-
-	# Create collision shape
-	collision_shape = ConcavePolygonShape3D.new()
-	collision_shape.set_faces(faces)
-
 
 # Point must be strictly inside hexagon (not on borders)!
 func computeBarycentricWeightsForInsidePoint(p_3d: Vector3) -> PackedFloat32Array:
@@ -239,8 +201,8 @@ func computeBarycentricWeightsForInsidePoint(p_3d: Vector3) -> PackedFloat32Arra
 		# 	on_border = true
 
 		# else:
-		var tan1 := cotangent(p, corner_i, corner_prev)
-		var tan2 := cotangent(p, corner_i, corner_next)
+		var tan1 := Util.cotangent(p, corner_i, corner_prev)
+		var tan2 := Util.cotangent(p, corner_i, corner_next)
 		w = (tan1 + tan2) / (p - corner_i).length_squared()
 
 		weights[i] = w
@@ -277,7 +239,7 @@ func doesVertsInnerTrianglePointsInwards(i1: int, i2: int, i3: int) -> bool:
 
 
 func get_corner_vertex(i: int) -> Vector3:
-	return verts_outer[dir_to_corner_index(i)]
+	return verts_outer[HexConst.dir_to_corner_index(i)]
 
 
 #########################################################################################
@@ -346,7 +308,7 @@ static func getThreeHexCornerVertices(r_inner: float, r_outer: float, angle: flo
 	var outer_corner := Util.getHexVertex(r_outer, angle)
 
 	# Distance between the two interior circles of the inner and outer radius of the hex
-	var dist := (r_outer * sqrt(3.0) / 2.0) - (r_inner * sqrt(3.0) / 2.0)
+	var dist := HexConst.outer_radius_interior_circle() - HexConst.inner_radius_interior_circle()
 
 	# 30deg = PI/6.0 = one half of a hexagon segment
 	var left_angle := angle - PI / 6.0
@@ -373,29 +335,3 @@ static func generateCenterPoints(num: int) -> PackedVector3Array:
 		points.append(Util.vec3FromRadiusAngle(ring_radius, angle))
 
 	return points
-
-# 0 = on a, 1 = on b
-static func compute_t_on_line_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
-	var ab: Vector2 = b - a
-	var ap: Vector2 = p - a
-	return ap.dot(ab) / ab.dot(ab)
-
-
-static func is_point_near_line_segment(p: Vector2, a: Vector2, b: Vector2) -> bool:
-	const epsilon: float = 0.001
-	var ab: Vector2 = b - a
-	var ap: Vector2 = p - a
-	var ab_len: float = ab.length()
-	var cross_product: float = ab.cross(ap)
-	var distance: float = abs(cross_product) / ab_len
-	return distance <= epsilon * ab_len
-
-
-static func cotangent(a: Vector2, b: Vector2, c: Vector2) -> float:
-	var ba := a - b
-	var bc := c - b
-	return bc.dot(ba) / abs(bc.cross(ba))
-
-
-static func dir_to_corner_index(i: int) -> int:
-	return i * HexConst.total_verts_per_side()

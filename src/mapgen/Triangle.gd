@@ -20,7 +20,7 @@ func _init(a_: Vector3, b_: Vector3, c_: Vector3, color_: Color = Color.BLACK) -
 	# Color is set to distinc hex color in HexGeometry (unless overwritten here)
 	if not DebugSettings.use_distinc_hex_colors:
 		# For testing, set color based on incline
-		color = Colors.getColorForIncline(calculateInclineDeg())
+		color = Colors.get_color_for_incline(calculateInclineDeg())
 
 
 func getArea() -> float:

@@ -9,16 +9,6 @@ const MAX_PLAYERS: int = 4
 # Dictionary of players, indexed by their id
 var players: Dictionary[int, PlayerData] = {}
 
-var cam_follow_nodes: Array[Node3D] = []
-
-var player_scene: PackedScene = preload('res://scenes/PlayerCharacter.tscn')
-
-func _ready() -> void:
-	if not Engine.is_editor_hint():
-		# Join keyboard player automatically
-		await get_tree().create_timer(0.6).timeout
-		add_player(-1)
-
 
 func _process(delta: float) -> void:
 	if not Engine.is_editor_hint():
@@ -33,7 +23,7 @@ func add_player(device: int) -> int:
 		print("No more player slots available")
 		return -1
 
-	players[id] = PlayerData.new(id, "Player-" + str(id), Colors.getPlayerColor(id), device)
+	players[id] = PlayerData.new(id, "Player-" + str(id), Colors.get_player_color(id), device)
 	var player: PlayerData = players[id]
 	spawn_player(player)
 	print("%s joined with device %s" % [player.display_name, HexInput.get_device_display_name(player.input_device)])
@@ -95,27 +85,15 @@ func _is_device_joined(device: int) -> bool:
 
 ###################################################
 # Spawning
-###################################################
-func find_spawn_pos_xz_near_team(exclude_id: int) -> Vector3:
-	var possible_reference_players: Array[PlayerData] = players.values().filter(func(p: PlayerData) -> bool: return p.id != exclude_id)
-
-	if possible_reference_players.is_empty():
-		return Vector3.ZERO
-
-	# Next to random player
-	var player: PlayerData = possible_reference_players.pick_random()
-	var reference_pos: Vector3 = player.player_node.global_transform.origin
-	var pos: Vector3 = reference_pos + Util.vec3FromRadiusAngle(3.0, randf_range(0, TAU))
-	return pos
-
-	
+###################################################	
 func spawn_player(player: PlayerData) -> void:
-	var player_node: PlayerController = player_scene.instantiate()
-	player_node.init(player.input_device)
+	var player_node: PlayerController = ResLoader.PLAYER_SCENE.instantiate()
+	player_node.init(player.input_device, player.color)
 
 	# Find spawn pos
 	var shape: CollisionShape3D = player_node.get_node("Collision")
-	var spawn_pos := MapGeneration.get_capsule_spawn_pos_on_map_surface(find_spawn_pos_xz_near_team(player.id), shape)
+	var spawn_pos := _find_spawn_pos_xz_near_team(player.id)
+	spawn_pos = MapGeneration.get_spawn_pos_height_on_map_surface(spawn_pos, shape)
 
 	# Set player color
 	var mesh_instance := player_node.get_node("Mesh") as MeshInstance3D
@@ -127,9 +105,11 @@ func spawn_player(player: PlayerData) -> void:
 	mesh_instance.mesh = new_mesh
 
 	get_tree().root.add_child(player_node)
-	player_node.global_transform.origin = spawn_pos
+	player_node.global_position = spawn_pos
+	player_node.reset_physics_interpolation()
 
 	player.player_node = player_node
+
 	# Test lightning
 	# Instantiate LightningParticles
 	var lightning_particles_scene = load("res://scenes/effects/lightning_particles.tscn") # Make sure you have this scene preloaded or loaded
@@ -144,41 +124,16 @@ func spawn_player(player: PlayerData) -> void:
 	player.lightning_particles = lightning_particles
 	player_node.player_data = player
 	
-	register_cam_follow_node(player_node)
+
+	GameStateManager.cam_follow_point_manager.register_cam_follow_node(player_node)
+
 
 
 func despawn_player(player: PlayerData) -> void:
-	unregister_cam_follow_node(player.player_node)
+	GameStateManager.cam_follow_point_manager.unregister_cam_follow_node(player.player_node)
 	player.player_node.queue_free()
 
 
-###################################################
-# Camera Follow
-###################################################
-func register_cam_follow_node(node: Node3D) -> void:
-	if not node in cam_follow_nodes:
-		cam_follow_nodes.append(node)
-
-func unregister_cam_follow_node(node: Node3D) -> void:
-	if node in cam_follow_nodes:
-		cam_follow_nodes.erase(node)
-
-func calculate_cam_follow_point() -> Vector3:
-	if cam_follow_nodes.is_empty():
-		return Vector3(0.0, MapGeneration._get_approx_map_height_at_pos(Vector3.ZERO) + 2.0, 0.0)
-
-	var p: Vector3 = Vector3.ZERO
-	for node in cam_follow_nodes:
-		p += node.global_position
-	p /= float(cam_follow_nodes.size())
-	return p
-
-func calculate_cam_follow_point_max_dist(cam_follow_point: Vector3) -> float:
-	if cam_follow_nodes.is_empty():
-		return 0.0
-
-	var max_dist: float = 0.0
-	for node in cam_follow_nodes:
-		var dist: float = node.global_position.distance_to(cam_follow_point)
-		max_dist = max(max_dist, dist)
-	return max_dist
+func _find_spawn_pos_xz_near_team(exclude_id: int) -> Vector3:
+	var reference_pos: Vector3 = GameStateManager.caravan.global_position
+	return reference_pos + Util.randCircularOffsetRange(3.0, 3.0)

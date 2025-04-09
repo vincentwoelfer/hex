@@ -4,9 +4,16 @@ class_name Util
 ######################################################
 # Randomness
 ######################################################
+## Gives a random offset in a circle with radius r_max
 static func randCircularOffset(r_max: float) -> Vector3:
 	var angle := randf_range(0.0, 2.0 * PI)
 	var r := randf_range(0.0, r_max)
+	return vec3FromRadiusAngle(r, angle)
+
+## Gives a random offset in a circle betwee radius r_min and r_max
+static func randCircularOffsetRange(r_min: float, r_max: float) -> Vector3:
+	var angle := randf_range(0.0, 2.0 * PI)
+	var r := randf_range(r_min, r_max)
 	return vec3FromRadiusAngle(r, angle)
 
 
@@ -24,12 +31,17 @@ static func randCircularOffsetNormalDist(r_max: float) -> Vector3:
 static func as_dir(dir: int) -> int:
 	return (dir + 6) % 6
 
+# Orientation 0 = 0 = Forward -Z
 static var HEX_ANGLES: Array[float] = [0.0, PI / 3.0, 2.0 * PI / 3.0, PI, 4.0 * PI / 3.0, 5.0 * PI / 3.0, 6.0 * PI / 3.0]
 static func getSixHexAngles() -> Array[float]:
 	return HEX_ANGLES
 
+## Returns the angle of a hexagon side in radians
 static func getHexAngle(dir: int) -> float:
 	return HEX_ANGLES[as_dir(dir)]
+
+static func getHexAngleInterpolated(orientation: float) -> float:
+	return PI / 3.0 * orientation
 
 
 static func vec3FromRadiusAngle(r: float, angle: float) -> Vector3:
@@ -49,32 +61,14 @@ static func getAngleDiff(v1: Vector3, v2: Vector3) -> float:
 static func isClockwiseOrder(v1: Vector3, v2: Vector3) -> bool:
 	return getAngleDiff(v1, v2) > 0.0
 
-
+## Converts vec3 -> vec2, y is ignored
 static func toVec2(v: Vector3) -> Vector2:
 	return Vector2(v.x, v.z)
 
 
+## Convert vec2 -> vec3, y is set to 0
 static func toVec3(v: Vector2) -> Vector3:
 	return Vector3(v.x, 0.0, v.y)
-
-
-# More advanced angle stuff
-static func sortVecAccordingToAngles(vecs: Array[Vector3]) -> Array[Vector3]:
-	# TODO this does not work correclty for cases >180 deg
-	# => Correctly check that all vectors lie in a 180deg segment. Currently this assert cant trigger since the angle between any two points is at most exactly 180deg.
-	var max_angle_diff := 0.0
-
-	# Compare every pair of vectors
-	for i in range(vecs.size()):
-		for j in range(i + 1, vecs.size()):
-			max_angle_diff = max(max_angle_diff, getAngleDiff(vecs[i], vecs[j]))
-
-	var all_in_segment := max_angle_diff < PI
-	assert(all_in_segment, "Angles must be within an 180deg sector, max angle diff is %f" % rad_to_deg(max_angle_diff))
-
-	# Need to invert the result to have the vectors in ascending angle-order 
-	vecs.sort_custom(func(a: Vector3, b: Vector3) -> bool: return !isClockwiseOrder(a, b))
-	return vecs
 
 
 ######################################################
@@ -84,6 +78,13 @@ static func sortVecAccordingToAngles(vecs: Array[Vector3]) -> Array[Vector3]:
 static func clampf(val: float, a: float, b: float) -> float:
 	return clampf(val, minf(a, b), maxf(a, b))
 
+
+######################################################
+# Timing & Waiting
+######################################################
+static func wait_until(node: Node3D, condition: Callable) -> void:
+	while not condition.call():
+		await node.get_tree().physics_frame
 
 ######################################################
 # Camera access
@@ -104,7 +105,7 @@ static func get_global_cam_pos(reference_node: Node) -> Vector3:
 	var cam := get_global_cam(reference_node)
 		
 	if cam != null:
-		return cam.global_transform.origin
+		return cam.global_position
 	else:
 		return Vector3.ZERO
 
@@ -177,25 +178,51 @@ static func create_mesh_from_triangles(triangles: Array[Triangle]) -> Mesh:
 
 
 ######################################################
+# Stuff
+######################################################
+# 0 = on a, 1 = on b
+static func compute_t_on_line_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
+	var ab: Vector2 = b - a
+	var ap: Vector2 = p - a
+	return ap.dot(ab) / ab.dot(ab)
+
+
+static func is_point_near_line_segment(p: Vector2, a: Vector2, b: Vector2) -> bool:
+	const epsilon: float = 0.001
+	var ab: Vector2 = b - a
+	var ap: Vector2 = p - a
+	var ab_len: float = ab.length()
+	var cross_product: float = ab.cross(ap)
+	var distance: float = abs(cross_product) / ab_len
+	return distance <= epsilon * ab_len
+
+
+static func cotangent(a: Vector2, b: Vector2, c: Vector2) -> float:
+	var ba := a - b
+	var bc := c - b
+	return bc.dot(ba) / abs(bc.cross(ba))
+
+
+######################################################
 # LERP
 ######################################################
 const EPSILON: float = 0.001
 static func lerp_towards_f(curr: float, goal: float, speed: float, delta: float) -> float:
 	if abs(goal - curr) < EPSILON:
 		return goal
-	return lerp(curr, goal, 1.0 - exp(- speed * delta))
+	return lerp(curr, goal, 1.0 - exp(-speed * delta))
 
 
 static func lerp_towards_angle(curr: float, goal: float, speed: float, delta: float) -> float:
 	if abs(goal - curr) < EPSILON:
 		return goal
-	return lerp_angle(curr, goal, 1.0 - exp(- speed * delta))
+	return lerp_angle(curr, goal, 1.0 - exp(-speed * delta))
 
 
 static func lerp_towards_vec3(curr: Vector3, goal: Vector3, speed: float, delta: float) -> Vector3:
 	if curr.distance_to(goal) < EPSILON:
 		return goal
-	return lerp(curr, goal, 1.0 - exp(- speed * delta))
+	return lerp(curr, goal, 1.0 - exp(-speed * delta))
 
 ######################################################
 # HEXAGON
@@ -256,3 +283,49 @@ static func isTriangleOutsideOfPolygon(tri: Array[Vector3], polygon: PackedVecto
 		if Util.isPointOutsidePolygon(Util.toVec2(m), polygon):
 			return true
 	return false
+
+
+######################################################
+# Physics stuff
+######################################################
+static func get_scene_root() -> Node3D:
+	if Engine.is_editor_hint():
+		return EditorInterface.get_edited_scene_root() as Node3D
+	else:
+		return (Engine.get_main_loop() as SceneTree).current_scene
+
+
+static func get_world() -> World3D:
+	return get_scene_root().get_world_3d()
+
+
+## Vectors in world space
+static func raycast(from: Vector3, to: Vector3, mask: int = Layers.L.ALL) -> bool:
+	var space_state: PhysicsDirectSpaceState3D = get_world().direct_space_state
+	var query := PhysicsRayQueryParameters3D.create(from, to, mask)
+	query.hit_from_inside = true
+	var hit := not space_state.intersect_ray(query).is_empty()
+
+	# Debug shape
+	# var color := Color(1, 0, 0) if hit else Color(0, 0, 1)
+	# DebugShapes3D.spawn_mesh(Vector3.ZERO, DebugShapes3D.line_mesh(from, to, DebugShapes3D.material(color, true)), Util.get_scene_root())
+
+	return hit
+
+
+## Perform a point collision test at the given position (in world space)
+static func collision_point_test(pos: Vector3, mask: int = Layers.L.ALL) -> bool:
+	var space_state: PhysicsDirectSpaceState3D = get_world().direct_space_state
+
+	var query := PhysicsPointQueryParameters3D.new()
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+	query.position = pos
+	query.collision_mask = mask
+	var hit := not (space_state.intersect_point(query, 1).is_empty())
+
+	# Debug shape
+	# var color := Color(1, 0, 0) if hit else Color(0, 0, 1)
+	# DebugShapes3D.spawn_mesh(pos, DebugShapes3D.sphere_mesh(0.15, DebugShapes3D.material(color, true)), Util.get_scene_root())
+
+	return hit

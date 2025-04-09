@@ -6,6 +6,7 @@ var zoom_curr: float = 15.0
 var zoom_goal: float = zoom_curr
 var zoom_min: float = 15.0
 var zoom_max: float = 30.0
+var zoom_input_speed: float = 4.0
 var zoom_lerp_speed: float = 10.0
 
 var zoom_min_at_dist: float = 12.0
@@ -18,12 +19,13 @@ var zoom_manual_override: bool = false
 # rotation = view angle = height of camera
 var tilt_curr: float = deg_to_rad(50.0)
 var tilt_goal: float = tilt_curr
-var tilt_min: float = deg_to_rad(25.0) # from side
-var tilt_max: float = deg_to_rad(80.0) # from above
+var tilt_min: float = deg_to_rad(15.0) # from side
+var tilt_max: float = deg_to_rad(89.5) # from above
+var tilt_input_speed: float = deg_to_rad(200.0)
 var tilt_lerp_speed: float = deg_to_rad(150.0)
 
 # rotation arount UP axis
-var orientation_goal: int = 1
+var orientation_goal: int = 0
 var orientation_angle_curr: float
 var orientation_angle_goal: float
 var orientation_lerp_speed: float = deg_to_rad(360.0)
@@ -35,20 +37,20 @@ var follow_point_lerp_speed: float = 8.0
 
 
 # Only for debugging
+var draw_debug_follow_point := false
 var debug_mesh: MeshInstance3D
-var draw_debug_follow_point := true
 
 @onready var camera: Camera3D = $Camera
 
-
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	orientation_angle_goal = compute_orientation_angle_goal(orientation_goal)
+	orientation_angle_goal = Util.getHexAngleInterpolated(orientation_goal)
 	orientation_angle_curr = orientation_angle_goal
 
-	follow_point_goal = GameStateManager.get_cam_follow_point()
+	follow_point_goal = GameStateManager.cam_follow_point_manager.calculate_cam_follow_point()
 	follow_point_curr = follow_point_goal
-
+	update_position()
+	camera.reset_physics_interpolation()
 
 func _input(event: InputEvent) -> void:
 	# Orientation (rotation left/right)
@@ -56,7 +58,7 @@ func _input(event: InputEvent) -> void:
 		orientation_goal = (orientation_goal + 6 - 1) % 6
 	if event.is_action_pressed("cam_rotate_right"):
 		orientation_goal = (orientation_goal + 6 + 1) % 6
-	orientation_angle_goal = compute_orientation_angle_goal(orientation_goal)
+	orientation_angle_goal = Util.getHexAngleInterpolated(orientation_goal)
 
 	# Zoom (in/out)
 	var zoom_input := 0.0
@@ -74,7 +76,7 @@ func _input(event: InputEvent) -> void:
 func handle_continuous_input(delta: float) -> void:
 	# Tilt (rotation up/down)
 	var tilt_input := Input.get_axis("cam_tilt_down", "cam_tilt_up")
-	tilt_goal = clampf(tilt_goal + tilt_input * tilt_lerp_speed * delta, tilt_min, tilt_max)
+	tilt_goal = clampf(tilt_goal + tilt_input * tilt_input_speed * delta, tilt_min, tilt_max)
 		
 	# Zoom (in/out)
 	var zoom_input := Input.get_axis("cam_zoom_in", "cam_zoom_out")
@@ -84,17 +86,17 @@ func handle_continuous_input(delta: float) -> void:
 func update_zoom_manual(zoom_input: float) -> void:
 	if zoom_input != 0.0:
 		zoom_manual_override = true
-		zoom_goal = clampf(zoom_goal + zoom_input * zoom_lerp_speed, zoom_min_manual, zoom_max_manual)
+		zoom_goal = clampf(zoom_goal + zoom_input * zoom_input_speed, zoom_min_manual, zoom_max_manual)
 
 
 func _physics_process(delta: float) -> void:
 	handle_continuous_input(delta)
 
-	follow_point_goal = GameStateManager.get_cam_follow_point()
+	follow_point_goal = GameStateManager.cam_follow_point_manager.calculate_cam_follow_point()
 
 	# Calculate zoom goal based on max dist
 	if not zoom_manual_override:
-		var max_dist := GameStateManager.calculate_cam_follow_point_max_dist(follow_point_goal)
+		var max_dist := GameStateManager.cam_follow_point_manager.calculate_cam_follow_point_max_dist(follow_point_goal)
 		zoom_goal = remap(max_dist, zoom_min_at_dist, zoom_max_at_dist, zoom_min, zoom_max)
 		zoom_goal = clampf(zoom_goal, zoom_min, zoom_max)
 
@@ -105,14 +107,10 @@ func _physics_process(delta: float) -> void:
 
 	follow_point_curr = Util.lerp_towards_vec3(follow_point_curr, follow_point_goal, follow_point_lerp_speed, delta)
 
-	# Compute new camera position
-	var cam_direction := Vector3.BACK.rotated(Vector3.LEFT, tilt_curr).rotated(Vector3.UP, orientation_angle_curr)
-	var cam_pos := follow_point_curr + (cam_direction * zoom_curr)
-
-	camera.look_at_from_position(cam_pos, follow_point_curr, Vector3.UP)
+	update_position()
 
 	# Set global cam orientation
-	GameStateManager.set_global_camera_view_angle(orientation_angle_curr)
+	GameStateManager.cam_follow_point_manager.set_global_camera_view_angle(orientation_angle_curr)
 
 	draw_debug_mesh(follow_point_curr)
 
@@ -120,6 +118,11 @@ func _physics_process(delta: float) -> void:
 	#RenderingServer.call_on_render_thread(update_shader_parameters)
 	# RenderingServer.global_shader_parameter_set("global_camera_view_direction", actual_curr_rotation)
 	# RenderingServer.global_shader_parameter_set("global_player_position", lookAtPoint)
+
+func update_position() -> void:
+	var cam_direction := Vector3.BACK.rotated(Vector3.LEFT, tilt_curr).rotated(Vector3.UP, orientation_angle_curr)
+	var cam_pos := follow_point_curr + (cam_direction * zoom_curr)
+	camera.look_at_from_position(cam_pos, follow_point_curr, Vector3.UP)
 
 
 func check_for_selection() -> void:
@@ -137,11 +140,11 @@ func draw_debug_mesh(location: Vector3) -> void:
 		if debug_mesh == null:
 			var scene_root := get_tree().root
 			debug_mesh = MeshInstance3D.new()
-			# debug_mesh.mesh = DebugShapes3D.create_capsule(1.8, 0.3, Color.CYAN, true)
-			debug_mesh.mesh = DebugShapes3D.create_sphere(0.2, Color.CYAN)
+			debug_mesh.mesh = DebugShapes3D.sphere_mesh(0.2, DebugShapes3D.material(Color.CYAN))
+			debug_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			scene_root.add_child(debug_mesh)
 
-		debug_mesh.global_transform.origin = location
+		debug_mesh.global_position = location
 
 
 func raycast_into_world() -> Dictionary:
@@ -155,10 +158,3 @@ func raycast_into_world() -> Dictionary:
 	var space_state := get_world_3d().direct_space_state
 	var result := space_state.intersect_ray(ray_query)
 	return result
-
-
-# Default Orientation = 1 -> Forward = -Z , this is archived with 90° into sin/cos
-# Thats why we subtract 90° to get actual forward
-func compute_orientation_angle_goal(orientation_goal_: float) -> float:
-	var target_forward_angle := deg_to_rad((60.0 * orientation_goal_ + 30.0) - 90.0)
-	return target_forward_angle

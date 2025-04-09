@@ -26,32 +26,29 @@ static func determine_height(hex_pos: HexPos) -> int:
 	var height_f: float = remap(noise, 0.0, 1.0, HexConst.MAP_HEIGHT_MIN, max_height)
 	var height: int = roundf(height_f) as int
 
-	# Modify further (away from noise map)	
+	# Modify further (compared to noise map)	
 	height = clampi(height, HexConst.MAP_HEIGHT_MIN + 4, max_height) + 1
 
 	# Add cliff-tops
-	if height > max_height * 0.85:
-		height += 7
+	if height > max_height * 0.88:
+		height += 6
 
 	return height
 
 # Only here to have this class actually decide all the relevant information for map generation
 # THIS must be bidirectional, the type must be the same for for both hex-tiles it connects!
 static func determine_transition_type(from_hex_pos: HexPos, from_height: int, to_hex_pos: HexPos, to_height: int) -> HexGeometryInput.TransitionType:
-	# TODO this adds randomness as some steep connections are suddenly smooth
+	# This adds randomness as some steep connections are suddenly smooth
 	var rand_cond: bool = not (from_hex_pos.r == from_hex_pos.q or to_hex_pos.r == to_hex_pos.q)
 
 	var height_diff: int = abs(to_height - from_height)
 
-	# Make map much smoother in one direction
-	# if from_hex_pos.r >= 0 or to_hex_pos.r >= 0:
-	# 	return HexGeometryInput.TransitionType.SMOOTH
-	# else:
-	if rand_cond and height_diff in [8, 14, 15, 16]:
+	# Make some connections smoother
+	if rand_cond and height_diff in [14, 15, 16]:
 		return HexGeometryInput.TransitionType.SMOOTH
 
 	# Normal cases
-	if height_diff > HexConst.trans_type_max_height_diff:
-		return HexGeometryInput.TransitionType.SHARP
-	else:
+	if height_diff <= HexConst.trans_type_max_height_diff:
 		return HexGeometryInput.TransitionType.SMOOTH
+	else:
+		return HexGeometryInput.TransitionType.SHARP

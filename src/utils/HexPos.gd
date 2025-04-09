@@ -89,7 +89,9 @@ func equals(other: HexPos) -> bool:
 func to_chunk_base() -> HexPos:
 	var q_: int = q - posmod(q, HexConst.CHUNK_SIZE)
 	var r_: int = r - posmod(r, HexConst.CHUNK_SIZE)
-	return HexPos.new(q_, r_, _get_s(q_, r_))
+	var base := HexPos.new(q_, r_, _get_s(q_, r_))
+	assert(base.is_chunk_base())
+	return base
 
 func is_chunk_base() -> bool:
 	return q % HexConst.CHUNK_SIZE == 0 and r % HexConst.CHUNK_SIZE == 0
@@ -105,6 +107,18 @@ func get_chunk_tile_positions() -> Array[HexPos]:
 			tiles[idx] = HexPos.new(q + dq, r + dr, _get_s(q + dq, r + dr))
 			idx += 1
 	return tiles
+
+## Returns the 6 navigation neighbours of a chunk base tile
+func get_chunk_navigation_neighbours() -> Array[HexPos]:
+	assert(is_chunk_base())
+
+	var neighbours: Array[HexPos] = []
+	neighbours.resize(6)
+
+	for idx in range(0, 6):
+		neighbours[idx] = add(hexpos_direction(idx).scale(HexConst.CHUNK_SIZE))
+		assert(neighbours[idx].is_chunk_base())
+	return neighbours
 
 ##########################################################################################
 # Neighbours / Area functions

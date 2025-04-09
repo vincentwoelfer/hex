@@ -71,4 +71,4 @@ func update_keys(delta: float) -> void:
 	self.input_direction = Vector3(inputDir.x, 0.0, inputDir.y)
 
 	# Rotate the input direction by the camera's rotation
-	self.input_direction = self.input_direction.rotated(Vector3.UP, GameStateManager.get_global_camera_view_angle()).normalized()
+	self.input_direction = self.input_direction.rotated(Vector3.UP, GameStateManager.cam_follow_point_manager.get_global_camera_view_angle()).normalized()

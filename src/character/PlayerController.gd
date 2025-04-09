@@ -39,18 +39,30 @@ var dash_timer: float = 0.0
 
 var input: MovementInput
 
+@onready var collision: CollisionShape3D = $Collision
+@onready var path_finding_agent: PathFindingAgent = $PathFindingAgent
+
 # First person youtube videos:
 # https://www.youtube.com/watch?v=xIKErMgJ1Yk
 
-func init(device: int) -> void:
+var color: Color
+
+func init(device: int, color_: Color) -> void:
 	input = MovementInput.new(device)
+	self.color = color_
 
 	# Compute deceleration based on walk speed and time to max acc
 	var walk_accel: float = _get_acc_for_target_vel_and_time(walk_speed, time_to_max_acc)
 	self.deceleration = walk_accel
 
 
-func get_current_gravity() -> float:
+func _ready() -> void:
+	path_finding_agent.init(color, collision.shape)
+	path_finding_agent.show_path = DebugSettings.show_path_player_to_caravan
+	path_finding_agent.set_track_target(GameStateManager.caravan)
+
+	
+func _get_current_gravity() -> float:
 	var jump_gravity: float = (-2.0 * jump_height) / (jump_time_to_peak_sec ** 2)
 	var fall_gravity: float = (-2.0 * jump_height) / (jump_time_to_descent_sec ** 2)
 
@@ -79,10 +91,6 @@ func _physics_process(delta: float) -> void:
 
 	# Timers
 	dash_timer -= delta
-
-	# Apply gravity
-	if not is_on_floor():
-		velocity.y += get_current_gravity() * delta
 
 	# Movement input
 	var input_dir := input.input_direction
@@ -143,6 +151,10 @@ func _physics_process(delta: float) -> void:
 	velocity.x = new_vel_horizontal.x
 	velocity.z = new_vel_horizontal.y
 
+	# Apply gravity
+	if not is_on_floor():
+		velocity.y += _get_current_gravity() * delta
+
 	# print_timer -= delta
 	# print_timer = -1.0
 	# if print_timer <= 0.0:
@@ -152,6 +164,8 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
+	# Update path for visualization only
+	
 
 # Speed = float
 # Velocity = Vector

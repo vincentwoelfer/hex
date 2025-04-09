@@ -34,7 +34,6 @@ func _init() -> void:
 	set_shader_value(curr_height, 'height_mod')
 
 
-
 func recalculate_lod(cam_pos_global: Vector3) -> void:
 	if not is_inside_tree() or is_queued_for_deletion():
 		return
@@ -156,10 +155,10 @@ func get_curr_color() -> Color:
 
 func determine_num_blades(surface_sampler: PolygonSurfaceSampler) -> int:
 	# Density per 1d-meter (one line)
-	var density_1d: float = HexConst.grass_density;
+	var density_1d: float = DebugSettings.grass_density
 	var area := surface_sampler.get_total_area()
 	# Square density to get 2d -> weight by area
-	var num_blades : int = round(density_1d * density_1d * area)
+	var num_blades: int = round(density_1d * density_1d * area)
 
 	# Reduce in editor
 	if Engine.is_editor_hint():
@@ -179,7 +178,7 @@ func populate_multimesh(surface_sampler: PolygonSurfaceSampler) -> void:
 	# Compute custom aabb
 	mesh_instance.custom_aabb = surface_sampler.compute_custom_aabb(max_height)
 	if DebugSettings.visualize_plant_custom_aabb:
-		add_custom_aabb_visualization()
+		DebugShapes3D.spawn_aabb(mesh_instance.custom_aabb, Color(1, 0, 0, 0.5), self)
 
 	# Create multi-mesh
 	var multi_mesh := MultiMesh.new()
@@ -240,15 +239,3 @@ func get_shader_value_float(key: String) -> float:
 	if value is not float:
 		return 0.0
 	return value
-
-
-func add_custom_aabb_visualization() -> void:
-	var vis := MeshInstance3D.new()
-	vis.mesh = BoxMesh.new()
-	(vis.mesh as BoxMesh).size = mesh_instance.custom_aabb.size
-	vis.position = mesh_instance.custom_aabb.get_center()
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color(1, 0, 0, 0.3)
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	vis.material_override = material
-	add_child(vis)

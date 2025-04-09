@@ -18,27 +18,20 @@ var generated_queue_mutex: Mutex
 
 # Threads
 var threads: Array[Thread] = []
-# 3-4 is sweet spot on my machine
-var num_threads: int = 2
+var num_threads: int = 3 # 3-4 is sweet spot
 var threads_running: bool = true
 var threads_running_mutex: Mutex
-# Seems to make almost no difference in performance
-var fetch_chunks_count := 1
 
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
-var tile_generation_distance_hex := HexConst.distance_m_to_hex(50)
-var tile_deletion_distance_hex := HexConst.distance_m_to_hex(100)
-var generation_position: HexPos = HexPos.invalid()
+var generation_position: HexPos = HexPos.invalid() # Gets updated before first generation-tick. Needs to be invalid to instantly trigger "changed position"
+var tile_generation_distance_hex := HexConst.distance_m_to_hex(90)
+var tile_deletion_distance_hex := HexConst.distance_m_to_hex(125)
 
 
 # Called when the node enters the scene tree. Node, all children and parent (SceneTree) are ready at this point
 func _ready() -> void:
-	var active: bool = true
-	# This is required for the headless LSP to work (since this script is a tool script)
-	if OS.has_feature("Server"): active = false
-
-	# Dont start threads if not active
-	if not active:
+	# This is required for the headless LSP to work (since this script is a tool script). Dont start threads if not active
+	if OS.has_feature("Server"):
 		num_threads = 0
 		return
 
@@ -49,14 +42,14 @@ func _ready() -> void:
 	threads_running_mutex = Mutex.new()
 
 	# Create thread
-	# print("MAIN: Starting %d threads with %d fetch_chunks_count, chunk_size: %d" % [num_threads, fetch_chunks_count, HexConst.chunk_size])
+	# print("MAIN: Starting %d threads with chunk_size: %d" % [num_threads, HexConst.chunk_size])
 	threads.clear()
 	for i in range(num_threads):
 		threads.append(Thread.new())
 		threads[i].start(thread_generation_loop_function)
 
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	# This is required for the headless LSP to work (since this script is a tool script)
 	if OS.has_feature("Server"): return
 
@@ -73,9 +66,9 @@ func _process(delta: float) -> void:
 			join_threads()
 		return # Dont queue anything new
 
-	self.tick_check_map_regeneration()
+	tick_check_map_reset()
 
-	# Empty generated queue and add to scene, regardless of player position
+	# Add generated queue to scene, regardless of player position
 	fetch_and_add_generated_tiles()
 
 	# Add tiles near player to queue and delete far away
@@ -93,7 +86,7 @@ func update_generation_position() -> bool:
 	if Engine.is_editor_hint():
 		world_pos = Util.get_global_cam_pos(self)
 	else:
-		world_pos = PlayerManager.calculate_cam_follow_point()
+		world_pos = GameStateManager.cam_follow_point_manager.calculate_cam_follow_point()
 
 	# Transform to hexpos
 	var hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(world_pos).round()
@@ -109,14 +102,7 @@ func update_generation_position() -> bool:
 
 # Fetch all generated tile hashes, get the tile from the HexTileMap and add them to the scene
 func fetch_and_add_generated_tiles() -> void:
-	# OLD code before chunking
 	# MUTEX LOCK
-	# Fetch ALL
-	# generated_queue_mutex.lock()
-	# var generated_queue_copy: Array[int] = generated_queue.duplicate()
-	# generated_queue.clear()
-	# generated_queue_mutex.unlock()
-	# Fetch only one (because we have chunks now)
 	generated_queue_mutex.lock()
 	var generated_queue_copy: Array[int]
 	if generated_queue.size() > 0:
@@ -126,9 +112,10 @@ func fetch_and_add_generated_tiles() -> void:
 
 	for key: int in generated_queue_copy:
 		var chunk: HexChunk = HexChunkMap.get_by_hash(key)
-		assert(chunk != null) # This should never happen
+		assert(chunk != null)
 		if chunk != null:
-			# Only place where tiles are added to the scene
+			# Only place where tiles/chunks are added to the scene
+			chunk.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 			add_child(chunk)
 
 
@@ -143,7 +130,7 @@ func remove_far_away_tiles() -> void:
 			var distance := generation_position.distance_to(chunk.get_hex_pos_center())
 			if distance > tile_deletion_distance_hex:
 				# This is the only place where tiles are removed
-				HexChunkMap.delete_by_pos(chunk.hex_pos_base)
+				HexChunkMap.delete_by_pos(chunk.chunk_hex_pos)
 				HexTileMap.delete_batch_by_poses(chunk.tile_poses)
 				# This will also free the children of the chunk
 				chunk.queue_free()
@@ -152,18 +139,17 @@ func remove_far_away_tiles() -> void:
 func queue_new_tiles_for_generation() -> void:
 	var hashes_in_range_tiles: PackedInt32Array = generation_position.get_neighbours_in_range_as_hash(tile_generation_distance_hex, true)
 
-	# TODO optimize this
 	# Filter to only get hexposes which are chunk bases
-	var hashes_in_range: PackedInt32Array
+	var hashes_in_range_chunks: PackedInt32Array
 	for i in range(hashes_in_range_tiles.size()):
 		var hex_pos: HexPos = HexPos.unhash(hashes_in_range_tiles[i])
 		if hex_pos.is_chunk_base():
-			hashes_in_range.push_back(hashes_in_range_tiles[i])
+			hashes_in_range_chunks.push_back(hashes_in_range_tiles[i])
 
 	# Remove any hashes which are already presend in the map. No mutex needed here.
 	# This might miss some chunks since they are added to the map after this check -> filter again after mutex lock
 	var hashes_filtered: PackedInt32Array
-	for key in hashes_in_range:
+	for key in hashes_in_range_chunks:
 		if HexChunkMap.get_by_hash(key) == null:
 			hashes_filtered.push_back(key)
 
@@ -219,6 +205,7 @@ func thread_generation_loop_function() -> void:
 		to_generate_mutex.lock()
 
 		# Fetch keys
+		const fetch_chunks_count: int = 1
 		for i in range(fetch_chunks_count):
 			# Fetch and pop key, save hex_pos and create empty tile for it
 			var k: Variant = to_generate_queue.pop_back()
@@ -257,7 +244,7 @@ func set_regenerate() -> void:
 	self.regenerate = true
 
 
-func tick_check_map_regeneration() -> void:
+func tick_check_map_reset() -> void:
 	var now := Time.get_unix_time_from_system()
 	if self.regenerate and (now - last_regeneration_timestamp) > max_regeneration_delay:
 		last_regeneration_timestamp = now
@@ -288,7 +275,7 @@ func delete_everything() -> void:
 ##############################
 # Shutdown
 ##############################
-func shutdown_threads() -> void:
+func request_shutdown_threads() -> void:
 	# Signal exit
 	threads_running_mutex.lock()
 	threads_running = false
@@ -338,12 +325,12 @@ func _exit_tree() -> void:
 
 	if not threads.is_empty():
 		Util.print_multiline_banner("MapGeneration cleaning up on _exit_tree")
-		shutdown_threads()
+		request_shutdown_threads()
 
 		while not threads.is_empty():
 			join_threads()
 			# This fails if node not in tree (if scene was not opened on startup)
-			await get_tree().create_timer(0.01).timeout
+			await get_tree().process_frame
 
 
 ##############################
@@ -360,19 +347,32 @@ func _get_approx_map_height_at_pos(pos: Vector3) -> float:
 		return 0.0
 
 
-func get_capsule_spawn_pos_on_map_surface(pos: Vector3, shape: CollisionShape3D) -> Vector3:
+func get_spawn_pos_height_on_map_surface(pos: Vector3, shape: CollisionShape3D) -> Vector3:
 	pos.y = _get_approx_map_height_at_pos(pos)
 
 	# Prepare shape query
 	var query: PhysicsShapeQueryParameters3D = PhysicsShapeQueryParameters3D.new()
 	query.shape = shape.shape
-	var distance := 50.0
+	var distance := 30.0
 	query.transform.origin = pos + Vector3.UP * distance / 2.0
 	query.motion = Vector3.DOWN * distance
-	# TODO query.collision_mask = ...
+
+	# Set collision mask
+	query.collision_mask = Layers.mask([Layers.L.TERRAIN, Layers.L.STATIC_GEOM])
 
 	# Perform query
 	var space_state := get_world_3d().direct_space_state
 	var t: float = space_state.cast_motion(query)[0]
-	var shape_height: float = (shape.shape as CapsuleShape3D).height
+	var shape_height: float
+	
+	if shape.shape is SphereShape3D:
+		shape_height = (shape.shape as SphereShape3D).radius * 2.0
+	elif shape.shape is CapsuleShape3D:
+		shape_height = (shape.shape as CapsuleShape3D).height
+	elif shape.shape is CylinderShape3D:
+		shape_height = (shape.shape as CylinderShape3D).height
+	else:
+		push_error("Shape not supported for spawn pos height query")
+
+	# Offset upwards by half the shape height
 	return (query.transform.origin + query.motion * t) - (Vector3.UP * shape_height / 2.0)

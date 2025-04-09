@@ -17,11 +17,17 @@ const GRASS_MESH_LRES := preload('res://assets/meshes/basic_grass/basic_grass_lr
 # Terrain
 const DEFAULT_TERRAIN_MAT: Material = preload('res://assets/materials/default_geom_material.tres')
 
+# SCENES
+const CARAVAN_SCENE: PackedScene = preload('res://scenes/Caravan.tscn')
+const PLAYER_SCENE: PackedScene = preload('res://scenes/PlayerCharacter.tscn')
+const BASIC_ENEMY_SCENE: PackedScene = preload('res://scenes/BasicEnemy.tscn')
+
 # Highlight
 const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
 
 func _ready() -> void:
 	basic_rocks_meshes = load_all_meshes_from_dir(basic_rocks_path)
+
 	# Util.print_banner("Resource Loader")
 	# print("- Basic rocks meshes: " + str(basic_rocks_meshes.size()))
 	# Util.print_only_banner()

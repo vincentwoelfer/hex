@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3 uid="uid://b8strb7jpy7y8"]
+
+[ext_resource type="Script" uid="uid://b85un111vchva" path="res://src/character/BasicEnemy.gd" id="1_cg60k"]
+[ext_resource type="Material" uid="uid://ddiid83wdl655" path="res://assets/materials/basic_enemy_material.tres" id="2_cg60k"]
+[ext_resource type="Script" uid="uid://dcbt26awrgsip" path="res://src/character/PathFindingAgent.gd" id="3_3ox23"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_84j8r"]
+material = ExtResource("2_cg60k")
+radius = 0.3
+height = 0.6
+radial_segments = 16
+rings = 16
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cg60k"]
+radius = 0.3
+height = 1.0
+
+[node name="BasicEnemy" type="CharacterBody3D"]
+collision_layer = 17
+script = ExtResource("1_cg60k")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("SphereMesh_84j8r")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("CapsuleShape3D_cg60k")
+debug_color = Color(0, 0.6, 0.701961, 0.905882)
+
+[node name="PathFindingAgent" type="Node3D" parent="."]
+script = ExtResource("3_3ox23")
+metadata/_custom_type_script = "uid://dcbt26awrgsip"

@@ -9,6 +9,8 @@ func _process(delta: float) -> void:
 	update_infotext()
 
 
+# TODO This works by polling info which is fine because the data is publicly available.
+# However, for other UI elements signals are probably better
 func update_infotext() -> void:
 	text.text = ""
 
