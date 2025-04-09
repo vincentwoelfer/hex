@@ -19,6 +19,10 @@ var velocity_no_collision: Vector3 = Vector3.ZERO
 @onready var collision: CollisionShape3D = $Collision
 
 
+# TEST
+var crystal_timer: Timer
+
+
 func _ready() -> void:
 	path_finding_agent.init(Colors.COLOR_CARAVAN, collision.shape)
 	path_finding_agent.show_path = DebugSettings.show_path_caravan
@@ -28,6 +32,24 @@ func _ready() -> void:
 
 	# Set initial goal
 	choose_new_goal()
+
+	# TEST
+	crystal_timer = Timer.new()
+	crystal_timer.wait_time = 0.75
+	crystal_timer.autostart = true
+	crystal_timer.timeout.connect(spawn_crystal)
+	add_child(crystal_timer)
+
+
+func spawn_crystal() -> void:
+	var crystal: Crystal = ResLoader.CRYSTAL_SCENE.instantiate()
+
+	var spawn_pos: Vector3 = self.global_position + Util.randCircularOffsetRange(1.5, 2.5) + Vector3(0, 2.0, 0)
+
+	get_tree().root.add_child(crystal)
+	crystal.global_position = spawn_pos
+	crystal.rotation = Vector3(randf_range(0, TAU), randf_range(0, TAU), randf_range(0, TAU))
+	crystal.reset_physics_interpolation()
 
 
 func _physics_process(delta: float) -> void:

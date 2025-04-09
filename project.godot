@@ -179,6 +179,7 @@ dev_toggle_cam_follow_caravan={
 3d_physics/layer_3="STATIC_GEOM"
 3d_physics/layer_4="PLAYER_CHARACTERS"
 3d_physics/layer_5="ENEMY_CHARACTERS"
+3d_physics/layer_6="PICKABLE_OBJECTS"
 
 [navigation]
 

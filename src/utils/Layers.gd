@@ -8,6 +8,7 @@ enum L {
 	STATIC_GEOM = 3,
 	PLAYER_CHARACTERS = 4,
 	ENEMY_CHARACTERS = 5,
+	PICKABLE_OBJECTS = 6,
 }
 
 static func mask(layers: Array[int]) -> int:

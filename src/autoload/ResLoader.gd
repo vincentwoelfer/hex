@@ -22,6 +22,8 @@ const CARAVAN_SCENE: PackedScene = preload('res://scenes/Caravan.tscn')
 const PLAYER_SCENE: PackedScene = preload('res://scenes/PlayerCharacter.tscn')
 const BASIC_ENEMY_SCENE: PackedScene = preload('res://scenes/BasicEnemy.tscn')
 
+const CRYSTAL_SCENE: PackedScene = preload('res://scenes/Crystal.tscn')
+
 # Highlight
 const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
 
