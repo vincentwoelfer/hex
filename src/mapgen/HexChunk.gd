@@ -43,6 +43,8 @@ func _init(chunk_hex_pos_: HexPos) -> void:
 	else:
 		self.name = 'HexChunk-Invalid'
 
+	self.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+
 	# Set position of chunk in world. y = 0 because height is contained in tile positions
 	self.position = Util.toVec3(HexPos.hexpos_to_xy(chunk_hex_pos))
 	
@@ -60,7 +62,7 @@ func _ready() -> void:
 
 	# Start neighour check timer
 	missing_nav_chunk_timer = Timer.new()
-	missing_nav_chunk_timer.set_wait_time(0.5)
+	missing_nav_chunk_timer.set_wait_time(0.5 + randf_range(-0.2, 0.2)) # Rand offset to avoid all chunks starting at the same time
 	missing_nav_chunk_timer.set_one_shot(false)
 	missing_nav_chunk_timer.autostart = true
 	missing_nav_chunk_timer.timeout.connect(_update_missing_nav_chunk_neighbours)
@@ -68,6 +70,7 @@ func _ready() -> void:
 
 
 func _update_missing_nav_chunk_neighbours() -> void:
+	# Fetch all chunks, check if any of them are a missing neighbour for this chunk
 	var all_chunks: Array[Node] = get_tree().get_nodes_in_group(HexConst.NAV_CHUNKS_GROUP_NAME)
 	var all_chunks_poses: Array[HexPos] = []
 	all_chunks_poses.assign(all_chunks.map(func(chunk: Node) -> HexPos: return (chunk as HexChunk).chunk_hex_pos))
@@ -76,6 +79,7 @@ func _update_missing_nav_chunk_neighbours() -> void:
 			return not all_chunks_poses.any(func(p: HexPos) -> bool: return p.equals(hex_pos))
 	)
 
+	# If all neighbours are ready -> parse the source geometry data
 	if missing_nav_chunk_neighbours.is_empty():
 		missing_nav_chunk_timer.queue_free()
 		missing_nav_chunk_timer = null
@@ -92,6 +96,13 @@ func parse_source_geometry_data() -> void:
 
 	# TODO Optimization: Maybe create groups and only include colliders from 6 neighbouring chunks.
 	# Using whole tree works fine for now
+	# TODO second optimization, dont use the tree at all, somehow use chunk geometry data from CPU.
+	# The current implementation fetches this from GPU which stalls
+	# See https://docs.godotengine.org/en/stable/classes/class_navigationmeshgenerator.html
+
+	# TODO also See https://docs.godotengine.org/de/4.x/classes/class_navigationmeshsourcegeometrydata3d.html
+	# maybe each chunk should have its own source-geom-data from own meshes (not parsed, this avoids the re-routing through GPU)
+	# Then, for parsing, we just merge own source-geom-data with the source-geom-data of the neighbours (maybe even offload this to a thread)
 	NavigationServer3D.parse_source_geometry_data(parse_settings, nav_source_geometry_data, self, on_parsing_done)
 
 

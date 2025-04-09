@@ -53,6 +53,18 @@ static func get_by_hash(key: int) -> HexChunk:
 	return chunk
 
 
+static func get_by_hash_batch(keys: Array[int]) -> Array[HexChunk]:
+	for k: int in keys:
+		assert(HexPos.unhash(k).is_chunk_base()) # DIFFERENT FROM HexTileMap
+
+	var fetched_chunks: Array[HexChunk] = []
+	mutex.lock()
+	for k in keys:
+		fetched_chunks.append(chunks.get(k))
+	mutex.unlock()
+	return fetched_chunks
+
+
 static func get_by_pos(hex_pos: HexPos) -> HexChunk:
 	# -> Requires mutex
 	return get_by_hash(hex_pos.hash())

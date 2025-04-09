@@ -27,13 +27,20 @@ var generation_position: HexPos = HexPos.invalid() # Gets updated before first g
 var tile_generation_distance_hex := HexConst.distance_m_to_hex(90)
 var tile_deletion_distance_hex := HexConst.distance_m_to_hex(125)
 
+var is_active: bool = false
 
-# Called when the node enters the scene tree. Node, all children and parent (SceneTree) are ready at this point
 func _ready() -> void:
 	# This is required for the headless LSP to work (since this script is a tool script). Dont start threads if not active
 	if OS.has_feature("Server"):
 		num_threads = 0
 		return
+
+	# For now, completely disable in editor
+	# if Engine.is_editor_hint():
+		# num_threads = 0
+		# return
+
+	is_active = true
 
 	# Init stuff
 	to_generate_mutex = Mutex.new()
@@ -51,7 +58,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	# This is required for the headless LSP to work (since this script is a tool script)
-	if OS.has_feature("Server"): return
+	if not is_active: return
 
 	# Check if shutdown in process -> Dont queue anything new and join threads
 	threads_running_mutex.lock()
@@ -66,6 +73,7 @@ func _physics_process(delta: float) -> void:
 			join_threads()
 		return # Dont queue anything new
 
+	# Check if we need to regenerate
 	tick_check_map_reset()
 
 	# Add generated queue to scene, regardless of player position
@@ -102,6 +110,7 @@ func update_generation_position() -> bool:
 
 # Fetch all generated tile hashes, get the tile from the HexTileMap and add them to the scene
 func fetch_and_add_generated_tiles() -> void:
+	# Fetch tiles from generated queue
 	# MUTEX LOCK
 	generated_queue_mutex.lock()
 	var generated_queue_copy: Array[int]
@@ -110,12 +119,13 @@ func fetch_and_add_generated_tiles() -> void:
 	generated_queue_mutex.unlock()
 	# MUTEX UNLOCK
 
-	for key: int in generated_queue_copy:
-		var chunk: HexChunk = HexChunkMap.get_by_hash(key)
+	# Add tiles to scene
+	var fetched_chunks: Array[HexChunk] = HexChunkMap.get_by_hash_batch(generated_queue_copy)
+
+	for chunk in fetched_chunks:
 		assert(chunk != null)
 		if chunk != null:
-			# Only place where tiles/chunks are added to the scene
-			chunk.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+			# Only place where tiles/chunks are added to the scene			
 			add_child(chunk)
 
 

@@ -13,3 +13,11 @@ TODO
   - Nav-Mesh Generation verbessern? -> use lower-detail version of terrain?
 - Thread-Safe materials?
 
+
+
+# Ideen Nek
+- bouncy bomben
+
+- gegener weglaufen mit kristallen: Distanz oder Maulwurf-löcher
+
+- chaos skills, bouncy bombe, friendly-fire?
