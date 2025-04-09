@@ -1,8 +1,8 @@
 [gd_scene load_steps=5 format=3 uid="uid://b4l3ono7jgxb4"]
 
 [ext_resource type="Shader" uid="uid://dngwq8xnt3hes" path="res://assets/shaders/lightning/lightning_shader.tres" id="1_5r3u0"]
-[ext_resource type="ArrayMesh" uid="uid://bujem01gfx373" path="res://assets/meshes/lightning/lightning_mesh.tres" id="1_do5v7"]
-[ext_resource type="ArrayMesh" uid="uid://d18hiojam5enw" path="res://assets/meshes/lightning/lightning_mesh_test.tres" id="3_gbe6o"]
+[ext_resource type="ArrayMesh" uid="uid://bujem01gfx373" path="res://assets/meshes/lightning/lightning_mesh_for_particles.tres" id="1_do5v7"]
+[ext_resource type="ArrayMesh" uid="uid://d18hiojam5enw" path="res://assets/meshes/lightning/lightning_mesh.tres" id="3_gbe6o"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_do5v7"]
 render_priority = 0

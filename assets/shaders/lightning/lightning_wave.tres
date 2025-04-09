@@ -33,12 +33,11 @@ operator = 2
 parameter_name = "wave_color"
 default_value_enabled = true
 
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_d6isf"]
-gradient = ExtResource("2_wmlpx")
-
 [sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_veuka"]
 expanded_output_ports = [0]
-texture = SubResource("GradientTexture2D_d6isf")
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_d6isf"]
+gradient = ExtResource("2_wmlpx")
 
 [sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_b1asl"]
 expanded_output_ports = [0]
@@ -89,7 +88,7 @@ void fragment() {
 
 }
 "
-graph_offset = Vector2(-233.388, -70.5784)
+graph_offset = Vector2(-407.069, -33.4271)
 flags/unshaded = true
 nodes/fragment/0/position = Vector2(820, 40)
 nodes/fragment/2/node = SubResource("VisualShaderNodeTexture_wmlpx")

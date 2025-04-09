@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://cr63ckbcas20e"]
 
-[ext_resource type="ArrayMesh" uid="uid://bujem01gfx373" path="res://assets/meshes/lightning/lightning_mesh.tres" id="1_7jish"]
+[ext_resource type="ArrayMesh" uid="uid://bujem01gfx373" path="res://assets/meshes/lightning/lightning_mesh_for_particles.tres" id="1_7jish"]
 [ext_resource type="Script" uid="uid://cvcwevihh7tfp" path="res://scenes/effects/lightning_particles.gd" id="2_ix4m7"]
 
 [sub_resource type="Gradient" id="Gradient_7jish"]

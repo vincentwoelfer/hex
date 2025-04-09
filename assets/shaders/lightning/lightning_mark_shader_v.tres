@@ -1,7 +1,6 @@
-[gd_resource type="VisualShader" load_steps=8 format=3 uid="uid://b3ma4w6a6c37g"]
+[gd_resource type="VisualShader" load_steps=6 format=3 uid="uid://b3ma4w6a6c37g"]
 
 [ext_resource type="Texture2D" uid="uid://b6h4ittsv2hae" path="res://assets/textures/lightning/floor_mark_texture.png" id="1_imgtf"]
-[ext_resource type="Gradient" uid="uid://chnp21q0s4bb5" path="res://assets/shaders/lightning/lightning_red_gradient_mark.tres" id="2_0wqta"]
 
 [sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_7ia26"]
 expanded_output_ports = [0]
@@ -14,11 +13,7 @@ input_name = "color"
 [sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_m7keq"]
 operator = 2
 
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_7ia26"]
-gradient = ExtResource("2_0wqta")
-
 [sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_ahwmj"]
-texture = SubResource("GradientTexture2D_7ia26")
 
 [resource]
 code = "shader_type spatial;

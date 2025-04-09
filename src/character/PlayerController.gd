@@ -123,10 +123,10 @@ func _physics_process(delta: float) -> void:
 	# Test lightning
 	if input.primary_input.wants:
 		input.primary_input.consume()
-		player_data.lightning_particles.show()
-
-		var timer = get_tree().create_timer(3.0)
-		timer.timeout.connect(func(): player_data.lightning_particles.hide())
+		#player_data.lightning_particles.show()
+		VisualLightningStrike.spawn(self.global_position)
+		#var timer = get_tree().create_timer(3.0)
+		#timer.timeout.connect(func(): player_data.lightning_particles.hide())
 
 	# Determine target vel based on state -> TODO rework into state machine
 	var target_planar_speed: float
