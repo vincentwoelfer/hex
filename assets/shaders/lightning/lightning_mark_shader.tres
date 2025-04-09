@@ -1,4 +1,4 @@
-[gd_resource type="VisualShader" load_steps=6 format=3 uid="uid://b3ma4w6a6c37g"]
+[gd_resource type="VisualShader" load_steps=9 format=3 uid="uid://b3ma4w6a6c37g"]
 
 [ext_resource type="Texture2D" uid="uid://b6h4ittsv2hae" path="res://assets/textures/lightning/floor_mark_texture.png" id="1_ppjj2"]
 
@@ -17,18 +17,33 @@ operator = 2
 parameter_name = "mark_color"
 default_value_enabled = true
 
+[sub_resource type="Gradient" id="Gradient_ppjj2"]
+offsets = PackedFloat32Array(0.421053, 0.772632, 0.991579, 1)
+colors = PackedColorArray(1, 0.0705882, 0, 1, 1, 0.0705882, 0.733333, 1, 0.999997, 0.416834, 0.640457, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_7ia26"]
+gradient = SubResource("Gradient_ppjj2")
+
+[sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_ahwmj"]
+texture = SubResource("GradientTexture2D_7ia26")
+
 [resource]
 code = "shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_lambert, specular_schlick_ggx;
 
-uniform vec4 mark_color : source_color = vec4(1.000000, 1.000000, 1.000000, 1.000000);
 uniform sampler2D tex_frg_2;
+uniform sampler2D tex_frg_7;
 
 
 
 void fragment() {
-// ColorParameter:5
-	vec4 n_out5p0 = mark_color;
+// Texture2D:2
+	vec4 n_out2p0 = texture(tex_frg_2, UV);
+	float n_out2p1 = n_out2p0.r;
+
+
+// Texture2D:7
+	vec4 n_out7p0 = texture(tex_frg_7, vec2(n_out2p1));
 
 
 // Input:3
@@ -36,29 +51,26 @@ void fragment() {
 	float n_out3p1 = n_out3p0.r;
 
 
-// Texture2D:2
-	vec4 n_out2p0 = texture(tex_frg_2, UV);
-	float n_out2p1 = n_out2p0.r;
-
-
 // FloatOp:4
 	float n_out4p0 = n_out3p1 * n_out2p1;
 
 
 // Output:0
-	ALBEDO = vec3(n_out5p0.xyz);
+	ALBEDO = vec3(n_out7p0.xyz);
 	ALPHA = n_out4p0;
 
 
 }
 "
-graph_offset = Vector2(-91.9136, -27.2793)
+graph_offset = Vector2(-409.717, -194.796)
 nodes/fragment/2/node = SubResource("VisualShaderNodeTexture_7ia26")
-nodes/fragment/2/position = Vector2(-540, 400)
+nodes/fragment/2/position = Vector2(-780, 420)
 nodes/fragment/3/node = SubResource("VisualShaderNodeInput_ahwmj")
-nodes/fragment/3/position = Vector2(-320, 120)
+nodes/fragment/3/position = Vector2(-400, 160)
 nodes/fragment/4/node = SubResource("VisualShaderNodeFloatOp_m7keq")
 nodes/fragment/4/position = Vector2(104.76, 515.31)
 nodes/fragment/5/node = SubResource("VisualShaderNodeColorParameter_dmgo4")
-nodes/fragment/5/position = Vector2(820, 180)
-nodes/fragment/connections = PackedInt32Array(3, 1, 4, 0, 2, 1, 4, 1, 4, 0, 0, 1, 5, 0, 0, 0)
+nodes/fragment/5/position = Vector2(-640, -220)
+nodes/fragment/7/node = SubResource("VisualShaderNodeTexture_ahwmj")
+nodes/fragment/7/position = Vector2(480, -460)
+nodes/fragment/connections = PackedInt32Array(3, 1, 4, 0, 2, 1, 4, 1, 4, 0, 0, 1, 2, 1, 7, 0, 7, 0, 0, 0)
