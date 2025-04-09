@@ -1,0 +1,6 @@
+[gd_resource type="GradientTexture2D" load_steps=2 format=3 uid="uid://bdqq5g6nc75x"]
+
+[ext_resource type="Gradient" uid="uid://b8x0bjfgc8v4f" path="res://assets/shaders/lightning/lightning_red_gradient.tres" id="1_rhyv6"]
+
+[resource]
+gradient = ExtResource("1_rhyv6")

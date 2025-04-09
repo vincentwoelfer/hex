@@ -1,10 +1,10 @@
 [gd_resource type="VisualShader" load_steps=13 format=3 uid="uid://dgso1bnpq2hqu"]
 
-[ext_resource type="Gradient" uid="uid://b8x0bjfgc8v4f" path="res://assets/shaders/lightning/lightning_red_gradient.tres" id="1_16510"]
-[ext_resource type="Texture2D" uid="uid://6mnbdvtrremc" path="res://assets/textures/lightning/lightning_texture.png" id="2_0sea6"]
+[ext_resource type="Gradient" uid="uid://b8x0bjfgc8v4f" path="res://assets/shaders/lightning/lightning_red_gradient.tres" id="1_pfcgp"]
+[ext_resource type="Texture2D" uid="uid://6mnbdvtrremc" path="res://assets/textures/lightning/lightning_texture.png" id="2_jve5w"]
 
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_fbofu"]
-gradient = ExtResource("1_16510")
+gradient = ExtResource("1_pfcgp")
 
 [sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_sjchd"]
 output_port_for_preview = 0
@@ -12,7 +12,7 @@ texture = SubResource("GradientTexture1D_fbofu")
 
 [sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_fbofu"]
 expanded_output_ports = [0]
-texture = ExtResource("2_0sea6")
+texture = ExtResource("2_jve5w")
 
 [sub_resource type="VisualShaderNodeUVFunc" id="VisualShaderNodeUVFunc_atg2d"]
 
@@ -85,7 +85,7 @@ void fragment() {
 
 }
 "
-graph_offset = Vector2(-278.617, -158.142)
+graph_offset = Vector2(-339.147, -144.875)
 modes/cull = 2
 flags/unshaded = true
 nodes/fragment/0/position = Vector2(1260, 140)
