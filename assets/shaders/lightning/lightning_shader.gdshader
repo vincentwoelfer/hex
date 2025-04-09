@@ -31,7 +31,7 @@ void fragment() {
 	//float lifetime_offset = 0.5;
 	//float lifetime_frac = clamp((TIME - spawn_time) / max_lifetime, 0.0, 1.0);
 	//float lifetime_frac = smoothstep(spawn_time + max_lifetime, spawn_time, TIME);
-	float lower = mix(0.0, 1.0, time_elapsed_frac); //mix(lifetime_offset, lifetime_frac, 1.0);
+	float lower = mix(0.1, 1.0, time_elapsed_frac); //mix(lifetime_offset, lifetime_frac, 1.0);
 	float upper = 1.00000;
 	float n_out6p0 = smoothstep(lower, upper, n_out2p1);
 
