@@ -1,12 +1,16 @@
-[gd_resource type="ArrayMesh" load_steps=8 format=4 uid="uid://bujem01gfx373"]
+[gd_resource type="ArrayMesh" load_steps=10 format=4 uid="uid://bujem01gfx373"]
 
-[ext_resource type="Shader" uid="uid://b3ma4w6a6c37g" path="res://assets/shaders/lightning/lightning_mark_shader.tres" id="1_qycqe"]
+[ext_resource type="Shader" uid="uid://07tpi822d0c5" path="res://assets/shaders/lightning/lightning_mark_shader.gdshader" id="1_3ikjj"]
 [ext_resource type="Shader" uid="uid://dngwq8xnt3hes" path="res://assets/shaders/lightning/lightning_shader.tres" id="1_upnr2"]
+[ext_resource type="Texture2D" uid="uid://b6h4ittsv2hae" path="res://assets/textures/lightning/floor_mark_texture.png" id="2_w34w7"]
+[ext_resource type="Texture2D" uid="uid://dy8cmkkfxg0m" path="res://assets/shaders/lightning/lightning_mark_gradient_texture.tres" id="3_u08bt"]
 [ext_resource type="Shader" uid="uid://d4d5qyyub8yrq" path="res://assets/shaders/lightning/lightning_wave.tres" id="3_ugmsj"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_upnr2"]
 render_priority = 0
-shader = ExtResource("1_qycqe")
+shader = ExtResource("1_3ikjj")
+shader_parameter/tex_frg_2 = ExtResource("2_w34w7")
+shader_parameter/tex_frg_7 = ExtResource("3_u08bt")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_g0f3e"]
 render_priority = 0

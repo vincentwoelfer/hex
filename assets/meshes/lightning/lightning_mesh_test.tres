@@ -1,6 +1,6 @@
 [gd_resource type="ArrayMesh" load_steps=8 format=4 uid="uid://d18hiojam5enw"]
 
-[ext_resource type="Shader" uid="uid://b3ma4w6a6c37g" path="res://assets/shaders/lightning/lightning_mark_shader.tres" id="1_pb3md"]
+[ext_resource type="Shader" uid="uid://b3ma4w6a6c37g" path="res://assets/shaders/lightning/lightning_mark_shader_v.tres" id="1_pb3md"]
 [ext_resource type="Shader" uid="uid://dgso1bnpq2hqu" path="res://assets/shaders/lightning/lightning_shader_test.tres" id="2_pb3md"]
 [ext_resource type="Shader" uid="uid://d4d5qyyub8yrq" path="res://assets/shaders/lightning/lightning_wave.tres" id="3_tj35t"]
 

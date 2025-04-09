@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bhtkgc0wj78d5"]
+
+[ext_resource type="Script" uid="uid://cmgfsv18n3edl" path="res://src/lightning/visual_lightning_strike.gd" id="1_6im4e"]
+
+[node name="VisualLightningStrike" type="Node3D"]
+script = ExtResource("1_6im4e")
