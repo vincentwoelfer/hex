@@ -16,6 +16,7 @@ var tiles: Array[HexTile] = []
 # Visual/Phyiscal Components
 var terrain_mesh: MeshInstance3D
 var terrain_collision: StaticBody3D
+var terrain_collision_shape: ConcavePolygonShape3D
 
 var samplerAll: PolygonSurfaceSampler
 var samplerHorizontal: PolygonSurfaceSampler
@@ -94,53 +95,21 @@ func _update_missing_nav_chunk_neighbours() -> void:
 func _combine_source_geometry_data() -> void:
 	self.combined_nav_source_geometry_data = NavigationMeshSourceGeometryData3D.new()
 
-	# TODO remove, only debug print
-	# var aabb := AABB()
-	# var verts := self.own_nav_source_geometry_data.get_vertices()
-	# for i in range(0, verts.size(), 3):
-	# 	var vert := Vector3(verts[i], verts[i + 1], verts[i + 2])
-	# 	aabb = aabb.expand(vert)
-	# print("Chunk at pos ", self.chunk_hex_pos, " has nav_mesh-verts: ", verts.size(), "nav-mesh-source-data-aabb: ", aabb)
-
 	# Add own source geometry data
 	self.combined_nav_source_geometry_data.merge(self.own_nav_source_geometry_data)
 
-	var aabb_before := self.combined_nav_source_geometry_data.get_bounds()
-
 	# Add source geometry data from neighbours
-	# TODO -> THIS BREAKS IT
-
 	var neighbours := self.chunk_hex_pos.get_chunk_navigation_neighbours()
 	for neighbour_pos: HexPos in neighbours:
 		var neighbour_chunk: HexChunk = HexChunkMap.get_by_pos(neighbour_pos)
 		assert(neighbour_chunk != null)
-		# TODO maybe transform the other data here?
-		# Maybe dont get soure_geom data but the actual geometry data and create source-geom here?
-		self.combined_nav_source_geometry_data.merge(neighbour_chunk.own_nav_source_geometry_data)
 
-	# TODO: PROBLEM is, thatt the own-source-geom data is always local space and needs to be transformed to world space.
-	# However, the combined end result is probably expected in local space again ???
-	var aabb_after := self.combined_nav_source_geometry_data.get_bounds()
-	print("aabb_before: ", aabb_before, " aabb_after: ", aabb_after)
+		# Get relative position
+		var relative_pos: Vector3 = neighbour_chunk.global_position - self.global_position
+		var other_data := neighbour_chunk.build_nav_mesh_source_geom_data(relative_pos)
+		self.combined_nav_source_geometry_data.merge(other_data)
 
 	self.on_parsing_done()
-
-
-# func parse_source_geometry_data() -> void:
-# 	own_nav_source_geometry_data = NavigationMeshSourceGeometryData3D.new()
-# 	var parse_settings: NavigationMesh = NavigationMesh.new()
-# 	parse_settings.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
-# 	parse_settings.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
-# 	parse_settings.geometry_source_group_name = HexConst.NAV_CHUNKS_GROUP_NAME
-# 	# TODO Optimization: Maybe create groups and only include colliders from 6 neighbouring chunks.
-# 	# Using whole tree works fine for now
-# 	# TODO second optimization, dont use the tree at all, somehow use chunk geometry data from CPU.
-# 	# The current implementation fetches this from GPU which stalls
-# 	# See https://docs.godotengine.org/en/stable/classes/class_navigationmeshgenerator.html
-# 	# TODO also See https://docs.godotengine.org/de/4.x/classes/class_navigationmeshsourcegeometrydata3d.html
-# 	# maybe each chunk should have its own source-geom-data from own meshes (not parsed, this avoids the re-routing through GPU)
-# 	# Then, for parsing, we just merge own source-geom-data with the source-geom-data of the neighbours (maybe even offload this to a thread)
-	# NavigationServer3D.parse_source_geometry_data(parse_settings, own_nav_source_geometry_data, self, on_parsing_done)
 
 
 func on_parsing_done() -> void:
@@ -161,14 +130,11 @@ func on_parsing_done() -> void:
 
 	# Keep nav-meshes smaller than the actual geometry by having an artificial border of one cell size
 	nav_mesh.border_size = baking_border + HexConst.NAV_CELL_SIZE
-
+	nav_mesh.region_min_size = 40.0 # The minimum size of a region for it to be created, default = 2
+	nav_mesh.region_merge_size = 100.0 # smaller than this will be merged, default = 20
 	# nav_mesh.detail_sample_distance = 6.0 # default = 6.0
 	# nav_mesh.detail_sample_max_error = 1.0 # default = 1.0
 	# nav_mesh.edge_max_error = 1.3 # default = 1.3
-
-	nav_mesh.region_min_size = 40.0 # The minimum size of a region for it to be created, default = 2
-	nav_mesh.region_merge_size = 100.0 # smaller than this will be merged, default = 20
-
 
 	# Bake the navigation mesh on a thread with the combined source geometry data.
 	NavigationServer3D.bake_from_source_geometry_data_async(
@@ -256,7 +222,7 @@ func generate() -> void:
 	#########################################
 	# Collision
 	#########################################
-	var terrain_collision_shape := ConcavePolygonShape3D.new()
+	terrain_collision_shape = ConcavePolygonShape3D.new()
 	terrain_collision_shape.set_faces(geometry_merger.generate_faces())
 
 	# Generate static body
@@ -295,22 +261,22 @@ func generate() -> void:
 	#########################################
 	# NavigationMeshSourceGeometryData3D
 	#########################################
-	own_nav_source_geometry_data = NavigationMeshSourceGeometryData3D.new()
+	self.own_nav_source_geometry_data = build_nav_mesh_source_geom_data(Vector3.ZERO)
+	
+
+func build_nav_mesh_source_geom_data(offset: Vector3) -> NavigationMeshSourceGeometryData3D:
+	var data := NavigationMeshSourceGeometryData3D.new()
+	var t: Transform3D = Transform3D(Basis.IDENTITY, offset)
 
 	# For now, only add terrain-collider and rocks-collider
-	# TODO verify this:
-	# Assume this is in world space	-> offset by own transform
-	# var t: Transform3D = Transform3D(Basis.IDENTITY, self.position)
-	var t: Transform3D = Transform3D(Basis.IDENTITY, Vector3.ZERO)
-
 	var faces: PackedVector3Array = terrain_collision_shape.get_faces()
 	if not faces.is_empty():
-		own_nav_source_geometry_data.add_faces(faces, t)
-
+		data.add_faces(faces, t)
 	faces = rocks.get_faces()
 	if not faces.is_empty():
-		own_nav_source_geometry_data.add_faces(faces, t)
-			
+		data.add_faces(faces, t)
+	return data
+
 
 func get_hex_pos_center() -> HexPos:
 	if tiles.is_empty():

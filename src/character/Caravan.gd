@@ -42,7 +42,7 @@ func _ready() -> void:
 
 
 func spawn_crystal() -> void:
-	var crystal: Crystal = ResLoader.CRYSTAL_SCENE.instantiate()
+	var crystal: Node3D = ResLoader.CRYSTAL_SCENE.instantiate()
 
 	var spawn_pos: Vector3 = self.global_position + Util.randCircularOffsetRange(1.5, 2.5) + Vector3(0, 2.0, 0)
 
