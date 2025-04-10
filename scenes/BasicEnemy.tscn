@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b85un111vchva" path="res://src/character/BasicEnemy.gd" id="1_cg60k"]
 [ext_resource type="Material" uid="uid://ddiid83wdl655" path="res://assets/materials/basic_enemy_material.tres" id="2_cg60k"]
-[ext_resource type="Script" uid="uid://dcbt26awrgsip" path="res://src/character/PathFindingAgent.gd" id="3_3ox23"]
+[ext_resource type="Script" uid="uid://gshrogpvra5v" path="res://src/components/PathFindingAgent.gd" id="3_3ox23"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_84j8r"]
 material = ExtResource("2_cg60k")

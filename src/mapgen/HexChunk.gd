@@ -255,7 +255,7 @@ func generate() -> void:
 
 		# ROCKS
 		if DebugSettings.enable_rocks:
-			rocks = ScatteredRocks.new(samplerHorizontal)
+			rocks = ScatteredRocks.new(samplerHorizontal).call_deferred()
 			add_child(rocks)
 
 	#########################################

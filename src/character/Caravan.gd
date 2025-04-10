@@ -122,7 +122,7 @@ func _push_character(target: CharacterBody3D, collision_normal: Vector3) -> void
 
 	# Remove component of targets velocity in the direction of the push
 	var target_velocity_along_push: Vector3 = push_direction * target.velocity.dot(push_direction)
-	
+
 	# Apply the push and remove any velocity going against that push
 	target.velocity = target.velocity - target_velocity_along_push + push_velocity
 	target.move_and_slide()

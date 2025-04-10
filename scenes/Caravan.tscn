@@ -1,8 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://b3mxdfbg5ji4y"]
+[gd_scene load_steps=6 format=3 uid="uid://b3mxdfbg5ji4y"]
 
 [ext_resource type="Script" uid="uid://d1h8hxiwq7bok" path="res://src/character/Caravan.gd" id="1_4v2ye"]
 [ext_resource type="Material" uid="uid://c0myngqkhsb44" path="res://assets/materials/player_material.tres" id="2_8py3n"]
-[ext_resource type="Script" uid="uid://dcbt26awrgsip" path="res://src/character/PathFindingAgent.gd" id="3_kn48b"]
+[ext_resource type="Script" uid="uid://gshrogpvra5v" path="res://src/components/PathFindingAgent.gd" id="3_kn48b"]
 
 [sub_resource type="TorusMesh" id="TorusMesh_4v2ye"]
 material = ExtResource("2_8py3n")
@@ -26,7 +26,6 @@ shape = SubResource("CylinderShape3D_4v2ye")
 
 [node name="PathFindingAgent" type="Node3D" parent="."]
 script = ExtResource("3_kn48b")
-metadata/_custom_type_script = "uid://dcbt26awrgsip"
 
 [node name="OmniLight3D" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)

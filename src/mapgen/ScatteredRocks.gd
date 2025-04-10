@@ -44,6 +44,7 @@ func _generate_collision_shape_from_array_mesh(mesh: ArrayMesh) -> ConcavePolygo
 	return polygon_shape
 
 
+# TODO this takes forever (200ms for 5 calls)
 enum RockType {SMALL, MEDIUM, LARGE}
 func _generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 	if not sampler.is_valid():
