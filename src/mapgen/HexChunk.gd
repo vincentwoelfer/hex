@@ -25,9 +25,12 @@ var grass: SurfacePlant
 var rocks: ScatteredRocks
 
 # Navigation
-var nav_source_geometry_data: NavigationMeshSourceGeometryData3D
 var nav_mesh: NavigationMesh
 var nav_region: NavigationRegion3D
+
+# NavigationMeshSourceGeometryData3D
+var own_nav_source_geometry_data: NavigationMeshSourceGeometryData3D
+var combined_nav_source_geometry_data: NavigationMeshSourceGeometryData3D
 
 # Logic to wait for all neighbours to be loaded
 var missing_nav_chunk_neighbours: Array[HexPos] = []
@@ -60,7 +63,7 @@ func _ready() -> void:
 	# Calculate the AABB of the chunk for nav-mesh generation
 	self.chunk_nav_area_aabb_local_coordinates = calculate_chunk_navigation_aabb()
 
-	# Start neighour check timer
+	# Start timer to check for missing neighbours
 	missing_nav_chunk_timer = Timer.new()
 	missing_nav_chunk_timer.set_wait_time(0.5 + randf_range(-0.2, 0.2)) # Rand offset to avoid all chunks starting at the same time
 	missing_nav_chunk_timer.set_one_shot(false)
@@ -83,27 +86,61 @@ func _update_missing_nav_chunk_neighbours() -> void:
 	if missing_nav_chunk_neighbours.is_empty():
 		missing_nav_chunk_timer.queue_free()
 		missing_nav_chunk_timer = null
-		parse_source_geometry_data.call_deferred()
+
+		# _parse_source_geometry_data.call_deferred()
+		_combine_source_geometry_data()
 
 
-func parse_source_geometry_data() -> void:
-	nav_source_geometry_data = NavigationMeshSourceGeometryData3D.new()
+func _combine_source_geometry_data() -> void:
+	self.combined_nav_source_geometry_data = NavigationMeshSourceGeometryData3D.new()
 
-	var parse_settings: NavigationMesh = NavigationMesh.new()
-	parse_settings.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
-	parse_settings.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
-	parse_settings.geometry_source_group_name = HexConst.NAV_CHUNKS_GROUP_NAME
+	# TODO remove, only debug print
+	# var aabb := AABB()
+	# var verts := self.own_nav_source_geometry_data.get_vertices()
+	# for i in range(0, verts.size(), 3):
+	# 	var vert := Vector3(verts[i], verts[i + 1], verts[i + 2])
+	# 	aabb = aabb.expand(vert)
+	# print("Chunk at pos ", self.chunk_hex_pos, " has nav_mesh-verts: ", verts.size(), "nav-mesh-source-data-aabb: ", aabb)
 
-	# TODO Optimization: Maybe create groups and only include colliders from 6 neighbouring chunks.
-	# Using whole tree works fine for now
-	# TODO second optimization, dont use the tree at all, somehow use chunk geometry data from CPU.
-	# The current implementation fetches this from GPU which stalls
-	# See https://docs.godotengine.org/en/stable/classes/class_navigationmeshgenerator.html
+	# Add own source geometry data
+	self.combined_nav_source_geometry_data.merge(self.own_nav_source_geometry_data)
 
-	# TODO also See https://docs.godotengine.org/de/4.x/classes/class_navigationmeshsourcegeometrydata3d.html
-	# maybe each chunk should have its own source-geom-data from own meshes (not parsed, this avoids the re-routing through GPU)
-	# Then, for parsing, we just merge own source-geom-data with the source-geom-data of the neighbours (maybe even offload this to a thread)
-	NavigationServer3D.parse_source_geometry_data(parse_settings, nav_source_geometry_data, self, on_parsing_done)
+	var aabb_before := self.combined_nav_source_geometry_data.get_bounds()
+
+	# Add source geometry data from neighbours
+	# TODO -> THIS BREAKS IT
+
+	var neighbours := self.chunk_hex_pos.get_chunk_navigation_neighbours()
+	for neighbour_pos: HexPos in neighbours:
+		var neighbour_chunk: HexChunk = HexChunkMap.get_by_pos(neighbour_pos)
+		assert(neighbour_chunk != null)
+		# TODO maybe transform the other data here?
+		# Maybe dont get soure_geom data but the actual geometry data and create source-geom here?
+		self.combined_nav_source_geometry_data.merge(neighbour_chunk.own_nav_source_geometry_data)
+
+	# TODO: PROBLEM is, thatt the own-source-geom data is always local space and needs to be transformed to world space.
+	# However, the combined end result is probably expected in local space again ???
+	var aabb_after := self.combined_nav_source_geometry_data.get_bounds()
+	print("aabb_before: ", aabb_before, " aabb_after: ", aabb_after)
+
+	self.on_parsing_done()
+
+
+# func parse_source_geometry_data() -> void:
+# 	own_nav_source_geometry_data = NavigationMeshSourceGeometryData3D.new()
+# 	var parse_settings: NavigationMesh = NavigationMesh.new()
+# 	parse_settings.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
+# 	parse_settings.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
+# 	parse_settings.geometry_source_group_name = HexConst.NAV_CHUNKS_GROUP_NAME
+# 	# TODO Optimization: Maybe create groups and only include colliders from 6 neighbouring chunks.
+# 	# Using whole tree works fine for now
+# 	# TODO second optimization, dont use the tree at all, somehow use chunk geometry data from CPU.
+# 	# The current implementation fetches this from GPU which stalls
+# 	# See https://docs.godotengine.org/en/stable/classes/class_navigationmeshgenerator.html
+# 	# TODO also See https://docs.godotengine.org/de/4.x/classes/class_navigationmeshsourcegeometrydata3d.html
+# 	# maybe each chunk should have its own source-geom-data from own meshes (not parsed, this avoids the re-routing through GPU)
+# 	# Then, for parsing, we just merge own source-geom-data with the source-geom-data of the neighbours (maybe even offload this to a thread)
+	# NavigationServer3D.parse_source_geometry_data(parse_settings, own_nav_source_geometry_data, self, on_parsing_done)
 
 
 func on_parsing_done() -> void:
@@ -133,10 +170,10 @@ func on_parsing_done() -> void:
 	nav_mesh.region_merge_size = 100.0 # smaller than this will be merged, default = 20
 
 
-	# Bake the navigation mesh on a thread with the source geometry data.
+	# Bake the navigation mesh on a thread with the combined source geometry data.
 	NavigationServer3D.bake_from_source_geometry_data_async(
 		nav_mesh,
-		nav_source_geometry_data,
+		combined_nav_source_geometry_data,
 		on_baking_done
 	)
 
@@ -219,8 +256,8 @@ func generate() -> void:
 	#########################################
 	# Collision
 	#########################################
-	var polygon_shape := ConcavePolygonShape3D.new()
-	polygon_shape.set_faces(geometry_merger.generate_faces())
+	var terrain_collision_shape := ConcavePolygonShape3D.new()
+	terrain_collision_shape.set_faces(geometry_merger.generate_faces())
 
 	# Generate static body
 	terrain_collision = StaticBody3D.new()
@@ -228,14 +265,14 @@ func generate() -> void:
 	if DebugSettings.enable_terrain_collision_visualizations:
 		# Create propper collision shape with visualizations
 		var collision_shape := CollisionShape3D.new()
-		collision_shape.shape = polygon_shape
+		collision_shape.shape = terrain_collision_shape
 		collision_shape.debug_fill = false
 		collision_shape.debug_color = Color(1, 0, 1, 0.5)
 		terrain_collision.add_child(collision_shape)
 	else:
 		# Use physics server / shape owner api
 		var owner_id := terrain_collision.create_shape_owner(self)
-		terrain_collision.shape_owner_add_shape(owner_id, polygon_shape)
+		terrain_collision.shape_owner_add_shape(owner_id, terrain_collision_shape)
 
 	terrain_collision.set_collision_layer_value(Layers.L.TERRAIN, true)
 	add_child(terrain_collision)
@@ -247,15 +284,32 @@ func generate() -> void:
 		# GRASS
 		if DebugSettings.enable_grass:
 			grass = SurfacePlant.new()
-			# grass.name = "Grass"
 			grass.populate_multimesh(samplerHorizontal)
 			add_child(grass)
 
 		# ROCKS
 		if DebugSettings.enable_rocks:
 			rocks = ScatteredRocks.new(samplerHorizontal)
-			# rocks.name = "Rocks"
 			add_child(rocks)
+
+	#########################################
+	# NavigationMeshSourceGeometryData3D
+	#########################################
+	own_nav_source_geometry_data = NavigationMeshSourceGeometryData3D.new()
+
+	# For now, only add terrain-collider and rocks-collider
+	# TODO verify this:
+	# Assume this is in world space	-> offset by own transform
+	# var t: Transform3D = Transform3D(Basis.IDENTITY, self.position)
+	var t: Transform3D = Transform3D(Basis.IDENTITY, Vector3.ZERO)
+
+	var faces: PackedVector3Array = terrain_collision_shape.get_faces()
+	if not faces.is_empty():
+		own_nav_source_geometry_data.add_faces(faces, t)
+
+	faces = rocks.get_faces()
+	if not faces.is_empty():
+		own_nav_source_geometry_data.add_faces(faces, t)
 			
 
 func get_hex_pos_center() -> HexPos:
