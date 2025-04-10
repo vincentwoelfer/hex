@@ -176,7 +176,7 @@ func _update_path_progress() -> void:
 		return
 
 	var dist_next_waypoint: float = path[1].distance_to(global_position)
-	if dist_next_waypoint <= radius:
+	if dist_next_waypoint <= radius * 0.5:
 		path.remove_at(1)
 			
 		# Indices are not the same, this is only a workaround. But raw_path has same or more so this kinda works.
