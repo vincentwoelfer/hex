@@ -53,8 +53,8 @@ const MAP_HEIGHT_INVALID: int = -999
 
 
 # ==================== Navigation ========================
-const NAV_CELL_SIZE: float = 0.125
-const NAV_AGENT_RADIUS: float = 0.5
+const NAV_CELL_SIZE: float = 0.1
+const NAV_AGENT_RADIUS: float = 0.8
 const NAV_CHUNKS_GROUP_NAME: String = "nav_chunks"
 
 # Define a basis slope angle, then give the agents more ability (to compensate for small path errors)
