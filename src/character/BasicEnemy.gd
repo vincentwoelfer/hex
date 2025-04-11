@@ -13,8 +13,7 @@ var target_reached_dist: float
 var goal_choosing_timer: Timer
 
 func _ready() -> void:
-	path_finding_agent.init(Color.RED, collision.shape)
-	path_finding_agent.show_path = DebugSettings.show_path_basic_enemy
+	path_finding_agent.init(Color.RED, collision.shape, DebugSettings.show_path_basic_enemy)
 
 	self.floor_max_angle = deg_to_rad(HexConst.NAV_AGENT_MAX_SLOPE_BASIS_DEG + HexConst.NAV_AGENT_MAX_SLOPE_ACTUAL_OFFSET_DEG)
 

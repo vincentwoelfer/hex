@@ -56,8 +56,9 @@ var goal_reached_distance: float = 0.5
 # https://docs.godotengine.org/en/4.0/tutorials/navigation/navigation_different_actor_types.html
 
 
-func init(color_: Color, sweeping_shape_reference: Shape3D) -> void:
+func init(color_: Color, sweeping_shape_reference: Shape3D, show_path_: bool = true) -> void:
 	self.color = color_
+	self.show_path = show_path_
 	self.sweeping_shape = sweeping_shape_reference.duplicate(false)
 
 	# Make shape smaller - depends on type
@@ -93,12 +94,12 @@ func init(color_: Color, sweeping_shape_reference: Shape3D) -> void:
 	self.shape_cast_height_offset = Vector3.UP * original_height * (1.0 - height_factor)
 
 	const width := 0.06
-	visual_path = DebugPathInstance.new(color, width)
+	visual_path = DebugPathInstance.new(color, width, show_path)
 	add_child(visual_path)
 
 	if DebugSettings.show_raw_debug_path:
 		var debug_color := Colors.set_alpha(Colors.mod_sat_val_hue(color, -0.4, 0.0, 0.05), color.a * 0.75)
-		visual_path_raw = DebugPathInstance.new(debug_color, width * 0.75)
+		visual_path_raw = DebugPathInstance.new(debug_color, width * 0.75, show_path)
 		add_child(visual_path_raw)
 	
 

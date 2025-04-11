@@ -57,8 +57,7 @@ func init(device: int, color_: Color) -> void:
 
 
 func _ready() -> void:
-	path_finding_agent.init(color, collision.shape)
-	path_finding_agent.show_path = DebugSettings.show_path_player_to_caravan
+	path_finding_agent.init(color, collision.shape, DebugSettings.show_path_player_to_caravan)
 	path_finding_agent.set_track_target(GameStateManager.caravan)
 
 	
