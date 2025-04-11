@@ -140,10 +140,10 @@ static func visualize_shape_query(query: PhysicsShapeQueryParameters3D, color: C
 	mesh.surface_set_material(0, mat(color, false, false))
 
 	var motion_length: float = query.motion.length()
-	var sample_step_length: float = max(mesh.get_aabb().size.x, mesh.get_aabb().size.z)
-	var sample_count: int = ceili(motion_length / sample_step_length)
+	var sample_step_length: float = max(mesh.get_aabb().size.x, mesh.get_aabb().size.z) * 0.5
+	var sample_count: int = ceili(motion_length / sample_step_length) + 1
 
-	# Sample along motion. If motion is 0, this is executed exactly once
+	# Sample along motion, at least triggered once
 	var base_pos := query.transform.origin
 	var step: Vector3 = query.motion / sample_count
 	for i in range(sample_count):

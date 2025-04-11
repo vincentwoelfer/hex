@@ -58,7 +58,7 @@ func init(color_: Color, sweeping_shape_reference: Shape3D) -> void:
 
 	# Make shape smaller - depends on type
 	var original_height: float = 0.0
-	const height_factor: float = 0.9
+	const height_factor: float = 0.2
 	const radius_factor: float = 1.0
 	
 	if sweeping_shape is SphereShape3D:
@@ -85,7 +85,8 @@ func init(color_: Color, sweeping_shape_reference: Shape3D) -> void:
 	else:
 		push_error("Unsupported shape type")
 
-	self.shape_cast_height_offset = Vector3.UP * original_height / 2.0
+	# Offset shape upwards to avoid collision with ground
+	self.shape_cast_height_offset = Vector3.UP * original_height * (1.0 - height_factor)
 
 	const width := 0.06
 	visual_path = DebugPathInstance.new(color, width)
@@ -179,14 +180,16 @@ func _update_path_progress() -> void:
 
 	var dist_next_waypoint: float = path[1].distance_to(global_position)
 	if dist_next_waypoint <= radius * 0.5:
+		# We reached the next waypoint, remove it from the path
 		path.remove_at(1)
-			
+
 		# Indices are not the same, this is only a workaround. But raw_path has same or more so this kinda works.
 		# Just wait for replanning to solve this.
 		if DebugSettings.show_raw_debug_path and path_raw.size() > 1:
 			path_raw.remove_at(1)
 
-	pass
+		# Since path simplification only looks one ahead, simplify again
+		self.path = simplify_path_from_begining(path)
 
 
 func _process(delta: float) -> void:
@@ -237,34 +240,30 @@ func _plan_new_path() -> void:
 	has_path = true
 	last_target_replan_pos = target
 	last_target_replan_time = Time.get_unix_time_from_system()
-	path = simplify_path(path_raw)
+	path = simplify_path_from_begining(path_raw)
 
 
-func simplify_path(p: PackedVector3Array) -> PackedVector3Array:
+func simplify_path_from_begining(p: PackedVector3Array) -> PackedVector3Array:
 	# Nothing to simplify if p has less than 3 points
 	if p.size() < 3:
 		return p
 
-	# Check if we can reach the end directly	
 	var simplified_p := PackedVector3Array()
-	var current_index := 0
-	simplified_p.append(p[current_index])
-	
-	# Iterate over p, try to connect current_index (from p start) with next_index, (from p end, moving backwards)
-	while current_index < p.size() - 1:
-		var next_index := p.size() - 1 # Try to jump directly to the end
+	var start: int = 0
 
-		# Check if we can reach the furthest point directly
-		while next_index > current_index + 1:
-			# Check if we can connect current_index with next_index
-			if can_connect_points(p[current_index], p[next_index]):
-				break
-			else:
-				next_index -= 1
+	# Attempt to skip intermediate points starting from the beginning
+	for i: int in range(2, p.size()):
+		if can_connect_points(p[0], p[i]):
+			start = i
+			break
 
-		# Move to the next reachable point
-		current_index = next_index
-		simplified_p.append(p[current_index])
+	# Add the first reachable point
+	simplified_p.append(p[start])
+
+	# Add the rest of the path unchanged
+	for i: int in range(start + 1, p.size()):
+		simplified_p.append(p[i])
+
 	return simplified_p
 
 
@@ -298,8 +297,11 @@ func can_connect_points(curr: Vector3, next: Vector3) -> bool:
 	query.collide_with_areas = false
 	query.collision_mask = Layers.TERRAIN_AND_STATIC
 
-	var result: PackedFloat32Array = get_world_3d().direct_space_state.cast_motion(query)
-	var does_collide := result[0] < 1.0
+	# First perform shape-check to check for initial collision, then a motion-sweep
+	var does_collide := get_world_3d().direct_space_state.intersect_shape(query, 1).size() > 0
+	if not does_collide:
+		var result: PackedFloat32Array = get_world_3d().direct_space_state.cast_motion(query)
+		does_collide = result[0] < 1.0
 
 	# Debug visualization - only for caravan
 	if self.radius >= 0.6:
