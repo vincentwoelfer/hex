@@ -298,6 +298,10 @@ static func raycast(from: Vector3, to: Vector3, mask: int = Layers.L.ALL) -> boo
 
 	return hit
 
+static func raycast_first_hit(from: Vector3, to: Vector3, mask: int = Layers.L.ALL) -> Vector3:
+	var query := PhysicsRayQueryParameters3D.create(from, to, mask)
+	query.hit_from_inside = true
+	return get_space_state().intersect_ray(query)["position"]
 
 ## Perform a point collision test at the given position (in world space)
 static func collision_point_test(pos: Vector3, mask: int = Layers.L.ALL) -> bool:

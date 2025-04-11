@@ -14,7 +14,7 @@ enum L {
 }
 
 # Handy Shortcuts
-const TERRAIN_AND_STATIC = L.TERRAIN | L.STATIC_GEOM
+static var TERRAIN_AND_STATIC := mask([L.TERRAIN , L.STATIC_GEOM])
 
 static func mask(layers: Array[int]) -> int:
 	var result: int = 0

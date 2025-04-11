@@ -29,7 +29,6 @@ func _process(delta: float) -> void:
 	lightning_wave_material.set_shader_parameter("time_elapsed_frac", time_elapsed / duration)
 	
 func setup_shader_materials(duration: float, color_preset: String):
-	
 	floor_mark_material = mesh_instance_3d.get_active_material(0).duplicate()
 	mesh_instance_3d.set_surface_override_material(0, floor_mark_material)
 	
@@ -44,9 +43,13 @@ func setup_shader_materials(duration: float, color_preset: String):
 	lightning_wave_material.set_shader_parameter("gradient_color_texture", preset_color_gradients[color_preset])
 
 	
-static func spawn(position: Vector3, duration: float=default_duration, color_preset: String="black"):
+static func spawn(pos: Vector3, spawn_on_floor: bool=true, duration: float=default_duration, color_preset: String="black"):
 	var instance = lightning_scene.instantiate()
-	instance.global_position = position
+	if spawn_on_floor:
+		pos = Util.raycast_first_hit(pos + Vector3.UP*10000, pos - Vector3.UP*10000, Layers.TERRAIN_AND_STATIC)
+		pos += Vector3.UP*0.2
+	instance.global_position = pos
+	
 	Util.get_scene_root().add_child(instance)
 	
 	instance.setup_shader_materials(duration, color_preset)

@@ -1,7 +1,7 @@
 class_name Caravan
 extends CharacterBody3D
 
-var speed: float = 10.25
+var speed: float = 1.25
 
 # Global Path params
 var min_goal_distance: float = 30.0
