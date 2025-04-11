@@ -27,8 +27,8 @@ var path: PackedVector3Array
 # Replanning
 var last_target_replan_pos: Vector3
 var last_target_replan_time: float
-const replan_distance: float = 1.0
-const replan_interval_s: float = 1.0
+var replan_distance_target: float = 1.0
+var replan_interval_s: float = 1.0
 
 # Simplify parameters
 const max_simplify_dist := 10.0
@@ -157,13 +157,27 @@ func _physics_process(delta: float) -> void:
 	
 
 func _check_for_replan() -> void:
+	var replan: bool = false
 	var now := Time.get_unix_time_from_system()
-	if last_target_replan_pos.distance_to(target) > replan_distance or now - last_target_replan_time > replan_interval_s:
+
+	# Time-based replan
+	if replan_interval_s > 0.0:
+		if now - last_target_replan_time > replan_interval_s:
+			replan = true
+
+	# Distance-based replan
+	if replan_distance_target > 0.0:
+		var dist := last_target_replan_pos.distance_to(target)
+		if dist > replan_distance_target:
+			replan = true
+
+	# TODO also replan if distance to large from path (eg by being pushed, avoidance, etc.)
+
+	if replan:
 		_plan_new_path()
 		last_target_replan_pos = target
 		last_target_replan_time = now
-	# TODO also replan if distance to large from path (eg by being pushed, avoidance, etc.)
-
+	
 
 func _update_path_progress() -> void:
 	# We try to reach index 1, 0 is current position (in visualization)
@@ -248,26 +262,27 @@ func simplify_path_from_begining(p: PackedVector3Array) -> PackedVector3Array:
 	if p.size() < 3:
 		return p
 
-	var simplified_p := PackedVector3Array()
-	var start: int = 0
+	var simplified_p: PackedVector3Array = [p[0]]
+	var furthest_connectable_point: int = 1
 
 	# Attempt to skip intermediate points starting from the beginning
-	for i: int in range(2, p.size()):
-		if can_connect_points(p[0], p[i]):
-			start = i
+	for i: int in range(1, p.size()):
+		if can_connect_points(p[0], p[i], false):
+			furthest_connectable_point = i
+		else:
 			break
 
-	# Add the first reachable point
-	simplified_p.append(p[start])
+	# Visualize
+	can_connect_points(p[0], p[furthest_connectable_point], true)
 
-	# Add the rest of the path unchanged
-	for i: int in range(start + 1, p.size()):
+	# Add the first reachable point and the remaining path
+	for i: int in range(furthest_connectable_point, p.size()):
 		simplified_p.append(p[i])
 
 	return simplified_p
 
 
-func can_connect_points(curr: Vector3, next: Vector3) -> bool:
+func can_connect_points(curr: Vector3, next: Vector3, visualize: bool = false) -> bool:
 	# Only connect if
 	# - path is clear
 	# - distance is short enough
@@ -299,25 +314,26 @@ func can_connect_points(curr: Vector3, next: Vector3) -> bool:
 
 	# First perform shape-check to check for initial collision, then a motion-sweep
 	var does_collide := get_world_3d().direct_space_state.intersect_shape(query, 1).size() > 0
+	var t := 0.0
 	if not does_collide:
 		var result: PackedFloat32Array = get_world_3d().direct_space_state.cast_motion(query)
-		does_collide = result[0] < 1.0
+		t = result[0]
+		does_collide = t < 1.0
 
 	# Debug visualization - only for caravan
-	if self.radius >= 0.6:
-		var c := color
-		if does_collide:
-			c = c.lerp(Color.RED, 0.5)
-		else:
-			c = c.lerp(Color.GREEN, 0.5)
-		c = Colors.set_alpha(c, 0.9)
-		DebugVis3D.visualize_shape_query(query, c, 1.0)
+	if visualize:
+		if self.radius >= 0.6:
+			# var c := Colors.set_alpha(color.lerp(Color.RED if does_collide else Color.GREEN, 0.5), 0.9)
+			var col_free := Colors.set_alpha(color.lerp(Color.GREEN, 0.5), 0.9)
+			var col_hit := Colors.set_alpha(color.lerp(Color.RED, 0.5), 0.9)
+			DebugVis3D.visualize_shape_query_with_hit(query, t, col_free, col_hit, 1.0)
 
 	if does_collide:
 		return false
 
 	# Everything is fine -> can connect
 	return true
+
 
 # TODO optimioze by creating shape once and use rid
 # Example code:

@@ -15,8 +15,6 @@ func _ready() -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
 
-	get_tree().debug_collisions_hint = DebugSettings.enable_debug_collision_visualizations
-
 	cam_follow_point_manager = CameraFollowPointManager.new()
 
 	#NAVMAP

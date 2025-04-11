@@ -14,14 +14,15 @@ height = 0.6
 radius = 0.8
 
 [node name="Caravan" type="CharacterBody3D"]
+floor_snap_length = 0.5
 script = ExtResource("1_4v2ye")
 
 [node name="Mesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
 mesh = SubResource("TorusMesh_4v2ye")
 
 [node name="Collision" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
 shape = SubResource("CylinderShape3D_4v2ye")
 
 [node name="PathFindingAgent" type="Node3D" parent="."]

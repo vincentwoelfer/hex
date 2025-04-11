@@ -139,16 +139,34 @@ static func visualize_shape_query(query: PhysicsShapeQueryParameters3D, color: C
 	var mesh: Mesh = (query.shape as Shape3D).get_debug_mesh()
 	mesh.surface_set_material(0, mat(color, false, false))
 
-	var motion_length: float = query.motion.length()
-	var sample_step_length: float = max(mesh.get_aabb().size.x, mesh.get_aabb().size.z) * 0.5
-	var sample_count: int = ceili(motion_length / sample_step_length) + 1
+	# Determine how many steps to take along the motion
+	var sample_points: Array[Vector3] = [query.transform.origin]
+	if query.motion.length() > 0.0:
+		var step_distance: float = max(mesh.get_aabb().size.x, mesh.get_aabb().size.z) * 0.75
+		var num_steps: int = clamp(roundi(query.motion.length() / step_distance), 2, 30)
+		sample_points = Util.spread_vec3(query.transform.origin, query.transform.origin + query.motion, num_steps)
 
-	# Sample along motion, at least triggered once
-	var base_pos := query.transform.origin
-	var step: Vector3 = query.motion / sample_count
-	for i in range(sample_count):
-		var pos: Vector3 = base_pos + step * i
-		var instance: Node3D = spawn(pos, mesh)
-
+	# Spawn
+	for v in sample_points:
+		var instance: Node3D = spawn(v, mesh)
 		if delete_after > 0.0:
 			Util.delete_after(delete_after, instance)
+
+
+static func visualize_shape_query_with_hit(query: PhysicsShapeQueryParameters3D, t: float, color_free: Color, color_hit: Color, delete_after: float = 0.0) -> void:
+	# Check if query has no motion or is completely hit or miss
+	print("Query has motion-length: %f \t t=%f" % [query.motion.length(), t])
+	if query.motion.length() == 0.0 or is_equal_approx(t, 0.0) or is_equal_approx(t, 1.0):
+		
+		visualize_shape_query(query, color_hit if t < 0.5 else color_free, delete_after)
+		return
+
+	# Split into two shape queries and call with different colors
+	var query_free := query
+	query_free.motion *= t
+	var query_hit := query
+	query_hit.transform.origin += query_free.motion
+	query_hit.motion *= (1.0 - t)
+
+	visualize_shape_query(query_free, color_free, delete_after)
+	visualize_shape_query(query_hit, color_hit, delete_after)

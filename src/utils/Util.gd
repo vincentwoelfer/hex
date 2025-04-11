@@ -78,6 +78,32 @@ static func to_vec3(v: Vector2) -> Vector3:
 static func clampf(val: float, a: float, b: float) -> float:
 	return clampf(val, minf(a, b), maxf(a, b))
 
+static func spread_values(a: float, b: float, n: int) -> Array[float]:
+	if n == 0:
+		return []
+	if n == 1 or a == b:
+		return [a]
+	# General case
+	var values: Array[float] = []
+	var step: float = (b - a) / float(n - 1)
+	for i in n:
+		values.append(a + i * step)
+	return values
+
+static func spread_vec3(a: Vector3, b: Vector3, n: int) -> Array[Vector3]:
+	if n == 0:
+		return []
+	if n == 1 or a == b:
+		return [a]
+
+	# General case
+	var t_values := spread_values(0.0, 1.0, n)
+	var step := (b - a) / (t_values.size() - 1)
+
+	var values: Array[Vector3] = []
+	for t in t_values:
+		values.append(a + step * t)
+	return values
 
 ######################################################
 # Timing & Waiting

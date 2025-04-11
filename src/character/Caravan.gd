@@ -24,6 +24,7 @@ var crystal_timer: Timer
 func _ready() -> void:
 	path_finding_agent.init(Colors.COLOR_CARAVAN, collision.shape)
 	path_finding_agent.show_path = DebugSettings.show_path_caravan
+	path_finding_agent.replan_interval_s = -1.0
 
 	# Caravan can climb more to avoid getting stuck
 	self.floor_max_angle = deg_to_rad(HexConst.NAV_AGENT_MAX_SLOPE_BASIS_DEG + HexConst.NAV_AGENT_MAX_SLOPE_ACTUAL_OFFSET_DEG)
@@ -142,15 +143,13 @@ func choose_new_goal() -> void:
 # TODO move somewhere else
 # New circle must contain original center or this might clip through walls entierely
 func _find_free_position_near(origin: Vector3) -> Vector3:
-	var max_search_radius: float = 4.0
-	var search_step: float = 2.0
-
 	# Util.delete_after(5.0, DebugVis3D.spawn(origin + Vector3(0, 0.5, 0), DebugVis3D.sphere(0.15, DebugVis3D.mat(Color.BLUE, true))))
-
 	if _is_area_free(origin):
 		return origin
 
 	# Expand outward in a spiral/sphere pattern
+	var max_search_radius: float = 4.0
+	var search_step: float = 2.0
 	var i := 0
 	for r in range(search_step, max_search_radius, search_step):
 		for angle in range(0.0, TAU, deg_to_rad(60)):
