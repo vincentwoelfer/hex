@@ -34,15 +34,14 @@ func _ready() -> void:
 
 	# TEST
 	crystal_timer = Timer.new()
-	crystal_timer.wait_time = 0.75
+	crystal_timer.wait_time = 1.5
 	crystal_timer.autostart = true
 	crystal_timer.timeout.connect(spawn_crystal)
-	# add_child(crystal_timer)
+	add_child(crystal_timer)
 
 
 func spawn_crystal() -> void:
 	var crystal: Node3D = ResLoader.CRYSTAL_SCENE.instantiate()
-
 	var spawn_pos: Vector3 = self.global_position + Util.rand_circular_offset_range(1.5, 2.5) + Vector3(0, 2.0, 0)
 
 	get_tree().root.add_child(crystal)
@@ -52,12 +51,6 @@ func spawn_crystal() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if GameStateManager.cam_follow_point_manager.get_active_cam_follow_nodes().size() == 1:
-		# Alone -> fast
-		speed = 15.0
-	else:
-		speed = 1.5
-
 	var movement: Vector3
 	if path_finding_agent.is_navigation_done() or not has_goal:
 		if not choose_new_goal():
@@ -72,6 +65,7 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y += HexConst.GRAVITY * delta
 
+	# Store velocity before move_and_slide
 	self.velocity_no_collision = velocity
 	move_and_slide()
 
@@ -97,7 +91,6 @@ func push_characters() -> bool:
 
 
 func _push_character(target: CharacterBody3D, collision_normal: Vector3) -> void:
-	# TODO not perfect, gets stuck on slopes sometimes
 	var push_direction: Vector3 = - collision_normal
 	push_direction.y = 0.0
 	push_direction = push_direction.normalized()
