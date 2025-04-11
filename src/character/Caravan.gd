@@ -1,7 +1,7 @@
 class_name Caravan
 extends CharacterBody3D
 
-var speed: float = 15.25
+var speed: float = 1.5
 
 # Global Path params
 var min_goal_distance: float = 30.0
@@ -36,8 +36,15 @@ func _ready() -> void:
 	crystal_timer.wait_time = 1.5
 	crystal_timer.autostart = true
 	crystal_timer.timeout.connect(spawn_crystal)
-	# add_child(crystal_timer)
+	add_child(crystal_timer)
 
+
+func get_speed() -> float:
+	if GameStateManager.cam_follow_point_manager.get_active_cam_follow_nodes().size() == 1:
+		# Caravan is alone, so we need to move faster
+		return 10.0
+	else:
+		return speed
 
 func spawn_crystal() -> void:
 	var crystal: Node3D = ResLoader.CRYSTAL_SCENE.instantiate()
@@ -56,7 +63,7 @@ func _physics_process(delta: float) -> void:
 			print("Unable to find new caravan goal!")
 
 	# Move, Dont touch y to not mess with gravity
-	movement = path_finding_agent.get_direction() * speed
+	movement = path_finding_agent.get_direction() * self.get_speed()
 	velocity.x = movement.x
 	velocity.z = movement.z
 

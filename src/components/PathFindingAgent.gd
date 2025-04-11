@@ -136,7 +136,7 @@ func get_target() -> Vector3:
 	return target
 
 func get_direction() -> Vector3:
-	if not has_path or navigation_done:
+	if not has_path or navigation_done or path.size() <= 1:
 		return Vector3.ZERO
 
 	# We try to reach index 1, 0 is current position (in visualization)
