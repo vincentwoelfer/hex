@@ -44,7 +44,7 @@ var debug_mesh: MeshInstance3D
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	orientation_angle_goal = Util.getHexAngleInterpolated(orientation_goal)
+	orientation_angle_goal = Util.get_hex_angle_interpolated(orientation_goal)
 	orientation_angle_curr = orientation_angle_goal
 
 	follow_point_goal = GameStateManager.cam_follow_point_manager.calculate_cam_follow_point()
@@ -58,7 +58,7 @@ func _input(event: InputEvent) -> void:
 		orientation_goal = (orientation_goal + 6 - 1) % 6
 	if event.is_action_pressed("cam_rotate_right"):
 		orientation_goal = (orientation_goal + 6 + 1) % 6
-	orientation_angle_goal = Util.getHexAngleInterpolated(orientation_goal)
+	orientation_angle_goal = Util.get_hex_angle_interpolated(orientation_goal)
 
 	# Zoom (in/out)
 	var zoom_input := 0.0
@@ -140,7 +140,7 @@ func draw_debug_mesh(location: Vector3) -> void:
 		if debug_mesh == null:
 			var scene_root := get_tree().root
 			debug_mesh = MeshInstance3D.new()
-			debug_mesh.mesh = DebugShapes3D.sphere_mesh(0.2, DebugShapes3D.material(Color.CYAN))
+			debug_mesh.mesh = DebugVis3D.sphere(0.2, DebugVis3D.mat(Color.CYAN))
 			debug_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			scene_root.add_child(debug_mesh)
 

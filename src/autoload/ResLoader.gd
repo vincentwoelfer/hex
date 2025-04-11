@@ -22,15 +22,17 @@ const CARAVAN_SCENE: PackedScene = preload('res://scenes/Caravan.tscn')
 const PLAYER_SCENE: PackedScene = preload('res://scenes/PlayerCharacter.tscn')
 const BASIC_ENEMY_SCENE: PackedScene = preload('res://scenes/BasicEnemy.tscn')
 
+const CRYSTAL_SCENE: PackedScene = preload('res://scenes/Crystal.tscn')
+
 # Highlight
 const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
 
 func _ready() -> void:
 	basic_rocks_meshes = load_all_meshes_from_dir(basic_rocks_path)
 
-	# Util.print_banner("Resource Loader")
+	# HexLog.print_banner("Resource Loader")
 	# print("- Basic rocks meshes: " + str(basic_rocks_meshes.size()))
-	# Util.print_only_banner()
+	# HexLog.print_only_banner()
 
 func load_all_meshes_from_dir(path: String) -> Array[Mesh]:
 	var dir := DirAccess.open(path)

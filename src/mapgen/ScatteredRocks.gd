@@ -1,40 +1,52 @@
 class_name ScatteredRocks
 extends Node3D
 
-var rocks: MeshInstance3D
-var rocks_collision: StaticBody3D
+var mesh_instance: MeshInstance3D
+var static_body: StaticBody3D
+
+# Internal
+var concave_polygon_shape: ConcavePolygonShape3D
 
 
 func _init(sampler: PolygonSurfaceSampler) -> void:
 	if not sampler.is_valid() or not DebugSettings.enable_rocks:
 		return
 
-	var rocksMesh := generate_rocks_mesh(sampler)
+	var rocksMesh := _generate_rocks_mesh(sampler)
 	if rocksMesh != null:
-		rocks = MeshInstance3D.new()
-		rocks.name = "Rocks"
-		rocks.material_override = ResLoader.ROCKS_MAT
-		rocks.mesh = rocksMesh
-		add_child(rocks)
+		mesh_instance = MeshInstance3D.new()
+		mesh_instance.name = "Rocks"
+		mesh_instance.material_override = ResLoader.ROCKS_MAT
+		mesh_instance.mesh = rocksMesh
+		add_child(mesh_instance)
 
 		# Collision
-		rocks_collision = StaticBody3D.new()
-		var rocks_collision_shape := CollisionShape3D.new()
-		rocks_collision_shape.shape = generate_collision_shape_from_array_mesh(rocksMesh)
-		rocks_collision_shape.debug_fill = false
-		rocks_collision.add_child(rocks_collision_shape)
-		rocks_collision.set_collision_layer_value(Layers.L.STATIC_GEOM, true)
-		add_child(rocks_collision)
+		static_body = StaticBody3D.new()
+		var collision_shape := CollisionShape3D.new()
+		self.concave_polygon_shape = _generate_collision_shape_from_array_mesh(rocksMesh)
+		collision_shape.shape = self.concave_polygon_shape
+		collision_shape.debug_fill = false
+		static_body.add_child(collision_shape)
+		static_body.set_collision_layer_value(Layers.L.STATIC_GEOM, true)
+		add_child(static_body)
 
 
-func generate_collision_shape_from_array_mesh(mesh: ArrayMesh) -> ConcavePolygonShape3D:
+func get_faces() -> PackedVector3Array:
+	if concave_polygon_shape == null:
+		return PackedVector3Array()
+
+	return concave_polygon_shape.get_faces()
+
+
+func _generate_collision_shape_from_array_mesh(mesh: ArrayMesh) -> ConcavePolygonShape3D:
 	var polygon_shape := ConcavePolygonShape3D.new()
 	polygon_shape.set_faces(mesh.get_faces())
 	return polygon_shape
 
 
+# TODO this takes forever (200ms for 5 calls)
 enum RockType {SMALL, MEDIUM, LARGE}
-func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
+func _generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 	if not sampler.is_valid():
 		return null
 
@@ -44,7 +56,7 @@ func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 	var avg_rock_density_per_square_meter: float = 0.005
 	var num_rocks: int = round(randfn(avg_rock_density_per_square_meter, avg_rock_density_per_square_meter) * sampler.get_total_area())
 
-	# No rocks
+	# No mesh_instance
 	if num_rocks <= 0 or randf() <= 0.25:
 		return null
 
@@ -63,7 +75,7 @@ func generate_rocks_mesh(sampler: PolygonSurfaceSampler) -> ArrayMesh:
 		if r <= 0.15:
 			rock_type = RockType.LARGE
 
-		# Spawn rocks according to type
+		# Spawn mesh_instance according to type
 		if rock_type == RockType.LARGE:
 			var height_factor := randf_range(2.5, 3.5) / mesh_height
 			var side_factor := randf_range(5.0, 10.0) / max_mesh_side_length

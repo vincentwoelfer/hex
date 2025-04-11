@@ -65,7 +65,7 @@ func get_random_point_transform() -> Transform3D:
 
 	var tri_idx: int = _weighted_random_choice()
 	var tri: Triangle = self.triangles[tri_idx]
-	return Util.transformFromPointAndNormal(tri.getRandPoint(), tri.getNormal())
+	return Util.transform_from_point_and_normal(tri.getRandPoint(), tri.getNormal())
 
 
 func _calculate_area_weights() -> PolygonSurfaceSampler:

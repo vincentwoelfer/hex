@@ -16,6 +16,7 @@ var tiles: Array[HexTile] = []
 # Visual/Phyiscal Components
 var terrain_mesh: MeshInstance3D
 var terrain_collision: StaticBody3D
+var terrain_collision_shape: ConcavePolygonShape3D
 
 var samplerAll: PolygonSurfaceSampler
 var samplerHorizontal: PolygonSurfaceSampler
@@ -25,9 +26,12 @@ var grass: SurfacePlant
 var rocks: ScatteredRocks
 
 # Navigation
-var nav_source_geometry_data: NavigationMeshSourceGeometryData3D
 var nav_mesh: NavigationMesh
 var nav_region: NavigationRegion3D
+
+# NavigationMeshSourceGeometryData3D
+var own_nav_source_geometry_data: NavigationMeshSourceGeometryData3D
+var combined_nav_source_geometry_data: NavigationMeshSourceGeometryData3D
 
 # Logic to wait for all neighbours to be loaded
 var missing_nav_chunk_neighbours: Array[HexPos] = []
@@ -43,8 +47,10 @@ func _init(chunk_hex_pos_: HexPos) -> void:
 	else:
 		self.name = 'HexChunk-Invalid'
 
+	self.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+
 	# Set position of chunk in world. y = 0 because height is contained in tile positions
-	self.position = Util.toVec3(HexPos.hexpos_to_xy(chunk_hex_pos))
+	self.position = Util.to_vec3(HexPos.hexpos_to_xy(chunk_hex_pos))
 	
 	# On start all are missing
 	missing_nav_chunk_neighbours = self.chunk_hex_pos.get_chunk_navigation_neighbours()
@@ -58,9 +64,9 @@ func _ready() -> void:
 	# Calculate the AABB of the chunk for nav-mesh generation
 	self.chunk_nav_area_aabb_local_coordinates = calculate_chunk_navigation_aabb()
 
-	# Start neighour check timer
+	# Start timer to check for missing neighbours
 	missing_nav_chunk_timer = Timer.new()
-	missing_nav_chunk_timer.set_wait_time(0.5)
+	missing_nav_chunk_timer.set_wait_time(0.5 + randf_range(-0.2, 0.2)) # Rand offset to avoid all chunks starting at the same time
 	missing_nav_chunk_timer.set_one_shot(false)
 	missing_nav_chunk_timer.autostart = true
 	missing_nav_chunk_timer.timeout.connect(_update_missing_nav_chunk_neighbours)
@@ -68,6 +74,7 @@ func _ready() -> void:
 
 
 func _update_missing_nav_chunk_neighbours() -> void:
+	# Fetch all chunks, check if any of them are a missing neighbour for this chunk
 	var all_chunks: Array[Node] = get_tree().get_nodes_in_group(HexConst.NAV_CHUNKS_GROUP_NAME)
 	var all_chunks_poses: Array[HexPos] = []
 	all_chunks_poses.assign(all_chunks.map(func(chunk: Node) -> HexPos: return (chunk as HexChunk).chunk_hex_pos))
@@ -76,23 +83,33 @@ func _update_missing_nav_chunk_neighbours() -> void:
 			return not all_chunks_poses.any(func(p: HexPos) -> bool: return p.equals(hex_pos))
 	)
 
+	# If all neighbours are ready -> parse the source geometry data
 	if missing_nav_chunk_neighbours.is_empty():
 		missing_nav_chunk_timer.queue_free()
 		missing_nav_chunk_timer = null
-		parse_source_geometry_data.call_deferred()
+
+		# _parse_source_geometry_data.call_deferred()
+		_combine_source_geometry_data()
 
 
-func parse_source_geometry_data() -> void:
-	nav_source_geometry_data = NavigationMeshSourceGeometryData3D.new()
+func _combine_source_geometry_data() -> void:
+	self.combined_nav_source_geometry_data = NavigationMeshSourceGeometryData3D.new()
 
-	var parse_settings: NavigationMesh = NavigationMesh.new()
-	parse_settings.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
-	parse_settings.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
-	parse_settings.geometry_source_group_name = HexConst.NAV_CHUNKS_GROUP_NAME
+	# Add own source geometry data
+	self.combined_nav_source_geometry_data.merge(self.own_nav_source_geometry_data)
 
-	# TODO Optimization: Maybe create groups and only include colliders from 6 neighbouring chunks.
-	# Using whole tree works fine for now
-	NavigationServer3D.parse_source_geometry_data(parse_settings, nav_source_geometry_data, self, on_parsing_done)
+	# Add source geometry data from neighbours
+	var neighbours := self.chunk_hex_pos.get_chunk_navigation_neighbours()
+	for neighbour_pos: HexPos in neighbours:
+		var neighbour_chunk: HexChunk = HexChunkMap.get_by_pos(neighbour_pos)
+		assert(neighbour_chunk != null)
+
+		# Get relative position
+		var relative_pos: Vector3 = neighbour_chunk.global_position - self.global_position
+		var other_data := neighbour_chunk.build_nav_mesh_source_geom_data(relative_pos)
+		self.combined_nav_source_geometry_data.merge(other_data)
+
+	self.on_parsing_done()
 
 
 func on_parsing_done() -> void:
@@ -113,19 +130,16 @@ func on_parsing_done() -> void:
 
 	# Keep nav-meshes smaller than the actual geometry by having an artificial border of one cell size
 	nav_mesh.border_size = baking_border + HexConst.NAV_CELL_SIZE
-
+	nav_mesh.region_min_size = 40.0 # The minimum size of a region for it to be created, default = 2
+	nav_mesh.region_merge_size = 100.0 # smaller than this will be merged, default = 20
 	# nav_mesh.detail_sample_distance = 6.0 # default = 6.0
 	# nav_mesh.detail_sample_max_error = 1.0 # default = 1.0
 	# nav_mesh.edge_max_error = 1.3 # default = 1.3
 
-	nav_mesh.region_min_size = 40.0 # The minimum size of a region for it to be created, default = 2
-	nav_mesh.region_merge_size = 100.0 # smaller than this will be merged, default = 20
-
-
-	# Bake the navigation mesh on a thread with the source geometry data.
+	# Bake the navigation mesh on a thread with the combined source geometry data.
 	NavigationServer3D.bake_from_source_geometry_data_async(
 		nav_mesh,
-		nav_source_geometry_data,
+		combined_nav_source_geometry_data,
 		on_baking_done
 	)
 
@@ -208,8 +222,8 @@ func generate() -> void:
 	#########################################
 	# Collision
 	#########################################
-	var polygon_shape := ConcavePolygonShape3D.new()
-	polygon_shape.set_faces(geometry_merger.generate_faces())
+	terrain_collision_shape = ConcavePolygonShape3D.new()
+	terrain_collision_shape.set_faces(geometry_merger.generate_faces())
 
 	# Generate static body
 	terrain_collision = StaticBody3D.new()
@@ -217,14 +231,14 @@ func generate() -> void:
 	if DebugSettings.enable_terrain_collision_visualizations:
 		# Create propper collision shape with visualizations
 		var collision_shape := CollisionShape3D.new()
-		collision_shape.shape = polygon_shape
+		collision_shape.shape = terrain_collision_shape
 		collision_shape.debug_fill = false
 		collision_shape.debug_color = Color(1, 0, 1, 0.5)
 		terrain_collision.add_child(collision_shape)
 	else:
 		# Use physics server / shape owner api
 		var owner_id := terrain_collision.create_shape_owner(self)
-		terrain_collision.shape_owner_add_shape(owner_id, polygon_shape)
+		terrain_collision.shape_owner_add_shape(owner_id, terrain_collision_shape)
 
 	terrain_collision.set_collision_layer_value(Layers.L.TERRAIN, true)
 	add_child(terrain_collision)
@@ -236,16 +250,33 @@ func generate() -> void:
 		# GRASS
 		if DebugSettings.enable_grass:
 			grass = SurfacePlant.new()
-			# grass.name = "Grass"
 			grass.populate_multimesh(samplerHorizontal)
 			add_child(grass)
 
 		# ROCKS
 		if DebugSettings.enable_rocks:
 			rocks = ScatteredRocks.new(samplerHorizontal)
-			# rocks.name = "Rocks"
 			add_child(rocks)
-			
+
+	#########################################
+	# NavigationMeshSourceGeometryData3D
+	#########################################
+	self.own_nav_source_geometry_data = build_nav_mesh_source_geom_data(Vector3.ZERO)
+	
+
+func build_nav_mesh_source_geom_data(offset: Vector3) -> NavigationMeshSourceGeometryData3D:
+	var data := NavigationMeshSourceGeometryData3D.new()
+	var t: Transform3D = Transform3D(Basis.IDENTITY, offset)
+
+	# For now, only add terrain-collider and rocks-collider
+	var faces: PackedVector3Array = terrain_collision_shape.get_faces()
+	if not faces.is_empty():
+		data.add_faces(faces, t)
+	faces = rocks.get_faces()
+	if not faces.is_empty():
+		data.add_faces(faces, t)
+	return data
+
 
 func get_hex_pos_center() -> HexPos:
 	if tiles.is_empty():

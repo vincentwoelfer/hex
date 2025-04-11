@@ -167,12 +167,19 @@ action0={
 , Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"button_index":10,"pressure":0.0,"pressed":false,"script":null)
 ]
 }
-<<<<<<<HEADaction0={
-"deadzone": 0.2,
-"events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":0,"position":Vector2(0, 0),"global_position":Vector2(0, 0),"factor":1.0,"button_index":1,"canceled":false,"pressed":false,"double_click":false,"script":null)
-, Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"button_index":10,"pressure":0.0,"pressed":false,"script":null)
-]
-}
+
+[layer_names]
+
+3d_physics/layer_1="ALL"
+3d_physics/layer_2="TERRAIN"
+3d_physics/layer_3="STATIC_GEOM"
+3d_physics/layer_4="PLAYER_CHARACTERS"
+3d_physics/layer_5="ENEMY_CHARACTERS"
+3d_physics/layer_6="PICKABLE_OBJECTS"
+
+[navigation]
+
+3d/merge_rasterizer_cell_scale=0.001
 
 [physics]
 

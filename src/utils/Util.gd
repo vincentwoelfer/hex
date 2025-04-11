@@ -5,22 +5,22 @@ class_name Util
 # Randomness
 ######################################################
 ## Gives a random offset in a circle with radius r_max
-static func randCircularOffset(r_max: float) -> Vector3:
+static func rand_circular_offset(r_max: float) -> Vector3:
 	var angle := randf_range(0.0, 2.0 * PI)
 	var r := randf_range(0.0, r_max)
-	return vec3FromRadiusAngle(r, angle)
+	return vec3_from_radius_angle(r, angle)
 
 ## Gives a random offset in a circle betwee radius r_min and r_max
-static func randCircularOffsetRange(r_min: float, r_max: float) -> Vector3:
+static func rand_circular_offset_range(r_min: float, r_max: float) -> Vector3:
 	var angle := randf_range(0.0, 2.0 * PI)
 	var r := randf_range(r_min, r_max)
-	return vec3FromRadiusAngle(r, angle)
+	return vec3_from_radius_angle(r, angle)
 
 
-static func randCircularOffsetNormalDist(r_max: float) -> Vector3:
+static func rand_circular_offset_normal_dist(r_max: float) -> Vector3:
 	var angle := randf_range(0.0, 2.0 * PI)
 	var r := clampf(randfn(r_max, 1.0), 0.0, r_max)
-	return vec3FromRadiusAngle(r, angle)
+	return vec3_from_radius_angle(r, angle)
 
 
 ######################################################
@@ -33,51 +33,81 @@ static func as_dir(dir: int) -> int:
 
 # Orientation 0 = 0 = Forward -Z
 static var HEX_ANGLES: Array[float] = [0.0, PI / 3.0, 2.0 * PI / 3.0, PI, 4.0 * PI / 3.0, 5.0 * PI / 3.0, 6.0 * PI / 3.0]
-static func getSixHexAngles() -> Array[float]:
+static func get_six_hex_angles() -> Array[float]:
 	return HEX_ANGLES
 
 ## Returns the angle of a hexagon side in radians
-static func getHexAngle(dir: int) -> float:
+static func get_hex_angle(dir: int) -> float:
 	return HEX_ANGLES[as_dir(dir)]
 
-static func getHexAngleInterpolated(orientation: float) -> float:
+static func get_hex_angle_interpolated(orientation: float) -> float:
 	return PI / 3.0 * orientation
 
 
-static func vec3FromRadiusAngle(r: float, angle: float) -> Vector3:
+static func vec3_from_radius_angle(r: float, angle: float) -> Vector3:
 	return Vector3(r * cos(angle), 0.0, r * sin(angle))
 
 
-static func getAngleToVec3(v: Vector3) -> float:
-	return toVec2(v).angle()
+static func get_angle_to_vec3(v: Vector3) -> float:
+	return to_vec2(v).angle()
 
 
 # Returns difference v1 -> v2
-static func getAngleDiff(v1: Vector3, v2: Vector3) -> float:
-	return toVec2(v1).angle_to(toVec2(v2))
+static func get_angle_diff(v1: Vector3, v2: Vector3) -> float:
+	return to_vec2(v1).angle_to(to_vec2(v2))
 
 
 # True if v1 -> v2 is clockwise
-static func isClockwiseOrder(v1: Vector3, v2: Vector3) -> bool:
-	return getAngleDiff(v1, v2) > 0.0
+static func is_clockwise_order(v1: Vector3, v2: Vector3) -> bool:
+	return get_angle_diff(v1, v2) > 0.0
 
 ## Converts vec3 -> vec2, y is ignored
-static func toVec2(v: Vector3) -> Vector2:
+static func to_vec2(v: Vector3) -> Vector2:
 	return Vector2(v.x, v.z)
 
 
 ## Convert vec2 -> vec3, y is set to 0
-static func toVec3(v: Vector2) -> Vector3:
+static func to_vec3(v: Vector2) -> Vector3:
 	return Vector3(v.x, 0.0, v.y)
+
+
+static func get_dist_planar(a: Vector3, b: Vector3) -> float:
+	return to_vec2(b - a).length()
 
 
 ######################################################
 # Misc
 ######################################################
-# Like clamp but ensures values is between a,b , even if a > b
+# Like clamp but ensures values is between [a,b] , even if a > b
 static func clampf(val: float, a: float, b: float) -> float:
 	return clampf(val, minf(a, b), maxf(a, b))
 
+static func spread_values(a: float, b: float, n: int) -> Array[float]:
+	assert(n >= 0)
+	if n == 0:
+		return []
+	if n == 1 or a == b:
+		return [a]
+
+	# General case
+	var step: float = (b - a) / float(n - 1)
+	var values: Array[float] = []
+	for i: int in range(n):
+		values.append(a + i * step)
+	return values
+
+static func spread_vec3(a: Vector3, b: Vector3, n: int) -> Array[Vector3]:
+	assert(n >= 0)
+	if n == 0:
+		return []
+	if n == 1 or a == b:
+		return [a]
+
+	var step: Vector3 = (b - a) / float(n - 1)
+	var values: Array[Vector3] = []
+	for i: int in range(n):
+		values.append(a + step * float(i))
+	return values
 
 ######################################################
 # Timing & Waiting
@@ -85,6 +115,17 @@ static func clampf(val: float, a: float, b: float) -> float:
 static func wait_until(node: Node3D, condition: Callable) -> void:
 	while not condition.call():
 		await node.get_tree().physics_frame
+
+
+static func delete_after(time: float, node: Node3D) -> void:
+	if node == null:
+		return
+	var timer := Timer.new()
+	timer.wait_time = time
+	timer.one_shot = true
+	timer.autostart = true
+	timer.timeout.connect(func() -> void: node.queue_free())
+	node.add_child(timer)
 
 ######################################################
 # Camera access
@@ -111,70 +152,15 @@ static func get_global_cam_pos(reference_node: Node) -> Vector3:
 
 
 ######################################################
-# Printing / Logging
-######################################################
-const BANNER_WIDTH: int = 64
-const BANNER_CHAR: String = "="
-
-static func print_only_banner() -> void:
-	print(BANNER_CHAR.repeat(BANNER_WIDTH))
-
-static func print_banner(string: String) -> void:
-	# Souround string with spaces
-	string = " " + string + " "
-
-	print(center_text(string, BANNER_WIDTH, BANNER_CHAR))
-
-static func print_multiline_banner(string: String) -> void:
-	# Souround string with spaces
-	string = " " + string + " "
-
-	var banner_line: String = BANNER_CHAR.repeat(BANNER_WIDTH)
-	print(banner_line, "\n", center_text(string, BANNER_WIDTH, BANNER_CHAR), "\n", banner_line)
-
-static func center_text(text: String, width: int, filler: String) -> String:
-	var pad_size_total: int = max(0, (width - text.length()))
-
-	var pad_size_left: int
-	var pad_size_right: int
-	if pad_size_total % 2 == 0:
-		var pad_size: int = int(pad_size_total / 2.0)
-		pad_size_left = pad_size
-		pad_size_right = pad_size
-	else:
-		pad_size_left = floori(pad_size_total / 2.0)
-		pad_size_right = pad_size_left + 1
-
-	return filler.repeat(pad_size_left) + text + filler.repeat(pad_size_right)
-
-######################################################
 # 3D Vector Math
 ######################################################
-static func transformFromPointAndNormal(point: Vector3, normal: Vector3) -> Transform3D:
+static func transform_from_point_and_normal(point: Vector3, normal: Vector3) -> Transform3D:
 	var transform := Transform3D()
 	transform.origin = point
 	transform.basis.y = normal
 	transform.basis.x = - transform.basis.z.cross(normal)
 	transform.basis = transform.basis.orthonormalized()
 	return transform
-
-
-######################################################
-# Mesh manipulation / merging
-######################################################
-static func create_mesh_from_triangles(triangles: Array[Triangle]) -> Mesh:
-	var st: SurfaceTool = SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	st.set_normal(Vector3.UP)
-
-	for tri in triangles:
-		tri.addToSurfaceTool(st)
-
-	# Removes duplicates and actually create mesh
-	st.index()
-	st.optimize_indices_for_cache()
-	st.generate_normals()
-	return st.commit()
 
 
 ######################################################
@@ -230,33 +216,33 @@ static func lerp_towards_vec3(curr: Vector3, goal: Vector3, speed: float, delta:
 
 # smooth_strength = 0 = Perfect Hexagon
 # smooth_strength = 1 = Perfect Circle
-static func getHexRadius(r: float, angle: float, smooth_strength: float = 0.0) -> float:
+static func get_hex_radius(r: float, angle: float, smooth_strength: float = 0.0) -> float:
 	# Limit to range [0, 60]deg aka one hex segment
 	angle = fmod(angle, PI / 3.0)
 	var r_hex: float = sqrt(3) * r / (sqrt(3) * cos(angle) + sin(angle))
 	return lerp(r_hex, r, smooth_strength)
 
 
-static func getHexVertex(r: float, angle: float, smooth_strength: float = 0.0) -> Vector3:
-	return vec3FromRadiusAngle(getHexRadius(r, angle, smooth_strength), angle)
+static func get_hex_vertex(r: float, angle: float, smooth_strength: float = 0.0) -> Vector3:
+	return vec3_from_radius_angle(get_hex_radius(r, angle, smooth_strength), angle)
 
 
 ######################################################
 # Array stuff
 ######################################################
-static func isPointOnEdge(point: Vector2, p1: Vector2, p2: Vector2) -> bool:
+static func is_point_on_edge(point: Vector2, p1: Vector2, p2: Vector2) -> bool:
 	# Check if point lies on the line segment (p1, p2)
 	if is_equal_approx(point.distance_to(p1) + point.distance_to(p2), p1.distance_to(p2)):
 		return true
 	return false
 
 
-static func isPointOutsidePolygon(point: Vector2, polygon: PackedVector2Array) -> bool:
+static func is_point_outside_polygon(point: Vector2, polygon: PackedVector2Array) -> bool:
 	# First, check if the point lies on any of the polygon's edges
 	for i in range(polygon.size()):
 		var p1 := polygon[i]
 		var p2 := polygon[(i + 1) % polygon.size()]
-		if isPointOnEdge(point, p1, p2):
+		if is_point_on_edge(point, p1, p2):
 			return false # The point is on the polygon outline -> counts as inside
 
 	# Ray-casting method for point containment
@@ -276,11 +262,11 @@ static func isPointOutsidePolygon(point: Vector2, polygon: PackedVector2Array) -
 	return num_intersections % 2 == 0
 
 
-static func isTriangleOutsideOfPolygon(tri: Array[Vector3], polygon: PackedVector2Array) -> bool:
+static func is_triangle_outside_of_polygon(tri: Array[Vector3], polygon: PackedVector2Array) -> bool:
 	# Check if any of the three midpoints is outside of the polygon
 	var midpoints: Array[Vector3] = [(tri[0] + tri[1]) / 2.0, (tri[0] + tri[2]) / 2.0, (tri[1] + tri[2]) / 2.0]
 	for m in midpoints:
-		if Util.isPointOutsidePolygon(Util.toVec2(m), polygon):
+		if Util.is_point_outside_polygon(Util.to_vec2(m), polygon):
 			return true
 	return false
 
@@ -294,38 +280,36 @@ static func get_scene_root() -> Node3D:
 	else:
 		return (Engine.get_main_loop() as SceneTree).current_scene
 
-
 static func get_world() -> World3D:
 	return get_scene_root().get_world_3d()
 
+static func get_space_state() -> PhysicsDirectSpaceState3D:
+	return get_world().direct_space_state
 
 ## Vectors in world space
 static func raycast(from: Vector3, to: Vector3, mask: int = Layers.L.ALL) -> bool:
-	var space_state: PhysicsDirectSpaceState3D = get_world().direct_space_state
 	var query := PhysicsRayQueryParameters3D.create(from, to, mask)
 	query.hit_from_inside = true
-	var hit := not space_state.intersect_ray(query).is_empty()
+	var hit := not get_space_state().intersect_ray(query).is_empty()
 
 	# Debug shape
 	# var color := Color(1, 0, 0) if hit else Color(0, 0, 1)
-	# DebugShapes3D.spawn_mesh(Vector3.ZERO, DebugShapes3D.line_mesh(from, to, DebugShapes3D.material(color, true)), Util.get_scene_root())
+	# DebugVis3D.spawn_mesh(Vector3.ZERO, DebugVis3D.line_mesh(from, to, DebugVis3D.material(color, true)), Util.get_scene_root())
 
 	return hit
 
 
 ## Perform a point collision test at the given position (in world space)
 static func collision_point_test(pos: Vector3, mask: int = Layers.L.ALL) -> bool:
-	var space_state: PhysicsDirectSpaceState3D = get_world().direct_space_state
-
 	var query := PhysicsPointQueryParameters3D.new()
 	query.collide_with_areas = false
 	query.collide_with_bodies = true
 	query.position = pos
 	query.collision_mask = mask
-	var hit := not (space_state.intersect_point(query, 1).is_empty())
+	var hit := not (get_space_state().intersect_point(query, 1).is_empty())
 
 	# Debug shape
 	# var color := Color(1, 0, 0) if hit else Color(0, 0, 1)
-	# DebugShapes3D.spawn_mesh(pos, DebugShapes3D.sphere_mesh(0.15, DebugShapes3D.material(color, true)), Util.get_scene_root())
+	# DebugVis3D.spawn_mesh(pos, DebugVis3D.sphere_mesh(0.15, DebugVis3D.material(color, true)), Util.get_scene_root())
 
 	return hit

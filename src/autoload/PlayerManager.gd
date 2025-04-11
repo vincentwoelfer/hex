@@ -136,4 +136,4 @@ func despawn_player(player: PlayerData) -> void:
 
 func _find_spawn_pos_xz_near_team(exclude_id: int) -> Vector3:
 	var reference_pos: Vector3 = GameStateManager.caravan.global_position
-	return reference_pos + Util.randCircularOffsetRange(3.0, 3.0)
+	return reference_pos + Util.rand_circular_offset_range(3.0, 3.0)

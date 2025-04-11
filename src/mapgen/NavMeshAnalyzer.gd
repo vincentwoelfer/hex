@@ -70,7 +70,7 @@ func analyze() -> void:
 		var has_external_edge := _has_external_edge(cluster_vertex_indices)
 
 		var collision_pos := vertices[cluster_vertex_indices[0]] + self.world_pos
-		var is_inside_geometry := Util.collision_point_test(collision_pos + Vector3(0, 0.3, 0), Layers.mask([Layers.L.TERRAIN, Layers.L.STATIC_GEOM]))
+		var is_inside_geometry := Util.collision_point_test(collision_pos + Vector3(0, 0.3, 0), Layers.TERRAIN_AND_STATIC)
 		var is_on_terrain := _is_on_terrain(cluster_vertex_indices)
 
 		clusters.append(Cluster.new(cluster_polygon_indices, cluster_vertex_indices, has_external_edge, is_inside_geometry, is_on_terrain))
