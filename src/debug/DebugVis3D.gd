@@ -104,21 +104,8 @@ static func aabb_mesh(aabb: AABB, color: Color) -> BoxMesh:
 
 
 ######################################################
-# Helper method to spawn
-######################################################
-static func _add_child(instance: Node3D, parent: Node3D = null) -> void:
-	if parent != null:
-		parent.add_child(instance)
-	else:
-		Util.get_scene_root().add_child(instance)
-	instance.reset_physics_interpolation()
-
-	
-######################################################
 # Spawning
 ######################################################
-
-## Helper method to spawn a mesh instance at a given position, not interactible afterwards
 static func spawn(pos: Vector3, mesh: Mesh, parent: Node3D = null) -> Node3D:
 	var instance := MeshInstance3D.new()
 	instance.mesh = mesh
@@ -135,3 +122,33 @@ static func spawn_aabb(aabb: AABB, color: Color, parent: Node3D = null) -> Node3
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_add_child(instance, parent)
 	return instance
+
+# Helper method to spawn
+static func _add_child(instance: Node3D, parent: Node3D = null) -> void:
+	if parent != null:
+		parent.add_child(instance)
+	else:
+		Util.get_scene_root().add_child(instance)
+	instance.reset_physics_interpolation()
+
+######################################################
+# Visualize Shape Query
+######################################################
+static func visualize_shape_query(query: PhysicsShapeQueryParameters3D, color: Color, delete_after: float = 0.0) -> void:
+	# Construct a mesh + material from the shape query
+	var mesh: Mesh = (query.shape as Shape3D).get_debug_mesh()
+	mesh.surface_set_material(0, mat(color, false, false))
+
+	var motion_length: float = query.motion.length()
+	var sample_step_length: float = max(mesh.get_aabb().size.x, mesh.get_aabb().size.z)
+	var sample_count: int = ceili(motion_length / sample_step_length)
+
+	# Sample along motion. If motion is 0, this is executed exactly once
+	var base_pos := query.transform.origin
+	var step: Vector3 = query.motion / sample_count
+	for i in range(sample_count):
+		var pos: Vector3 = base_pos + step * i
+		var instance: Node3D = spawn(pos, mesh)
+
+		if delete_after > 0.0:
+			Util.delete_after(delete_after, instance)

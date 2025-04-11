@@ -1,7 +1,7 @@
 class_name Caravan
 extends CharacterBody3D
 
-var speed: float = 2.25
+var speed: float = 10.25
 
 # Global Path params
 var min_goal_distance: float = 30.0
@@ -40,6 +40,7 @@ func _ready() -> void:
 
 
 func spawn_crystal() -> void:
+	return
 	var crystal: Node3D = ResLoader.CRYSTAL_SCENE.instantiate()
 
 	var spawn_pos: Vector3 = self.global_position + Util.rand_circular_offset_range(1.5, 2.5) + Vector3(0, 2.0, 0)
@@ -51,6 +52,13 @@ func spawn_crystal() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if GameStateManager.cam_follow_point_manager.get_active_cam_follow_nodes().size() == 1:
+		# Alone -> fast
+		speed = 15.0
+	else:
+		speed = 1.5
+
+
 	if path_finding_agent.is_navigation_done() or not has_goal:
 		choose_new_goal()
 		move_and_slide()
@@ -117,7 +125,6 @@ func choose_new_goal() -> void:
 
 	# Match to nav-mesh -> optimize -> match again
 	goal_pos = NavigationServer3D.map_get_closest_point(nav_map, goal_pos)
-	Util.delete_after(5.0, DebugVis3D.spawn(goal_pos + Vector3(0, 0.5, 0), DebugVis3D.sphere(0.15, DebugVis3D.mat(Color.BLUE, true))))
 	goal_pos = _find_free_position_near(goal_pos)
 	current_goal = NavigationServer3D.map_get_closest_point(nav_map, goal_pos)
 
@@ -137,6 +144,8 @@ func choose_new_goal() -> void:
 func _find_free_position_near(origin: Vector3) -> Vector3:
 	var max_search_radius: float = 4.0
 	var search_step: float = 2.0
+
+	# Util.delete_after(5.0, DebugVis3D.spawn(origin + Vector3(0, 0.5, 0), DebugVis3D.sphere(0.15, DebugVis3D.mat(Color.BLUE, true))))
 
 	if _is_area_free(origin):
 		return origin
@@ -169,12 +178,12 @@ func _is_area_free(pos: Vector3) -> bool:
 	var result := get_world_3d().direct_space_state.intersect_shape(query, 1)
 	var is_free := result.size() == 0
 
-	var sp_green := DebugVis3D.cylinder(check_radius, check_height, DebugVis3D.mat(Color(Color.GREEN, 0.5), false))
-	var sp_red := DebugVis3D.cylinder(check_radius, check_height, DebugVis3D.mat(Color(Color.RED, 0.5), false))
+	# var sp_green := DebugVis3D.cylinder(check_radius, check_height, DebugVis3D.mat(Color(Color.GREEN, 0.5), false))
+	# var sp_red := DebugVis3D.cylinder(check_radius, check_height, DebugVis3D.mat(Color(Color.RED, 0.5), false))
 
-	if is_free:
-		Util.delete_after(5.0, DebugVis3D.spawn(pos + check_height_offset * 2.0, sp_green))
-	else:
-		Util.delete_after(5.0, DebugVis3D.spawn(pos + check_height_offset, sp_red))
+	# if is_free:
+	# 	Util.delete_after(5.0, DebugVis3D.spawn(pos + check_height_offset * 2.0, sp_green))
+	# else:
+	# 	Util.delete_after(5.0, DebugVis3D.spawn(pos + check_height_offset, sp_red))
 
 	return is_free

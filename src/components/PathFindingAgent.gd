@@ -2,6 +2,7 @@ class_name PathFindingAgent
 extends Node3D
 
 # Visualization
+var color: Color
 var visual_path_raw: DebugPathInstance
 var visual_path: DebugPathInstance
 var update_visual_path_start: bool = false
@@ -51,7 +52,8 @@ var radius: float
 # https://docs.godotengine.org/en/4.0/tutorials/navigation/navigation_different_actor_types.html
 
 
-func init(color: Color, sweeping_shape_reference: Shape3D) -> void:
+func init(color_: Color, sweeping_shape_reference: Shape3D) -> void:
+	self.color = color_
 	self.sweeping_shape = sweeping_shape_reference.duplicate(false)
 
 	# Make shape smaller - depends on type
@@ -83,7 +85,7 @@ func init(color: Color, sweeping_shape_reference: Shape3D) -> void:
 	else:
 		push_error("Unsupported shape type")
 
-	self.shape_cast_height_offset = Vector3(0, original_height / 2.0, 0)
+	self.shape_cast_height_offset = Vector3.UP * original_height / 2.0
 
 	const width := 0.06
 	visual_path = DebugPathInstance.new(color, width)
@@ -297,7 +299,19 @@ func can_connect_points(curr: Vector3, next: Vector3) -> bool:
 	query.collision_mask = Layers.TERRAIN_AND_STATIC
 
 	var result: PackedFloat32Array = get_world_3d().direct_space_state.cast_motion(query)
-	if result[0] < 1.0:
+	var does_collide := result[0] < 1.0
+
+	# Debug visualization - only for caravan
+	if self.radius >= 0.6:
+		var c := color
+		if does_collide:
+			c = c.lerp(Color.RED, 0.5)
+		else:
+			c = c.lerp(Color.GREEN, 0.5)
+		c = Colors.set_alpha(c, 0.9)
+		DebugVis3D.visualize_shape_query(query, c, 1.0)
+
+	if does_collide:
 		return false
 
 	# Everything is fine -> can connect
