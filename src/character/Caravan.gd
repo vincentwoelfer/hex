@@ -37,7 +37,7 @@ func _ready() -> void:
 	crystal_timer.wait_time = 1.5
 	crystal_timer.autostart = true
 	crystal_timer.timeout.connect(spawn_crystal)
-	add_child(crystal_timer)
+	# add_child(crystal_timer)
 
 
 func spawn_crystal() -> void:
