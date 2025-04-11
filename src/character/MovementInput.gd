@@ -27,7 +27,7 @@ func _init(device_id_: int) -> void:
 
 	jump_input = BufferedInputAction.new(device_id, "jump", 0.125)
 	dash_input = BufferedInputAction.new(device_id, "dash", 0.08)
-	primary_input = BufferedInputAction.new(device_id, "action0", 0.08)
+	primary_input = BufferedInputAction.new(device_id, "primary_input", 0.08)
 
 func handle_input_event(event: InputEvent) -> void:
 	pass
