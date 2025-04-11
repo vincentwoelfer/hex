@@ -10,7 +10,7 @@ var speed: float = 2.5
 var target: Node3D = null
 var target_reached_dist: float
 
-var replan_timer: Timer
+var goal_choosing_timer: Timer
 
 func _ready() -> void:
 	path_finding_agent.init(Color.RED, collision.shape)
@@ -21,29 +21,28 @@ func _ready() -> void:
 	# Set initial goal
 	choose_new_goal()
 
-	# This is for choosing a new goal, replanning to same goal happens periodically inside path_finding_agent
-	replan_timer = Timer.new()
-	replan_timer.wait_time = 0.75
-	replan_timer.autostart = true
-	replan_timer.timeout.connect(choose_new_goal)
-	add_child(replan_timer)
+	# This is for choosing a new goal, replanning the already found path to same goal happens periodically inside path_finding_agent
+	goal_choosing_timer = Timer.new()
+	goal_choosing_timer.wait_time = 0.75
+	goal_choosing_timer.autostart = true
+	goal_choosing_timer.timeout.connect(choose_new_goal)
+	add_child(goal_choosing_timer)
 
 
 func _physics_process(delta: float) -> void:
+	var movement: Vector3
 	if target == null or path_finding_agent.is_navigation_done():
-		velocity = Vector3.ZERO
-		move_and_slide()
-		return
+		movement = Vector3.ZERO
+	else:
+		# Move, Dont touch y to not mess with gravity
+		movement = path_finding_agent.get_direction() * speed
+		velocity.x = movement.x
+		velocity.z = movement.z
 
 	# Reached target - custom larger radius to enable "explosion" later on
-	if global_position.distance_to(target.global_position) <= target_reached_dist:
+	if target != null and Util.get_dist_planar(global_position, target.global_position) <= target_reached_dist:
 		queue_free()
 		return
-
-	# Move, Dont touch y to not mess with gravity
-	var movement := path_finding_agent.get_direction() * speed
-	velocity.x = movement.x
-	velocity.z = movement.z
 
 	# Apply gravity
 	if not is_on_floor():
@@ -76,6 +75,12 @@ func choose_new_goal() -> void:
 		if distance < min_distance:
 			min_distance = distance
 			closest_goal_idx = i
+
+	# Just delete itself if too far away from all goals
+	if closest_goal_idx == -1 or min_distance > 120.0:
+		print("BasicEnemy: No valid & near goal found, deleting self. Distance: ", min_distance)
+		queue_free()
+		return
 
 	target = possible_goals[closest_goal_idx]
 	path_finding_agent.set_track_target(target)

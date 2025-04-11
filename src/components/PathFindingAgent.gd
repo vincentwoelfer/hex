@@ -40,6 +40,10 @@ var sweeping_shape: Shape3D
 var shape_cast_height_offset: Vector3
 var radius: float
 
+# Path follow parameters
+var waypoint_reached_distance: float = 0.25
+var goal_reached_distance: float = 0.5
+
 # TODO
 # Mix these two. Write own agent class using NavServer API directly.
 # https://docs.godotengine.org/en/4.0/tutorials/navigation/navigation_using_navigationagents.html#actor-as-characterbody3d
@@ -131,7 +135,7 @@ func get_target() -> Vector3:
 	return target
 
 func get_direction() -> Vector3:
-	if not has_path or path.size() <= 1:
+	if not has_path or navigation_done:
 		return Vector3.ZERO
 
 	# We try to reach index 1, 0 is current position (in visualization)
@@ -182,18 +186,14 @@ func _check_for_replan() -> void:
 func _update_path_progress() -> void:
 	# We try to reach index 1, 0 is current position (in visualization)
 	if path.size() <= 1:
-		# Goal reached
-		navigation_done = true
-		has_path = false
-		path_raw.clear()
-		path.clear()
-		has_target = false
-		self.is_tracking_target = false
-		self.tracking_target = null
 		return
 
-	var dist_next_waypoint: float = path[1].distance_to(global_position)
-	if dist_next_waypoint <= radius * 0.5:
+	# Check if next waypoint already is the final goal
+	var is_next_goal: bool = path.size() == 2
+	var reached_dist: float = goal_reached_distance if is_next_goal else waypoint_reached_distance
+	var dist_to_next_waypoint: float = Util.get_dist_planar(global_position, path[1])
+
+	if dist_to_next_waypoint <= reached_dist:
 		# We reached the next waypoint, remove it from the path
 		path.remove_at(1)
 
@@ -202,10 +202,18 @@ func _update_path_progress() -> void:
 		if DebugSettings.show_raw_debug_path and path_raw.size() > 1:
 			path_raw.remove_at(1)
 
-		# Since path simplification only looks one ahead, simplify again
-		self.path = simplify_path_from_begining(path)
+		if is_next_goal:
+			# Goal reached
+			navigation_done = true
+			has_path = false
+			path_raw.clear()
+			path.clear()
+			has_target = false
+			self.is_tracking_target = false
+			self.tracking_target = null
+			return
 
-
+		
 func _process(delta: float) -> void:
 	# Update visual path
 	visual_path.update_path(path, global_position)
@@ -254,35 +262,39 @@ func _plan_new_path() -> void:
 	has_path = true
 	last_target_replan_pos = target
 	last_target_replan_time = Time.get_unix_time_from_system()
-	path = simplify_path_from_begining(path_raw)
+	path = simplify_path(path_raw)
 
 
-func simplify_path_from_begining(p: PackedVector3Array) -> PackedVector3Array:
+func simplify_path(p: PackedVector3Array) -> PackedVector3Array:
 	# Nothing to simplify if p has less than 3 points
 	if p.size() < 3:
 		return p
 
-	var simplified_p: PackedVector3Array = [p[0]]
-	var furthest_connectable_point: int = 1
+	# Check if we can reach the end directly        
+	var simplified_p := PackedVector3Array()
+	var current_index := 0
+	simplified_p.append(p[current_index])
+	
+	# Iterate over p, try to connect current_index (from p start) with next_index, (from p end, moving backwards)
+	while current_index < p.size() - 1:
+		var next_index := p.size() - 1 # Try to jump directly to the end
 
-	# Attempt to skip intermediate points starting from the beginning
-	for i: int in range(1, p.size()):
-		if can_connect_points(p[0], p[i], false):
-			furthest_connectable_point = i
-		else:
-			break
+		# Check if we can reach the furthest point directly
+		while next_index > current_index + 1:
+			# Check if we can connect current_index with next_index
+			if can_connect_points(p[current_index], p[next_index]):
+				break
+			else:
+				next_index -= 1
 
-	# Visualize
-	can_connect_points(p[0], p[furthest_connectable_point], true)
-
-	# Add the first reachable point and the remaining path
-	for i: int in range(furthest_connectable_point, p.size()):
-		simplified_p.append(p[i])
-
+		# Move to the next reachable point
+		current_index = next_index
+		simplified_p.append(p[current_index])
 	return simplified_p
 
 
-func can_connect_points(curr: Vector3, next: Vector3, visualize: bool = false) -> bool:
+func can_connect_points(curr: Vector3, next: Vector3) -> bool:
+	var visualize: bool = false
 	# Only connect if
 	# - path is clear
 	# - distance is short enough
@@ -306,7 +318,7 @@ func can_connect_points(curr: Vector3, next: Vector3, visualize: bool = false) -
 	# Check if path sweep is clear
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.set_shape(sweeping_shape)
-	query.transform = Transform3D(Basis(), curr + self.shape_cast_height_offset)
+	query.transform = Transform3D(Basis.IDENTITY, curr + self.shape_cast_height_offset)
 	query.motion = next - curr
 	query.collide_with_bodies = true
 	query.collide_with_areas = false
@@ -323,10 +335,9 @@ func can_connect_points(curr: Vector3, next: Vector3, visualize: bool = false) -
 	# Debug visualization - only for caravan
 	if visualize:
 		if self.radius >= 0.6:
-			# var c := Colors.set_alpha(color.lerp(Color.RED if does_collide else Color.GREEN, 0.5), 0.9)
 			var col_free := Colors.set_alpha(color.lerp(Color.GREEN, 0.5), 0.9)
 			var col_hit := Colors.set_alpha(color.lerp(Color.RED, 0.5), 0.9)
-			DebugVis3D.visualize_shape_query_with_hit(query, t, col_free, col_hit, 1.0)
+			DebugVis3D.visualize_shape_query_with_hit(query, t, col_free, col_hit, 25.0)
 
 	if does_collide:
 		return false

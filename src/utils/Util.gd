@@ -71,6 +71,10 @@ static func to_vec3(v: Vector2) -> Vector3:
 	return Vector3(v.x, 0.0, v.y)
 
 
+static func get_dist_planar(a: Vector3, b: Vector3) -> float:
+	return to_vec2(b - a).length()
+
+
 ######################################################
 # Misc
 ######################################################
@@ -79,30 +83,30 @@ static func clampf(val: float, a: float, b: float) -> float:
 	return clampf(val, minf(a, b), maxf(a, b))
 
 static func spread_values(a: float, b: float, n: int) -> Array[float]:
+	assert(n >= 0)
 	if n == 0:
 		return []
 	if n == 1 or a == b:
 		return [a]
+
 	# General case
-	var values: Array[float] = []
 	var step: float = (b - a) / float(n - 1)
-	for i in n:
+	var values: Array[float] = []
+	for i: int in range(n):
 		values.append(a + i * step)
 	return values
 
 static func spread_vec3(a: Vector3, b: Vector3, n: int) -> Array[Vector3]:
+	assert(n >= 0)
 	if n == 0:
 		return []
 	if n == 1 or a == b:
 		return [a]
 
-	# General case
-	var t_values := spread_values(0.0, 1.0, n)
-	var step := (b - a) / (t_values.size() - 1)
-
+	var step: Vector3 = (b - a) / float(n - 1)
 	var values: Array[Vector3] = []
-	for t in t_values:
-		values.append(a + step * t)
+	for i: int in range(n):
+		values.append(a + step * float(i))
 	return values
 
 ######################################################

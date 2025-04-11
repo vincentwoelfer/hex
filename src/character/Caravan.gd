@@ -37,11 +37,10 @@ func _ready() -> void:
 	crystal_timer.wait_time = 0.75
 	crystal_timer.autostart = true
 	crystal_timer.timeout.connect(spawn_crystal)
-	add_child(crystal_timer)
+	# add_child(crystal_timer)
 
 
 func spawn_crystal() -> void:
-	return
 	var crystal: Node3D = ResLoader.CRYSTAL_SCENE.instantiate()
 
 	var spawn_pos: Vector3 = self.global_position + Util.rand_circular_offset_range(1.5, 2.5) + Vector3(0, 2.0, 0)
@@ -59,14 +58,13 @@ func _physics_process(delta: float) -> void:
 	else:
 		speed = 1.5
 
-
+	var movement: Vector3
 	if path_finding_agent.is_navigation_done() or not has_goal:
-		choose_new_goal()
-		move_and_slide()
-		return
+		if not choose_new_goal():
+			print("Unable to find new caravan goal!")
 
 	# Move, Dont touch y to not mess with gravity
-	var movement := path_finding_agent.get_direction() * speed
+	movement = path_finding_agent.get_direction() * speed
 	velocity.x = movement.x
 	velocity.z = movement.z
 
@@ -78,9 +76,9 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 	# TODO: Not perfect, but works for now
-	if push_characters():
-		self.velocity = self.velocity_no_collision
-		move_and_slide()
+	push_characters()
+		# self.velocity = self.velocity_no_collision
+		# move_and_slide()
 
 func push_characters() -> bool:
 	var pushed_any_character: bool = false
@@ -104,21 +102,21 @@ func _push_character(target: CharacterBody3D, collision_normal: Vector3) -> void
 	push_direction.y = 0.0
 	push_direction = push_direction.normalized()
 
-	var push_velocity: Vector3 = self.speed * 1.3 * push_direction
+	var push_velocity: Vector3 = self.velocity_no_collision.length() * 1.3 * push_direction
 
 	# Remove component of targets velocity in the direction of the push
 	var target_velocity_along_push: Vector3 = push_direction * target.velocity.dot(push_direction)
 
 	# Apply the push and remove any velocity going against that push
 	target.velocity = target.velocity - target_velocity_along_push + push_velocity
-	target.move_and_slide()
+	# target.move_and_slide()
 
 
-func choose_new_goal() -> void:
+func choose_new_goal() -> bool:
 	var nav_map: RID = get_world_3d().navigation_map
 	if NavigationServer3D.map_get_iteration_id(nav_map) == 0:
 		has_goal = false
-		return
+		return false
 
 	var r := randf_range(min_goal_distance, max_goal_distance)
 	var angle := randf_range(path_dir_mean - path_dir_rand_deviation, path_dir_mean + path_dir_rand_deviation)
@@ -132,12 +130,13 @@ func choose_new_goal() -> void:
 	# Validate the goal
 	if current_goal == Vector3.ZERO:
 		has_goal = false
-		return
+		return false
 
 	# Set the new goal for navigation
 	path_finding_agent.set_target(current_goal)
 	print("Caravan has new goal : ", current_goal)
 	has_goal = true
+	return true
 
 
 # TODO move somewhere else

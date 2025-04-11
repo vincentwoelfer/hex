@@ -140,11 +140,9 @@ static func visualize_shape_query(query: PhysicsShapeQueryParameters3D, color: C
 	mesh.surface_set_material(0, mat(color, false, false))
 
 	# Determine how many steps to take along the motion
-	var sample_points: Array[Vector3] = [query.transform.origin]
-	if query.motion.length() > 0.0:
-		var step_distance: float = max(mesh.get_aabb().size.x, mesh.get_aabb().size.z) * 0.75
-		var num_steps: int = clamp(roundi(query.motion.length() / step_distance), 2, 30)
-		sample_points = Util.spread_vec3(query.transform.origin, query.transform.origin + query.motion, num_steps)
+	var step_distance: float = max(mesh.get_aabb().size.x, mesh.get_aabb().size.z) * 0.75
+	var num_steps: int = clamp(ceili(query.motion.length() / step_distance), 1, 25)
+	var sample_points := Util.spread_vec3(query.transform.origin, query.transform.origin + query.motion, num_steps)
 
 	# Spawn
 	for v in sample_points:
@@ -155,9 +153,7 @@ static func visualize_shape_query(query: PhysicsShapeQueryParameters3D, color: C
 
 static func visualize_shape_query_with_hit(query: PhysicsShapeQueryParameters3D, t: float, color_free: Color, color_hit: Color, delete_after: float = 0.0) -> void:
 	# Check if query has no motion or is completely hit or miss
-	print("Query has motion-length: %f \t t=%f" % [query.motion.length(), t])
 	if query.motion.length() == 0.0 or is_equal_approx(t, 0.0) or is_equal_approx(t, 1.0):
-		
 		visualize_shape_query(query, color_hit if t < 0.5 else color_free, delete_after)
 		return
 
