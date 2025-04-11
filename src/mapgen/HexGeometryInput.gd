@@ -50,8 +50,8 @@ func generate_basic(neighbours_height: Array[int]) -> void:
 
 	# Corner vertices
 	for dir in range(6):
-		var angle := Util.getHexAngle(dir)
-		var vec: Vector3 = Util.getHexVertex(HexConst.outer_radius, angle) # X/Z
+		var angle := Util.get_hex_angle(dir)
+		var vec: Vector3 = Util.get_hex_vertex(HexConst.outer_radius, angle) # X/Z
 		var both_neighbours: Array[int] = [neighbours_height[Util.as_dir(dir - 1)], neighbours_height[dir]]
 		vec.y = determine_corner_vertex_height(height, both_neighbours)
 		corner_vertices[dir] = vec
@@ -210,7 +210,7 @@ func create_debug_visualization(parent: Node3D) -> void:
 	for i in range(6):
 		var instance := MeshInstance3D.new()
 		var color := Colors.get_distinct_hex_color(i).darkened(0.5)
-		instance.mesh = DebugShapes3D.sphere_mesh(0.15 - i * 0.005, DebugShapes3D.material(color))
+		instance.mesh = DebugVis3D.sphere(0.15 - i * 0.005, DebugVis3D.mat(color))
 		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		instance.position = corner_vertices[i]
 		parent.add_child(instance)
@@ -219,7 +219,7 @@ func create_debug_visualization(parent: Node3D) -> void:
 	for i in range(6):
 		var instance := MeshInstance3D.new()
 		var color := Colors.get_distinct_hex_color(i).lightened(0.3)
-		instance.mesh = DebugShapes3D.sphere_mesh(0.15 - i * 0.005, DebugShapes3D.material(color))
+		instance.mesh = DebugVis3D.sphere(0.15 - i * 0.005, DebugVis3D.mat(color))
 		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var pos: Vector3 = corner_vertices_smoothing[i]
 		var inwards_factor := HexConst.inner_radius / HexConst.outer_radius
@@ -235,7 +235,7 @@ func create_debug_visualization(parent: Node3D) -> void:
 
 	# 	var instance := MeshInstance3D.new()
 	# 	var color := Colors.getDistincHexColor(i).lightened(0.3)
-	# 	instance.mesh = DebugShapes3D.create_sphere(0.15 - i * 0.01, DebugShapes3D.create_mat(color))
+	# 	instance.mesh = DebugVis3D.create_sphere(0.15 - i * 0.01, DebugVis3D.create_mat(color))
 	# 	var pos: Vector3 = corner_vertices_smoothing[i]
 	# 	var inwards_factor := HexConst.inner_radius / HexConst.outer_radius
 	# 	pos.x *= inwards_factor

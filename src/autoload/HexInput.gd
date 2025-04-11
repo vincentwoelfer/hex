@@ -280,12 +280,12 @@ func is_cam_action(action_name: StringName) -> bool:
 # 	var sorted_hotkeys: Array[String] = actions_dict.values()
 # 	sorted_hotkeys.sort_custom(func(a: String, b: String) -> bool: return a < b)
 
-# 	Util.print_banner("Key Bindings")
+# 	HexLog.print_banner("Key Bindings")
 # 	for hotkey: String in sorted_hotkeys:
 # 		var action := get_key_by_value(actions_dict, hotkey)
 # 		var padding: String = " ".repeat(max_action_length - action.length())
 # 		print("- %s:%s    %s" % [action, padding, actions_dict[action]])
-# 	Util.print_only_banner()
+# 	HexLog.print_only_banner()
 
 
 # func get_key_by_value(dict: Dictionary[String, String], value: String) -> String:

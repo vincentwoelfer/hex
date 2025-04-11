@@ -50,7 +50,7 @@ func _init(chunk_hex_pos_: HexPos) -> void:
 	self.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 
 	# Set position of chunk in world. y = 0 because height is contained in tile positions
-	self.position = Util.toVec3(HexPos.hexpos_to_xy(chunk_hex_pos))
+	self.position = Util.to_vec3(HexPos.hexpos_to_xy(chunk_hex_pos))
 	
 	# On start all are missing
 	missing_nav_chunk_neighbours = self.chunk_hex_pos.get_chunk_navigation_neighbours()

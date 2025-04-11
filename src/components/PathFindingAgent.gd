@@ -294,7 +294,7 @@ func can_connect_points(curr: Vector3, next: Vector3) -> bool:
 	query.motion = next - curr
 	query.collide_with_bodies = true
 	query.collide_with_areas = false
-	query.collision_mask = Layers.mask([Layers.L.TERRAIN, Layers.L.STATIC_GEOM])
+	query.collision_mask = Layers.TERRAIN_AND_STATIC
 
 	var result: PackedFloat32Array = get_world_3d().direct_space_state.cast_motion(query)
 	if result[0] < 1.0:

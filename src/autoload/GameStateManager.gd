@@ -3,10 +3,8 @@
 @tool
 extends Node3D
 
-
 # Caravan
 var caravan: Caravan
-
 
 # Sub-Managers
 var cam_follow_point_manager: CameraFollowPointManager
@@ -88,7 +86,7 @@ func _input(event: InputEvent) -> void:
 
 
 func request_quit_game() -> void:
-	Util.print_multiline_banner("Quitting game")
+	HexLog.print_multiline_banner("Quitting game")
 	MapGeneration.request_shutdown_threads()
 
 
@@ -100,7 +98,7 @@ func spawn_enemy() -> void:
 
 	# Find spawn pos
 	var shape: CollisionShape3D = enemy_node.get_node("Collision")
-	var spawn_pos: Vector3 = caravan.global_position + Util.randCircularOffsetRange(20, 25)
+	var spawn_pos: Vector3 = caravan.global_position + Util.rand_circular_offset_range(20, 25)
 
 	# Match to navmesh, get height
 	spawn_pos = NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, spawn_pos)

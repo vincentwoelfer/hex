@@ -67,7 +67,7 @@ func _physics_process(delta: float) -> void:
 
 	if should_exit:
 		if threads.is_empty():
-			# Util.print_multiline_banner("All threads finished, exiting game")
+			# HexLog.print_multiline_banner("All threads finished, exiting game")
 			get_tree().quit()
 		else:
 			join_threads()
@@ -259,7 +259,7 @@ func tick_check_map_reset() -> void:
 	if self.regenerate and (now - last_regeneration_timestamp) > max_regeneration_delay:
 		last_regeneration_timestamp = now
 		self.regenerate = false
-		Util.print_multiline_banner("Regenerating map")
+		HexLog.print_multiline_banner("Regenerating map")
 		delete_everything()
 
 ##############################
@@ -334,7 +334,7 @@ func _exit_tree() -> void:
 	delete_everything()
 
 	if not threads.is_empty():
-		Util.print_multiline_banner("MapGeneration cleaning up on _exit_tree")
+		HexLog.print_multiline_banner("MapGeneration cleaning up on _exit_tree")
 		request_shutdown_threads()
 
 		while not threads.is_empty():
@@ -368,7 +368,7 @@ func get_spawn_pos_height_on_map_surface(pos: Vector3, shape: CollisionShape3D) 
 	query.motion = Vector3.DOWN * distance
 
 	# Set collision mask
-	query.collision_mask = Layers.mask([Layers.L.TERRAIN, Layers.L.STATIC_GEOM])
+	query.collision_mask = Layers.TERRAIN_AND_STATIC
 
 	# Perform query
 	var space_state := get_world_3d().direct_space_state
