@@ -1,0 +1,7 @@
+[gd_resource type="GradientTexture2D" load_steps=2 format=3 uid="uid://beotjrl2edscy"]
+
+[ext_resource type="Gradient" uid="uid://f2dddunu06dm" path="res://assets/shaders/lightning/gradient_black_white_black.tres" id="1_8xnt3"]
+
+[resource]
+gradient = ExtResource("1_8xnt3")
+fill_to = Vector2(0, 1)
