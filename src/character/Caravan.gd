@@ -22,6 +22,7 @@ var velocity_no_collision: Vector3 = Vector3.ZERO
 var crystal_timer: Timer
 
 func _ready() -> void:
+	# Pathfinding agent
 	path_finding_agent.init(Colors.COLOR_CARAVAN, collision.shape, DebugSettings.show_path_caravan)
 	path_finding_agent.replan_interval_s = -1.0
 
