@@ -17,9 +17,9 @@ func _ready() -> void:
 
 	cam_follow_point_manager = CameraFollowPointManager.new()
 
-	#NAVMAP
+	# NAVMAP
 	var nav_map := get_world_3d().navigation_map
-	NavigationServer3D.set_debug_enabled(true)
+	NavigationServer3D.set_debug_enabled(DebugSettings.nav_server_debug_mode)
 	NavigationServer3D.map_set_cell_size(nav_map, HexConst.NAV_CELL_SIZE)
 	NavigationServer3D.map_set_cell_height(nav_map, HexConst.NAV_CELL_SIZE)
 

@@ -59,7 +59,8 @@ const GROUP_NAV_ENEMIES: String = "enemies"
 const GROUP_NAV_CRYSTALS: String = "crystals"
 
 # ==================== Navigation ========================
-const NAV_CELL_SIZE: float = 0.1
+# These must be multiples of each others
+const NAV_CELL_SIZE: float = 0.125
 const NAV_AGENT_RADIUS: float = 0.8
 
 # Define a basis slope angle, then give the agents more ability (to compensate for small path errors)

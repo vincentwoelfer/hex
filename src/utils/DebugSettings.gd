@@ -18,6 +18,7 @@ static var visualize_plant_custom_aabb: bool = false
 static var enable_terrain_collision_visualizations: bool = true
 
 # Navigation visualization
+static var nav_server_debug_mode: bool = false
 static var show_raw_debug_path: bool = false
 
 static var show_path_caravan: bool = true
