@@ -59,23 +59,20 @@ func _init(chunk_hex_pos_: HexPos) -> void:
 func _ready() -> void:
 	# Add to group for navigation mesh parsing - This also communicates to other chunks that
 	# this chunk is loaded and neighbouring chunks can use it for generating nav-mesh collision data.
-	add_to_group(HexConst.NAV_CHUNKS_GROUP_NAME)
+	add_to_group(HexConst.GROUP_NAV_CHUNKS)
 
 	# Calculate the AABB of the chunk for nav-mesh generation
 	self.chunk_nav_area_aabb_local_coordinates = calculate_chunk_navigation_aabb()
 
 	# Start timer to check for missing neighbours
-	missing_nav_chunk_timer = Timer.new()
-	missing_nav_chunk_timer.set_wait_time(0.5 + randf_range(-0.2, 0.2)) # Rand offset to avoid all chunks starting at the same time
-	missing_nav_chunk_timer.set_one_shot(false)
-	missing_nav_chunk_timer.autostart = true
-	missing_nav_chunk_timer.timeout.connect(_update_missing_nav_chunk_neighbours)
+	var interval := 0.5 + randf_range(-0.2, 0.2) # Rand offset to avoid all chunks starting at the same time
+	missing_nav_chunk_timer = Util.timer(interval, _update_missing_nav_chunk_neighbours)
 	add_child(missing_nav_chunk_timer)
 
 
 func _update_missing_nav_chunk_neighbours() -> void:
 	# Fetch all chunks, check if any of them are a missing neighbour for this chunk
-	var all_chunks: Array[Node] = get_tree().get_nodes_in_group(HexConst.NAV_CHUNKS_GROUP_NAME)
+	var all_chunks: Array[Node] = get_tree().get_nodes_in_group(HexConst.GROUP_NAV_CHUNKS)
 	var all_chunks_poses: Array[HexPos] = []
 	all_chunks_poses.assign(all_chunks.map(func(chunk: Node) -> HexPos: return (chunk as HexChunk).chunk_hex_pos))
 	missing_nav_chunk_neighbours = missing_nav_chunk_neighbours.filter(

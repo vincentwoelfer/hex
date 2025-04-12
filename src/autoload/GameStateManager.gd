@@ -53,11 +53,8 @@ func _ready() -> void:
 		PlayerManager.add_player(-1)
 
 	# Add enemy spawner
-	var enemy_spawn_timer := Timer.new()
-	enemy_spawn_timer.wait_time = 2.5
-	enemy_spawn_timer.autostart = true
-	enemy_spawn_timer.timeout.connect(spawn_enemy)
-	add_child(enemy_spawn_timer)
+	add_child(Util.timer(2.5, spawn_enemy))
+	add_child(Util.timer(2.5, delete_far_away_entities))
 
 
 # React to keyboard inputs to directly trigger events
@@ -86,6 +83,25 @@ func _input(event: InputEvent) -> void:
 func request_quit_game() -> void:
 	HexLog.print_multiline_banner("Quitting game")
 	MapGeneration.request_shutdown_threads()
+
+
+##################################################################
+# Stuff
+###################################################################
+func delete_far_away_entities() -> void:
+	var center := caravan.global_position
+	var max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_deletion_distance_hex) * 0.1
+	var max_dist_sqared: float = max_dist * max_dist
+
+	# Enemies
+	for enemy: Node3D in get_tree().get_nodes_in_group(HexConst.GROUP_NAV_ENEMIES):
+		if enemy.global_position.distance_squared_to(center) > max_dist_sqared:
+			enemy.queue_free()
+
+	# Crystals
+	for crystal: Node3D in get_tree().get_nodes_in_group(HexConst.GROUP_NAV_CRYSTALS):
+		if crystal.global_position.distance_squared_to(center) > max_dist_sqared:
+			crystal.queue_free()
 
 
 ##################################################################

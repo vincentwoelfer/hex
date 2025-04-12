@@ -120,12 +120,16 @@ static func wait_until(node: Node3D, condition: Callable) -> void:
 static func delete_after(time: float, node: Node3D) -> void:
 	if node == null:
 		return
-	var timer := Timer.new()
-	timer.wait_time = time
-	timer.one_shot = true
-	timer.autostart = true
-	timer.timeout.connect(func() -> void: node.queue_free())
-	node.add_child(timer)
+	node.add_child(timer(time, Callable(node, "queue_free"), true))
+
+
+static func timer(wait_time: float, timeout_callable: Callable, one_shot: bool = false) -> Timer:
+	var t := Timer.new()
+	t.wait_time = wait_time
+	t.one_shot = one_shot
+	t.autostart = true
+	t.timeout.connect(timeout_callable)
+	return t
 
 ######################################################
 # Camera access

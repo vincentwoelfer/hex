@@ -4,6 +4,8 @@ class_name Crystal
 @onready var collision: CollisionShape3D = $Collision
 
 func _ready() -> void:
+	add_to_group(HexConst.GROUP_NAV_CRYSTALS)
+
     # Set the physics material
 	var mat := PhysicsMaterial.new()
 	mat.bounce = 0.5

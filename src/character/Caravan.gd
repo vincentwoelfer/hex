@@ -32,10 +32,7 @@ func _ready() -> void:
 	choose_new_goal()
 
 	# TEST
-	crystal_timer = Timer.new()
-	crystal_timer.wait_time = 1.5
-	crystal_timer.autostart = true
-	crystal_timer.timeout.connect(spawn_crystal)
+	crystal_timer = Util.timer(1.5, spawn_crystal)
 	add_child(crystal_timer)
 
 
