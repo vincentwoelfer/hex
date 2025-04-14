@@ -12,18 +12,17 @@ var speed: float = 2.5
 var target: Node3D = null
 var target_reached_dist: float
 
-var explosion_radius: float = 1.6
-
 # Goal choosing logic
 var goal_choosing_timer: Timer
 var goal_choosing_interval: float = 0.75
 
 # Exploding
 var is_exploding := false
+var explosion_radius: float = 1.8
 
-const explosion_duration := 0.9
+const explosion_duration := 0.85
 const explosion_wave_count := 3
-const explosion_max_size := 2.5
+const explosion_max_size := 2.0
 var explosion_target_color := Colors.mod_sat_val_hue(Color.RED, 0.1, 1.0)
 
 
@@ -183,38 +182,32 @@ func _on_explodion_finish() -> void:
 
 
 func _explosion_effect() -> void:
+	var tween_trans_type := Tween.TRANS_ELASTIC
+	var tween_ease_type := Tween.EASE_IN_OUT
+
 	# Add color tween
 	mesh_material = mesh.get_active_material(0) as StandardMaterial3D
 	var original_color := mesh_material.albedo_color
 	var color_tween := create_tween()
-	color_tween.set_trans(Tween.TRANS_SINE)
-	color_tween.set_ease(Tween.EASE_OUT)
+	color_tween.set_trans(tween_trans_type)
+	color_tween.set_ease(tween_ease_type)
 	color_tween.tween_method(_change_material_color, original_color, explosion_target_color, explosion_duration)
 
 	# Add scale tween
 	var size_tween := create_tween()
-	size_tween.set_trans(Tween.TRANS_SINE)
-	size_tween.set_ease(Tween.EASE_OUT)
+	size_tween.set_trans(tween_trans_type)
+	size_tween.set_ease(tween_ease_type)
 
 	var time_per_wave := explosion_duration / float(explosion_wave_count)
-	var current_scale := Vector3.ONE
-	var direction := 1.0
-
-	# TODO this doesnt work out exactly, fix
 
 	for i in range(explosion_wave_count):
+		# i = 0,1,2 for 3 waves
+		# t = 0.33 ,0.66, 1.0 for 3 waves
 		var t := float(i + 1) / float(explosion_wave_count)
 		var scale_value := lerpf(1.0, explosion_max_size, t)
 
-		# Add a small bounce in the opposite direction
-		var bounce := 1.0 + (scale_value - 1.0) * 0.2 * direction
-		direction *= -1.0
-
 		# These tween effects are executed after one another, we queue them all here
-		size_tween.tween_property(mesh, "scale", Vector3.ONE * bounce, time_per_wave)
-
-	# Final target size
-	size_tween.tween_property(mesh, "scale", Vector3.ONE * explosion_max_size, time_per_wave)
+		size_tween.tween_property(mesh, "scale", Vector3.ONE * scale_value, time_per_wave)
 
 
 func _change_material_color(c: Color) -> void:
