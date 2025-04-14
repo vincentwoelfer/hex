@@ -47,6 +47,9 @@ var input: MovementInput
 
 var color: Color
 
+# Carrying / Crystals
+var is_carrying: bool = false
+
 func init(device: int, color_: Color) -> void:
 	input = MovementInput.new(device)
 	self.color = color_
@@ -121,13 +124,11 @@ func _physics_process(delta: float) -> void:
 			is_dashing = true
 			dash_timer = dash_duration
 	
-	# Test lightning
+	# Lightning
 	if input.primary_input.wants:
 		input.primary_input.consume()
-		#player_data.lightning_particles.show()
 		VisualLightningStrike.spawn(self.global_position)
-		#var timer = get_tree().create_timer(3.0)
-		#timer.timeout.connect(func(): player_data.lightning_particles.hide())
+		
 
 	# Determine target vel based on state -> TODO rework into state machine
 	var target_planar_speed: float

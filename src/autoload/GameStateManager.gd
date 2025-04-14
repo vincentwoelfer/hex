@@ -85,7 +85,7 @@ func request_quit_game() -> void:
 	MapGeneration.request_shutdown_threads()
 
 
-##################################################################
+###################################################################
 # Stuff
 ###################################################################
 func delete_far_away_entities() -> void:
@@ -105,10 +105,13 @@ func delete_far_away_entities() -> void:
 			crystal.queue_free()
 
 
-##################################################################
+###################################################################
 # Spawner Functions
 ###################################################################
 func spawn_enemy() -> void:
+	if caravan == null:
+		return
+
 	var enemy_node: BasicEnemy = ResLoader.BASIC_ENEMY_SCENE.instantiate()
 
 	# Find spawn pos
@@ -153,3 +156,50 @@ func spawn_caravan() -> void:
 	caravan.reset_physics_interpolation()
 
 	cam_follow_point_manager.register_cam_follow_node(caravan)
+
+
+func spawn_player(player: PlayerData) -> void:
+	var player_node: PlayerController = ResLoader.PLAYER_SCENE.instantiate()
+	player_node.init(player.input_device, player.color)
+
+	# Find spawn pos
+	var shape: CollisionShape3D = player_node.get_node("Collision")
+	var spawn_pos := _find_spawn_pos_xz_near_team(player.id)
+
+	# Match to navmesh, get height - this requires a navmesh
+	spawn_pos = NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, spawn_pos)
+	spawn_pos = MapGeneration.get_spawn_pos_height_on_map_surface(spawn_pos, shape)
+
+	# Set player color
+	var mesh_instance := player_node.get_node("Mesh") as MeshInstance3D
+	var new_mesh: Mesh = mesh_instance.mesh.duplicate(true)
+
+	var new_mat: StandardMaterial3D = new_mesh.surface_get_material(0)
+	new_mat.albedo_color = player.color
+	new_mesh.surface_set_material(0, new_mat)
+	mesh_instance.mesh = new_mesh
+
+	# Add to scene
+	get_tree().root.add_child(player_node)
+	player_node.global_position = spawn_pos
+	player_node.reset_physics_interpolation()
+
+	# Link player data to node and vice versa
+	player.player_node = player_node
+	player_node.player_data = player
+	
+	GameStateManager.cam_follow_point_manager.register_cam_follow_node(player_node)
+
+
+func despawn_player(player: PlayerData) -> void:
+	GameStateManager.cam_follow_point_manager.unregister_cam_follow_node(player.player_node)
+	player.player_node.queue_free()
+
+
+###################################################################
+# Helper
+###################################################################
+
+func _find_spawn_pos_xz_near_team(exclude_id: int) -> Vector3:
+	var reference_pos: Vector3 = GameStateManager.caravan.global_position
+	return reference_pos + Util.rand_circular_offset_range(3.0, 3.0)

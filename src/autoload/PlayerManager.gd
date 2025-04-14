@@ -25,7 +25,7 @@ func add_player(device: int) -> int:
 
 	players[id] = PlayerData.new(id, "Player-" + str(id), Colors.get_player_color(id), device)
 	var player: PlayerData = players[id]
-	spawn_player(player)
+	GameStateManager.spawn_player(player)
 	print("%s joined with device %s" % [player.display_name, HexInput.get_device_display_name(player.input_device)])
 	return id
 
@@ -39,7 +39,7 @@ func remove_player(id: int) -> void:
 	players.erase(id)
 	print("%s left" % [player.display_name])
 
-	despawn_player(player)
+	GameStateManager.despawn_player(player)
 	
 
 func _get_available_player_id() -> int:
@@ -81,59 +81,3 @@ func _is_device_joined(device: int) -> bool:
 		if device == player.input_device:
 			return true
 	return false
-
-
-###################################################
-# Spawning
-###################################################	
-func spawn_player(player: PlayerData) -> void:
-	var player_node: PlayerController = ResLoader.PLAYER_SCENE.instantiate()
-	player_node.init(player.input_device, player.color)
-
-	# Find spawn pos
-	var shape: CollisionShape3D = player_node.get_node("Collision")
-	var spawn_pos := _find_spawn_pos_xz_near_team(player.id)
-	spawn_pos = MapGeneration.get_spawn_pos_height_on_map_surface(spawn_pos, shape)
-
-	# Set player color
-	var mesh_instance := player_node.get_node("Mesh") as MeshInstance3D
-	var new_mesh: Mesh = mesh_instance.mesh.duplicate(true)
-
-	var new_mat: StandardMaterial3D = new_mesh.surface_get_material(0)
-	new_mat.albedo_color = player.color
-	new_mesh.surface_set_material(0, new_mat)
-	mesh_instance.mesh = new_mesh
-
-	get_tree().root.add_child(player_node)
-	player_node.global_position = spawn_pos
-	player_node.reset_physics_interpolation()
-
-	player.player_node = player_node
-
-	# Test lightning
-	# Instantiate LightningParticles
-	var lightning_particles_scene = load("res://scenes/effects/lightning_particles.tscn") # Make sure you have this scene preloaded or loaded
-	var lightning_particles = lightning_particles_scene.instantiate()
-	player.player_node.add_child(lightning_particles) # Attach it to the player
-
-	# Position it at the player's initial position
-	lightning_particles.global_transform.origin = spawn_pos 
-	lightning_particles.hide()
-	
-	# Store reference to particles in PlayerData
-	player.lightning_particles = lightning_particles
-	player_node.player_data = player
-	
-
-	GameStateManager.cam_follow_point_manager.register_cam_follow_node(player_node)
-
-
-
-func despawn_player(player: PlayerData) -> void:
-	GameStateManager.cam_follow_point_manager.unregister_cam_follow_node(player.player_node)
-	player.player_node.queue_free()
-
-
-func _find_spawn_pos_xz_near_team(exclude_id: int) -> Vector3:
-	var reference_pos: Vector3 = GameStateManager.caravan.global_position
-	return reference_pos + Util.rand_circular_offset_range(3.0, 3.0)

@@ -4,16 +4,27 @@ extends CharacterBody3D
 # Scene references
 @onready var path_finding_agent: PathFindingAgent = $PathFindingAgent
 @onready var collision: CollisionShape3D = $Collision
+@onready var mesh: MeshInstance3D = $Mesh
+var mesh_material: StandardMaterial3D
 
 var speed: float = 2.5
 
 var target: Node3D = null
 var target_reached_dist: float
 
+var explosion_radius: float = 1.6
 
 # Goal choosing logic
 var goal_choosing_timer: Timer
 var goal_choosing_interval: float = 0.75
+
+# Exploding
+var is_exploding := false
+
+const explosion_duration := 0.9
+const explosion_wave_count := 3
+const explosion_max_size := 2.5
+var explosion_target_color := Colors.mod_sat_val_hue(Color.RED, 0.1, 1.0)
 
 
 func _ready() -> void:
@@ -32,6 +43,11 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if is_exploding:
+		# Execute move_and_slide() to enable gravity/being pushed
+		move_and_slide()
+		return
+
 	# returns ZERO if no path/goal
 	var movement: Vector3 = path_finding_agent.get_direction() * speed
 
@@ -43,16 +59,27 @@ func _physics_process(delta: float) -> void:
 		velocity.x = movement.x
 		velocity.z = movement.z
 
+	# Apply gravity
+	if not is_on_floor():
+		velocity.y += HexConst.GRAVITY * delta
+
 	# Reached target - custom larger radius to enable "explosion" later on
 	if target != null and Util.get_dist_planar(global_position, target.global_position) <= target_reached_dist:
 		queue_free()
 		return
 
-	# Apply gravity
-	if not is_on_floor():
-		velocity.y += HexConst.GRAVITY * delta
+	_check_player_near_for_explosion()
 
 	move_and_slide()
+
+
+func _check_player_near_for_explosion() -> void:
+	if is_exploding:
+		return
+
+	for player: Node3D in get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS):
+		if global_position.distance_to(player.global_position) <= explosion_radius:
+			_start_exploding()
 
 
 func _get_possible_goals() -> Array[Node3D]:
@@ -61,13 +88,15 @@ func _get_possible_goals() -> Array[Node3D]:
 	# Add caravan by default (TODO maybe check if caravan has crystals left?)
 	possible_goals.append(GameStateManager.caravan)
 	
-	# Add players (TODO this requires them to have an attack)
-	for node in get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS):
-		possible_goals.append(node)
+	# Add players
+	for player: PlayerController in get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS):
+		possible_goals.append(player)
 
 	# Add crystals
 	for crystal: Crystal in get_tree().get_nodes_in_group(HexConst.GROUP_CRYSTALS):
-		if crystal.state in [Crystal.State.CARRIED_BY_PLAYER, Crystal.State.ON_GROUND]:
+		# Carried by player is already in goal selection through player itself
+		# Carried by caravan is already in goal selection through caravan itself
+		if crystal.state in [Crystal.State.ON_GROUND]:
 			possible_goals.append(crystal)
 
 	return possible_goals
@@ -75,8 +104,6 @@ func _get_possible_goals() -> Array[Node3D]:
 
 func _choose_new_goal() -> void:
 	target = null
-	# Reset timer
-	goal_choosing_timer.start()
 
 	var nav_map: RID = get_world_3d().navigation_map
 	if NavigationServer3D.map_get_iteration_id(nav_map) == 0:
@@ -129,3 +156,69 @@ func _compute_target_done_dist() -> float:
 				break
 
 	return path_finding_agent.radius + target_radius + 0.2
+
+
+# Exploding
+func _start_exploding() -> void:
+	if is_exploding:
+		return
+
+	is_exploding = true
+	goal_choosing_timer.stop()
+
+	self.velocity = Vector3.ZERO
+
+	add_child(Util.timer(self.explosion_duration, _on_explodion_finish, true))
+	_explosion_effect()
+
+
+func _on_explodion_finish() -> void:
+	self.queue_free()
+	# TODO drop crystal
+	# TODO add explosion effect (external particle, not self-growth)
+
+
+func _explosion_effect() -> void:
+	# Add color tween
+	mesh_material = mesh.get_active_material(0) as StandardMaterial3D
+	var original_color := mesh_material.albedo_color
+	var color_tween := create_tween()
+	color_tween.tween_method(_change_material_color, original_color, explosion_target_color, explosion_duration)
+
+	# Add scale tween
+	var size_tween := create_tween()
+	size_tween.set_trans(Tween.TRANS_SINE)
+	size_tween.set_ease(Tween.EASE_OUT)
+
+	var time_per_wave := explosion_duration / float(explosion_wave_count)
+	var current_scale := Vector3.ONE
+	var direction := 1.0
+
+	# TODO this doesnt work out exactly, fix
+
+	for i in range(explosion_wave_count):
+		var t := float(i + 1) / float(explosion_wave_count)
+		var scale_value := lerpf(1.0, explosion_max_size, t)
+
+		# Add a small bounce in the opposite direction
+		var bounce := 1.0 + (scale_value - 1.0) * 0.2 * direction
+		direction *= -1.0
+
+		# These tween effects are executed after one another, we queue them all here
+		size_tween.tween_property(mesh, "scale", Vector3.ONE * bounce, time_per_wave)
+
+	# Final target size
+	size_tween.tween_property(mesh, "scale", Vector3.ONE * explosion_max_size, time_per_wave)
+
+
+func _change_material_color(c: Color) -> void:
+	if not mesh_material:
+		return
+
+	# If not yet duplicated, do it now to avoid modifying shared material
+	if mesh_material.resource_local_to_scene == false:
+		mesh_material = mesh_material.duplicate()
+		mesh_material.resource_local_to_scene = true
+		mesh.set_surface_override_material(0, mesh_material)
+	
+	mesh_material.albedo_color = c
