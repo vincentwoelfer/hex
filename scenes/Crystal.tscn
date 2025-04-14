@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://bnakct0mcivaa"]
 
-[ext_resource type="PackedScene" uid="uid://c2mpp38meshat" path="res://assets/complete-models/crystal.fbx" id="1_bx36n"]
+[ext_resource type="PackedScene" uid="uid://c2mpp38meshat" path="res://assets/complete-models/crystal/crystal.fbx" id="1_bx36n"]
 [ext_resource type="Script" uid="uid://c060gopftivg1" path="res://src/objects/Crystal.gd" id="1_djkj4"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_bx36n"]
