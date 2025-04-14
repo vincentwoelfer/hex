@@ -356,7 +356,7 @@ func _get_approx_map_height_at_pos(pos: Vector3) -> float:
 	else:
 		return 0.0
 
-
+# TODO move to physics utils class
 func get_spawn_pos_height_on_map_surface(pos: Vector3, shape: CollisionShape3D) -> Vector3:
 	pos.y = _get_approx_map_height_at_pos(pos)
 

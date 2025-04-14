@@ -10,6 +10,15 @@ var caravan: Caravan
 var cam_follow_point_manager: CameraFollowPointManager
 
 
+# PlayerTeamTeleporter
+enum TeamTeleporterStatus {ON_COOLDOWN, READY_TO_DEPLOY, DEPLOYED}
+var team_teleporter_status: TeamTeleporterStatus = TeamTeleporterStatus.READY_TO_DEPLOY
+
+var team_teleporter_cooldown: float = 10.0
+var team_teleporter_active_time: float = 4.0
+var team_teleporter_cooldown_timer: Timer
+var team_teleporter_active_timer: Timer
+
 func _ready() -> void:
 	if not Engine.is_editor_hint():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -164,7 +173,7 @@ func spawn_player(player: PlayerData) -> void:
 
 	# Find spawn pos
 	var shape: CollisionShape3D = player_node.get_node("Collision")
-	var spawn_pos := _find_spawn_pos_xz_near_team(player.id)
+	var spawn_pos := _find_spawn_pos_xz_near_caravan(player.id)
 
 	# Match to navmesh, get height - this requires a navmesh
 	spawn_pos = NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, spawn_pos)
@@ -199,7 +208,25 @@ func despawn_player(player: PlayerData) -> void:
 ###################################################################
 # Helper
 ###################################################################
+# TODO move to physics utils class
+func _find_closest_valid_spawn_pos(pos: Vector3, shape: CollisionShape3D, match_to_navmesh: bool = true) -> Vector3:
+	# Match to navmesh, get height - this requires a navmesh
+	if match_to_navmesh:
+		pos = NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, pos)
 
-func _find_spawn_pos_xz_near_team(exclude_id: int) -> Vector3:
+
+	pos = MapGeneration.get_spawn_pos_height_on_map_surface(pos, shape)
+
+	
+	# Find spawn pos
+	var shape: CollisionShape3D = player_node.get_node("Collision")
+	var spawn_pos := _find_spawn_pos_xz_near_caravan(player.id)
+
+	# Match to navmesh, get height - this requires a navmesh
+	spawn_pos = NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, spawn_pos)
+	spawn_pos = MapGeneration.get_spawn_pos_height_on_map_surface(spawn_pos, shape)
+
+
+func _find_spawn_pos_xz_near_caravan(exclude_id: int) -> Vector3:
 	var reference_pos: Vector3 = GameStateManager.caravan.global_position
 	return reference_pos + Util.rand_circular_offset_range(3.0, 3.0)

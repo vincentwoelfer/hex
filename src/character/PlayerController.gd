@@ -18,7 +18,7 @@ var deceleration: float
 
 # Gravity & Jumping
 # For equations see: https://www.youtube.com/watch?v=IOe1aGY6hXA
-# (0,0,0) is at the feet of the character, so this is the height of the feet at max jump height
+# (0,0,0) is at the feet of the character, so this is the height of the feet at max _jump height
 var jump_height: float = 2.55
 var jump_time_to_peak_sec: float = 0.65
 var jump_time_to_descent_sec: float = 0.55
@@ -112,7 +112,7 @@ func _physics_process(delta: float) -> void:
 
 	if input.jump_input.wants and currently_used_jumps < max_num_jumps:
 		input.jump_input.consume()
-		jump()
+		_jump()
 
 	# Dashing
 	if is_dashing:
@@ -142,7 +142,7 @@ func _physics_process(delta: float) -> void:
 
 	# Acceleration & Deceleration
 	var acceleration: float = _get_acc_for_target_vel_and_time(target_planar_speed, time_to_max_acc)
-	var new_vel_horizontal: Vector2 = compute_planar_velocity(Vector2(velocity.x, velocity.z),
+	var new_vel_horizontal: Vector2 = _compute_planar_velocity(Vector2(velocity.x, velocity.z),
 															  Vector2(input_dir.x, input_dir.z),
 															  target_planar_speed, acceleration, deceleration, delta)
 
@@ -171,7 +171,7 @@ func _physics_process(delta: float) -> void:
 
 # Speed = float
 # Velocity = Vector
-func compute_planar_velocity(curr_vel: Vector2, input_dir: Vector2, target_speed: float, accel: float, decel: float, delta: float) -> Vector2:
+func _compute_planar_velocity(curr_vel: Vector2, input_dir: Vector2, target_speed: float, accel: float, decel: float, delta: float) -> Vector2:
 	var current_speed: float = curr_vel.length()
 
 	# Compute target velocity in the XZ plane
@@ -206,12 +206,12 @@ func _get_acc_for_target_vel_and_time(target_vel: float, time_to_max: float) -> 
 	return target_vel / time_to_max
 
 
-func jump() -> void:
-	# Determine number of jump
+func _jump() -> void:
+	# Determine number of _jump
 	var jump_index: int = currently_used_jumps
 	currently_used_jumps += 1
 
-	# Calculate jump vel
+	# Calculate _jump vel
 	var jump_vel: float = (2.0 * jump_height) / jump_time_to_peak_sec
 	jump_vel *= jump_strength_factors[jump_index]
 
@@ -219,4 +219,10 @@ func jump() -> void:
 	velocity.y = jump_vel
 
 	# Vibration
-	# Input.start_joy_vibration(0, 0.0, 1.0, 0.2 + 0.1 * jump_index)
+	Input.start_joy_vibration(0, 0.0, 1.0, 0.2 + 0.1 * jump_index)
+
+# TODO call physics util to find closest valid spawn pos
+func _teleport_to_teleporter(teleporter_pos: Vector3) -> void:
+	self.global_position = teleporter_pos
+	self.reset_physics_interpolation()
+	velocity = Vector3.ZERO
