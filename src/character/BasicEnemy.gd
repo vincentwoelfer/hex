@@ -171,6 +171,10 @@ func _start_exploding() -> void:
 	add_child(Util.timer(self.explosion_duration, _on_explodion_finish, true))
 	_explosion_effect()
 
+	var effect_height := 0.5
+	var effect := DebugVis3D.cylinder(explosion_radius, effect_height, DebugVis3D.mat(Color(Color.RED.lightened(0.25), 0.15), false))
+	DebugVis3D.spawn(Vector3.UP * 0.5 * effect_height, effect, self)
+
 
 func _on_explodion_finish() -> void:
 	self.queue_free()
@@ -183,6 +187,8 @@ func _explosion_effect() -> void:
 	mesh_material = mesh.get_active_material(0) as StandardMaterial3D
 	var original_color := mesh_material.albedo_color
 	var color_tween := create_tween()
+	color_tween.set_trans(Tween.TRANS_SINE)
+	color_tween.set_ease(Tween.EASE_OUT)
 	color_tween.tween_method(_change_material_color, original_color, explosion_target_color, explosion_duration)
 
 	# Add scale tween

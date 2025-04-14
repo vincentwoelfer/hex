@@ -106,6 +106,8 @@ static func aabb_mesh(aabb: AABB, color: Color) -> BoxMesh:
 ######################################################
 # Spawning
 ######################################################
+## If parent is null the instance will be added to the scene root, use global_pos.
+## If parent is not null the instance will be added to the parent, use local_pos.
 static func spawn(pos: Vector3, mesh: Mesh, parent: Node3D = null) -> Node3D:
 	var instance := MeshInstance3D.new()
 	instance.mesh = mesh
