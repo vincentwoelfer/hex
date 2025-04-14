@@ -90,16 +90,17 @@ func request_quit_game() -> void:
 ###################################################################
 func delete_far_away_entities() -> void:
 	var center := caravan.global_position
-	var max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_deletion_distance_hex) * 0.1
+	# Deletion dist ist smaller than map/chunk deletion dist (but a factor of it)
+	var max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_deletion_distance_hex) * 0.8
 	var max_dist_sqared: float = max_dist * max_dist
 
 	# Enemies
-	for enemy: Node3D in get_tree().get_nodes_in_group(HexConst.GROUP_NAV_ENEMIES):
+	for enemy: Node3D in get_tree().get_nodes_in_group(HexConst.GROUP_ENEMIES):
 		if enemy.global_position.distance_squared_to(center) > max_dist_sqared:
 			enemy.queue_free()
 
 	# Crystals
-	for crystal: Node3D in get_tree().get_nodes_in_group(HexConst.GROUP_NAV_CRYSTALS):
+	for crystal: Node3D in get_tree().get_nodes_in_group(HexConst.GROUP_CRYSTALS):
 		if crystal.global_position.distance_squared_to(center) > max_dist_sqared:
 			crystal.queue_free()
 

@@ -3,8 +3,12 @@ class_name Crystal
 
 @onready var collision: CollisionShape3D = $Collision
 
+enum State {ON_CARAVAN, ON_GROUND, CARRIED_BY_PLAYER, CARRIED_BY_ENEMY}
+
+var state: Crystal.State = State.ON_GROUND
+
 func _ready() -> void:
-	add_to_group(HexConst.GROUP_NAV_CRYSTALS)
+	add_to_group(HexConst.GROUP_CRYSTALS)
 
     # Set the physics material
 	var mat := PhysicsMaterial.new()

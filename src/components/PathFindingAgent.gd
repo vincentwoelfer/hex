@@ -230,7 +230,7 @@ func _update_target_from_tracking() -> void:
 		return
 
 	# Check if tracking target became invalid
-	if tracking_target == null or !is_instance_valid(tracking_target):
+	if tracking_target == null or tracking_target.is_queued_for_deletion() or !is_instance_valid(tracking_target):
 		self.is_tracking_target = false
 		self.tracking_target = null
 		self.has_target = false
@@ -263,10 +263,10 @@ func _plan_new_path() -> void:
 	has_path = true
 	last_target_replan_pos = target
 	last_target_replan_time = Time.get_unix_time_from_system()
-	path = simplify_path(path_raw)
+	path = _simplify_path(path_raw)
 
 
-func simplify_path(p: PackedVector3Array) -> PackedVector3Array:
+func _simplify_path(p: PackedVector3Array) -> PackedVector3Array:
 	# Nothing to simplify if p has less than 3 points
 	if p.size() < 3:
 		return p
@@ -283,7 +283,7 @@ func simplify_path(p: PackedVector3Array) -> PackedVector3Array:
 		# Check if we can reach the furthest point directly
 		while next_index > current_index + 1:
 			# Check if we can connect current_index with next_index
-			if can_connect_points(p[current_index], p[next_index]):
+			if _can_connect_points(p[current_index], p[next_index]):
 				break
 			else:
 				next_index -= 1
@@ -294,7 +294,7 @@ func simplify_path(p: PackedVector3Array) -> PackedVector3Array:
 	return simplified_p
 
 
-func can_connect_points(curr: Vector3, next: Vector3) -> bool:
+func _can_connect_points(curr: Vector3, next: Vector3) -> bool:
 	var visualize: bool = false
 	# Only connect if
 	# - path is clear

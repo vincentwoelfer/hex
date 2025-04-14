@@ -54,9 +54,9 @@ const MAP_HEIGHT_INVALID: int = -999
 
 # ==================== GROUPS ========================
 const GROUP_NAV_CHUNKS: String = "nav_chunks"
-const GROUP_NAV_PLAYERS: String = "players"
-const GROUP_NAV_ENEMIES: String = "enemies"
-const GROUP_NAV_CRYSTALS: String = "crystals"
+const GROUP_PLAYERS: String = "players"
+const GROUP_ENEMIES: String = "enemies"
+const GROUP_CRYSTALS: String = "crystals"
 
 # ==================== Navigation ========================
 # These must be multiples of each others

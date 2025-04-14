@@ -57,7 +57,7 @@ func init(device: int, color_: Color) -> void:
 
 
 func _ready() -> void:
-	add_to_group(HexConst.GROUP_NAV_PLAYERS)
+	add_to_group(HexConst.GROUP_PLAYERS)
 
 	path_finding_agent.init(color, collision.shape, DebugSettings.show_path_player_to_caravan)
 	path_finding_agent.set_track_target(GameStateManager.caravan)

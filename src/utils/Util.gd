@@ -167,6 +167,15 @@ static func transform_from_point_and_normal(point: Vector3, normal: Vector3) -> 
 	return transform
 
 
+static func get_total_path_length(points: PackedVector3Array) -> float:
+	if points.size() <= 1:
+		return 0.0
+
+	var total_length: float = 0.0
+	for i in range(1, points.size()):
+		total_length += points[i - 1].distance_to(points[i])
+	return total_length
+
 ######################################################
 # Stuff
 ######################################################
