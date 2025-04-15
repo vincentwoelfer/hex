@@ -284,11 +284,11 @@ static func get_map() -> RID:
 ## If parent is not null the instance will be added to the parent, use local_pos.
 static func spawn(instance: Node3D, pos: Vector3, parent: Node3D = null) -> void:
 	if parent != null:
-		instance.position = pos
 		parent.add_child(instance)
+		instance.position = pos
 	else:
-		instance.global_position = pos
 		Util.get_scene_root().add_child(instance)
+		instance.global_position = pos
 	instance.reset_physics_interpolation()
 
 

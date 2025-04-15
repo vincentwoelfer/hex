@@ -118,9 +118,12 @@ func choose_new_goal() -> bool:
 	var angle := randf_range(path_dir_mean - path_dir_rand_deviation, path_dir_mean + path_dir_rand_deviation)
 	var goal_pos := global_position + Util.vec3_from_radius_angle(r, angle)
 
-	# Find valid nearby position - height offset
+	# Find valid nearby position with height offset + larger collision shape
 	goal_pos += Vector3.UP * 0.5
-	current_goal = PhysicUtil.find_closest_valid_spawn_pos(goal_pos, collision.shape, 1.0, 5.0, true, Layers.TERRAIN_AND_STATIC)
+	var larger_shape: CylinderShape3D = collision.shape.duplicate(true)
+	larger_shape.radius = larger_shape.radius * 3.0
+
+	current_goal = PhysicUtil.find_closest_valid_spawn_pos(goal_pos, larger_shape, 1.0, 6.0, true, Layers.TERRAIN_AND_STATIC)
 
 	# Validate the goal
 	if current_goal == Vector3.INF:

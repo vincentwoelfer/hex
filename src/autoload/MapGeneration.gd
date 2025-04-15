@@ -25,7 +25,7 @@ var threads_running_mutex: Mutex
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
 var generation_position: HexPos = HexPos.invalid() # Gets updated before first generation-tick. Needs to be invalid to instantly trigger "changed position"
 var tile_generation_distance_hex := HexConst.distance_m_to_hex(90)
-var tile_deletion_distance_hex := HexConst.distance_m_to_hex(125)
+var tile_deletion_distance_hex := HexConst.distance_m_to_hex(110)
 
 var is_active: bool = false
 

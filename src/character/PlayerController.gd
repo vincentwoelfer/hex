@@ -28,7 +28,7 @@ var jump_time_to_descent_sec: float = 0.55
 var print_timer: float = 0.0
 
 # Multi-Jump
-var max_num_jumps: int = 3
+var max_num_jumps: int = 2
 var currently_used_jumps: int = 0
 var jump_strength_factors: Array[float] = [1.0, 0.8, 0.8]
 
@@ -220,9 +220,3 @@ func _jump() -> void:
 
 	# Vibration
 	Input.start_joy_vibration(0, 0.0, 1.0, 0.2 + 0.1 * jump_index)
-
-# TODO call physics util to find closest valid spawn pos
-func _teleport_to_teleporter(teleporter_pos: Vector3) -> void:
-	self.global_position = teleporter_pos
-	self.reset_physics_interpolation()
-	velocity = Vector3.ZERO

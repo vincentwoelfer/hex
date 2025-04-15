@@ -50,9 +50,9 @@ func _ready() -> void:
 	await get_tree().process_frame
 	PlayerManager.add_player(-1)
 
-	# Add enemy spawner
-	add_child(Util.timer(2.5, spawn_enemy))
-	add_child(Util.timer(2.5, delete_far_away_entities))
+	# Add enemy spawner TODO make enemy number player number dependent
+	add_child(Util.timer(1.5, spawn_enemy))
+	add_child(Util.timer(2.0, delete_far_away_entities))
 
 
 # React to keyboard inputs to directly trigger events
@@ -89,7 +89,7 @@ func request_quit_game() -> void:
 func delete_far_away_entities() -> void:
 	var center := caravan.global_position
 	# Deletion dist ist smaller than map/chunk deletion dist (but a factor of it)
-	var max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_deletion_distance_hex) * 0.8
+	var max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_generation_distance_hex) * 0.65
 	var max_dist_sqared: float = max_dist * max_dist
 
 	# Enemies
@@ -103,13 +103,18 @@ func delete_far_away_entities() -> void:
 			crystal.queue_free()
 
 	# Players - Teleport to caravan if too far aways
-	var player_max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_deletion_distance_hex) * 0.7
+	var player_max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_generation_distance_hex) * 0.35
 	var player_max_dist_sqared: float = player_max_dist * player_max_dist
 
 	for player: PlayerController in get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS):
 		if player.global_position.distance_squared_to(center) > max_dist_sqared:
-			pass
-			# TODO
+			# Find spawn pos
+			var shape: CollisionShape3D = player.get_node("Collision")
+			var teleport_pos := caravan.global_position + Util.rand_circular_offset_range(3.0, 3.0)
+			var actual_teleport_pos := PhysicUtil.find_closest_valid_spawn_pos(teleport_pos, shape.shape, 0.5, 3.0, true)
+
+			player.global_position = actual_teleport_pos
+			player.reset_physics_interpolation()
 
 
 ###################################################################
@@ -143,7 +148,6 @@ func spawn_caravan() -> void:
 	Util.duplicate_material_new_color(caravan.get_node("Mesh") as MeshInstance3D, Colors.COLOR_CARAVAN)
 
 	Util.spawn(caravan, actual_spawn_pos)
-
 	cam_follow_point_manager.register_cam_follow_node(caravan)
 
 
@@ -157,19 +161,15 @@ func spawn_player(player: PlayerData) -> void:
 	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 0.5, 3.0, true)
 
 	# Set player color
-	Util.duplicate_material_new_color(caravan.get_node("Mesh") as MeshInstance3D, player.color)
+	Util.duplicate_material_new_color(player_node.get_node("Mesh") as MeshInstance3D, player.color)
 
-	# Add to scene
-	get_tree().root.add_child(player_node)
-	player_node.global_position = spawn_pos
-	player_node.reset_physics_interpolation()
+	Util.spawn(player_node, actual_spawn_pos)
+	cam_follow_point_manager.register_cam_follow_node(player_node)
 
 	# Link player data to node and vice versa
 	player.player_node = player_node
 	player_node.player_data = player
 	
-	cam_follow_point_manager.register_cam_follow_node(player_node)
-
 
 func despawn_player(player: PlayerData) -> void:
 	cam_follow_point_manager.unregister_cam_follow_node(player.player_node)
