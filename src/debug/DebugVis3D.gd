@@ -111,31 +111,34 @@ static func aabb_mesh(aabb: AABB, color: Color) -> BoxMesh:
 static func spawn(pos: Vector3, mesh: Mesh, parent: Node3D = null) -> Node3D:
 	var instance := MeshInstance3D.new()
 	instance.mesh = mesh
-	instance.position = pos
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_add_child(instance, parent)
+	Util.spawn(instance, pos, parent)
 	return instance
 
 	
 static func spawn_aabb(aabb: AABB, color: Color, parent: Node3D = null) -> Node3D:
 	var instance := MeshInstance3D.new()
 	instance.mesh = aabb_mesh(aabb, color)
-	instance.position = aabb.get_center()
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_add_child(instance, parent)
+	Util.spawn(instance, aabb.get_center(), parent)
 	return instance
 
-# Helper method to spawn
-static func _add_child(instance: Node3D, parent: Node3D = null) -> void:
-	if parent != null:
-		parent.add_child(instance)
-	else:
-		Util.get_scene_root().add_child(instance)
-	instance.reset_physics_interpolation()
 
 ######################################################
 # Visualize Shape Query
 ######################################################
+static func visualize_shape(pos: Vector3, shape: Shape3D, color: Color, delete_after: float = 0.0) -> void:
+	# Construct a mesh + material from the shape
+	var mesh: Mesh = (shape as Shape3D).get_debug_mesh()
+	mesh.surface_set_material(0, mat(color, false, false))
+
+	var instance: Node3D = spawn(pos, mesh)
+	if delete_after > 0.0:
+		Util.delete_after(delete_after, instance)
+
+
+## Visualize a shape query with a mesh and material
+##[br] Works with motion-sweeps and single static queries.
 static func visualize_shape_query(query: PhysicsShapeQueryParameters3D, color: Color, delete_after: float = 0.0) -> void:
 	# Construct a mesh + material from the shape query
 	var mesh: Mesh = (query.shape as Shape3D).get_debug_mesh()
@@ -153,7 +156,7 @@ static func visualize_shape_query(query: PhysicsShapeQueryParameters3D, color: C
 			Util.delete_after(delete_after, instance)
 
 
-static func visualize_shape_query_with_hit(query: PhysicsShapeQueryParameters3D, t: float, color_free: Color, color_hit: Color, delete_after: float = 0.0) -> void:
+static func visualize_shape_query_motion_with_hit(query: PhysicsShapeQueryParameters3D, t: float, color_free: Color, color_hit: Color, delete_after: float = 0.0) -> void:
 	# Check if query has no motion or is completely hit or miss
 	if query.motion.length() == 0.0 or is_equal_approx(t, 0.0) or is_equal_approx(t, 1.0):
 		visualize_shape_query(query, color_hit if t < 0.5 else color_free, delete_after)

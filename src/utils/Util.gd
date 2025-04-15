@@ -1,9 +1,9 @@
 @tool
 class_name Util
 
-######################################################
+########################################################################
 # Randomness
-######################################################
+########################################################################
 ## Gives a random offset in a circle with radius r_max
 static func rand_circular_offset(r_max: float) -> Vector3:
 	var angle := randf_range(0.0, 2.0 * PI)
@@ -23,9 +23,9 @@ static func rand_circular_offset_normal_dist(r_max: float) -> Vector3:
 	return vec3_from_radius_angle(r, angle)
 
 
-######################################################
+########################################################################
 # ANGLES + VECTORS (Geometry)
-######################################################
+########################################################################
 
 # Ensures value is always [0, 5], even if suplying negative number
 static func as_dir(dir: int) -> int:
@@ -75,9 +75,9 @@ static func get_dist_planar(a: Vector3, b: Vector3) -> float:
 	return to_vec2(b - a).length()
 
 
-######################################################
+########################################################################
 # Misc
-######################################################
+########################################################################
 # Like clamp but ensures values is between [a,b] , even if a > b
 static func clampf(val: float, a: float, b: float) -> float:
 	return clampf(val, minf(a, b), maxf(a, b))
@@ -109,9 +109,9 @@ static func spread_vec3(a: Vector3, b: Vector3, n: int) -> Array[Vector3]:
 		values.append(a + step * float(i))
 	return values
 
-######################################################
+########################################################################
 # Timing & Waiting
-######################################################
+########################################################################
 static func wait_until(node: Node3D, condition: Callable) -> void:
 	while not condition.call():
 		await node.get_tree().physics_frame
@@ -131,33 +131,9 @@ static func timer(wait_time: float, timeout_callable: Callable, one_shot: bool =
 	t.timeout.connect(timeout_callable)
 	return t
 
-######################################################
-# Camera access
-######################################################
-
-# Get global camera works in game and editor
-static func get_global_cam(reference_node: Node) -> Camera3D:
-	var cam: Camera3D
-	if Engine.is_editor_hint():
-		cam = EditorInterface.get_editor_viewport_3d(0).get_camera_3d()
-	else:
-		cam = reference_node.get_viewport().get_camera_3d()
-	return cam
-
-
-# Get global camera pos, works in game and editor
-static func get_global_cam_pos(reference_node: Node) -> Vector3:
-	var cam := get_global_cam(reference_node)
-		
-	if cam != null:
-		return cam.global_position
-	else:
-		return Vector3.ZERO
-
-
-######################################################
+########################################################################
 # 3D Vector Math
-######################################################
+########################################################################
 static func transform_from_point_and_normal(point: Vector3, normal: Vector3) -> Transform3D:
 	var transform := Transform3D()
 	transform.origin = point
@@ -176,9 +152,9 @@ static func get_total_path_length(points: PackedVector3Array) -> float:
 		total_length += points[i - 1].distance_to(points[i])
 	return total_length
 
-######################################################
-# Stuff
-######################################################
+########################################################################
+# Geometry Stuff
+########################################################################
 # 0 = on a, 1 = on b
 static func compute_t_on_line_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
 	var ab: Vector2 = b - a
@@ -202,47 +178,6 @@ static func cotangent(a: Vector2, b: Vector2, c: Vector2) -> float:
 	return bc.dot(ba) / abs(bc.cross(ba))
 
 
-######################################################
-# LERP
-######################################################
-const EPSILON: float = 0.001
-static func lerp_towards_f(curr: float, goal: float, speed: float, delta: float) -> float:
-	if abs(goal - curr) < EPSILON:
-		return goal
-	return lerp(curr, goal, 1.0 - exp(-speed * delta))
-
-
-static func lerp_towards_angle(curr: float, goal: float, speed: float, delta: float) -> float:
-	if abs(goal - curr) < EPSILON:
-		return goal
-	return lerp_angle(curr, goal, 1.0 - exp(-speed * delta))
-
-
-static func lerp_towards_vec3(curr: Vector3, goal: Vector3, speed: float, delta: float) -> Vector3:
-	if curr.distance_to(goal) < EPSILON:
-		return goal
-	return lerp(curr, goal, 1.0 - exp(-speed * delta))
-
-######################################################
-# HEXAGON
-######################################################
-
-# smooth_strength = 0 = Perfect Hexagon
-# smooth_strength = 1 = Perfect Circle
-static func get_hex_radius(r: float, angle: float, smooth_strength: float = 0.0) -> float:
-	# Limit to range [0, 60]deg aka one hex segment
-	angle = fmod(angle, PI / 3.0)
-	var r_hex: float = sqrt(3) * r / (sqrt(3) * cos(angle) + sin(angle))
-	return lerp(r_hex, r, smooth_strength)
-
-
-static func get_hex_vertex(r: float, angle: float, smooth_strength: float = 0.0) -> Vector3:
-	return vec3_from_radius_angle(get_hex_radius(r, angle, smooth_strength), angle)
-
-
-######################################################
-# Array stuff
-######################################################
 static func is_point_on_edge(point: Vector2, p1: Vector2, p2: Vector2) -> bool:
 	# Check if point lies on the line segment (p1, p2)
 	if is_equal_approx(point.distance_to(p1) + point.distance_to(p2), p1.distance_to(p2)):
@@ -284,49 +219,110 @@ static func is_triangle_outside_of_polygon(tri: Array[Vector3], polygon: PackedV
 	return false
 
 
-######################################################
+########################################################################
+# LERP
+########################################################################
+const EPSILON: float = 0.001
+static func lerp_towards_f(curr: float, goal: float, speed: float, delta: float) -> float:
+	if abs(goal - curr) < EPSILON:
+		return goal
+	return lerp(curr, goal, 1.0 - exp(-speed * delta))
+
+
+static func lerp_towards_angle(curr: float, goal: float, speed: float, delta: float) -> float:
+	if abs(goal - curr) < EPSILON:
+		return goal
+	return lerp_angle(curr, goal, 1.0 - exp(-speed * delta))
+
+
+static func lerp_towards_vec3(curr: Vector3, goal: Vector3, speed: float, delta: float) -> Vector3:
+	if curr.distance_to(goal) < EPSILON:
+		return goal
+	return lerp(curr, goal, 1.0 - exp(-speed * delta))
+
+########################################################################
+# HEXAGON
+########################################################################
+# smooth_strength = 0 = Perfect Hexagon
+# smooth_strength = 1 = Perfect Circle
+static func get_hex_radius(r: float, angle: float, smooth_strength: float = 0.0) -> float:
+	# Limit to range [0, 60]deg aka one hex segment
+	angle = fmod(angle, PI / 3.0)
+	var r_hex: float = sqrt(3) * r / (sqrt(3) * cos(angle) + sin(angle))
+	return lerp(r_hex, r, smooth_strength)
+
+
+static func get_hex_vertex(r: float, angle: float, smooth_strength: float = 0.0) -> Vector3:
+	return vec3_from_radius_angle(get_hex_radius(r, angle, smooth_strength), angle)
+
+
+########################################################################
 # Physics stuff
-######################################################
+########################################################################
 static func get_scene_root() -> Node3D:
 	if Engine.is_editor_hint():
+		# TODO In editor mode, we need to get the root of the edited scene
+		# This is not ready instantly upon startup, so we need to wait a bit
 		return EditorInterface.get_edited_scene_root() as Node3D
 	else:
 		return (Engine.get_main_loop() as SceneTree).current_scene
 
 static func get_world() -> World3D:
-	return get_scene_root().get_world_3d()
+	var scene_root: Node3D = get_scene_root()
+	if scene_root == null:
+		return null
+	return scene_root.get_world_3d()
 
 static func get_space_state() -> PhysicsDirectSpaceState3D:
 	return get_world().direct_space_state
 
-## Vectors in world space
-static func raycast(from: Vector3, to: Vector3, mask: int = Layers.L.ALL) -> bool:
-	var query := PhysicsRayQueryParameters3D.create(from, to, mask)
-	query.hit_from_inside = true
-	var hit := not get_space_state().intersect_ray(query).is_empty()
+# TODO: Change for multipe navigation maps
+static func get_map() -> RID:
+	return get_world().navigation_map
 
-	# Debug shape
-	# var color := Color(1, 0, 0) if hit else Color(0, 0, 1)
-	# DebugVis3D.spawn_mesh(Vector3.ZERO, DebugVis3D.line_mesh(from, to, DebugVis3D.material(color, true)), Util.get_scene_root())
+## If parent is null the instance will be added to the scene root, use global_pos.
+## If parent is not null the instance will be added to the parent, use local_pos.
+static func spawn(instance: Node3D, pos: Vector3, parent: Node3D = null) -> void:
+	if parent != null:
+		instance.position = pos
+		parent.add_child(instance)
+	else:
+		instance.global_position = pos
+		Util.get_scene_root().add_child(instance)
+	instance.reset_physics_interpolation()
 
-	return hit
 
-static func raycast_first_hit(from: Vector3, to: Vector3, mask: int = Layers.L.ALL) -> Vector3:
-	var query := PhysicsRayQueryParameters3D.create(from, to, mask)
-	query.hit_from_inside = true
-	return get_space_state().intersect_ray(query)["position"]
+########################################################################
+# Camera access
+########################################################################
 
-## Perform a point collision test at the given position (in world space)
-static func collision_point_test(pos: Vector3, mask: int = Layers.L.ALL) -> bool:
-	var query := PhysicsPointQueryParameters3D.new()
-	query.collide_with_areas = false
-	query.collide_with_bodies = true
-	query.position = pos
-	query.collision_mask = mask
-	var hit := not (get_space_state().intersect_point(query, 1).is_empty())
+# Get global camera works in game and editor
+static func get_global_cam(reference_node: Node) -> Camera3D:
+	var cam: Camera3D
+	if Engine.is_editor_hint():
+		cam = EditorInterface.get_editor_viewport_3d(0).get_camera_3d()
+	else:
+		cam = reference_node.get_viewport().get_camera_3d()
+	return cam
 
-	# Debug shape
-	# var color := Color(1, 0, 0) if hit else Color(0, 0, 1)
-	# DebugVis3D.spawn_mesh(pos, DebugVis3D.sphere_mesh(0.15, DebugVis3D.material(color, true)), Util.get_scene_root())
 
-	return hit
+# Get global camera pos, works in game and editor
+static func get_global_cam_pos(reference_node: Node) -> Vector3:
+	var cam := get_global_cam(reference_node)
+		
+	if cam != null:
+		return cam.global_position
+	else:
+		return Vector3.ZERO
+
+
+########################################################################
+# Materials
+########################################################################
+static func duplicate_material_new_color(mesh_instance: MeshInstance3D, new_color: Color) -> void:
+	var new_mesh: Mesh = mesh_instance.mesh.duplicate(true)
+	var new_mat: StandardMaterial3D = new_mesh.surface_get_material(0)
+
+	new_mat.albedo_color = new_color
+	new_mesh.surface_set_material(0, new_mat)
+	mesh_instance.mesh = new_mesh

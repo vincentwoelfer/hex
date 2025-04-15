@@ -18,7 +18,6 @@ var lightning_wave_material: ShaderMaterial
 
 var duration: float
 var timer: Timer
-# var time_elapsed := 0.0
 
 func _process(delta: float) -> void:
 	# time_elapsed += delta
@@ -45,12 +44,10 @@ func setup_shader_materials(color_preset: String) -> void:
 static func spawn(pos: Vector3, spawn_on_floor: bool = true, duration_: float = default_duration, color_preset: String = "black") -> void:
 	var instance: VisualLightningStrike = lightning_scene.instantiate()
 	if spawn_on_floor:
-		pos = Util.raycast_first_hit(pos + Vector3.UP * 1000, pos - Vector3.UP * 1000, Layers.TERRAIN_AND_STATIC)
+		pos = PhysicUtil.raycast_first_hit_pos(pos + Vector3.UP * 1000, pos - Vector3.UP * 1000, Layers.TERRAIN_AND_STATIC)
 		pos += Vector3.UP * 0.2
-	instance.global_position = pos
 
-	Util.get_scene_root().add_child(instance)
-	instance.reset_physics_interpolation()
+	Util.spawn(instance, pos)
 	
 	instance.setup_shader_materials(color_preset)
 	instance.duration = duration_

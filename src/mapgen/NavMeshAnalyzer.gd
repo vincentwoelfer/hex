@@ -70,7 +70,7 @@ func analyze() -> void:
 		var has_external_edge := _has_external_edge(cluster_vertex_indices)
 
 		var collision_pos := vertices[cluster_vertex_indices[0]] + self.world_pos
-		var is_inside_geometry := Util.collision_point_test(collision_pos + Vector3(0, 0.3, 0), Layers.TERRAIN_AND_STATIC)
+		var is_inside_geometry := PhysicUtil.point_collision_test(collision_pos + Vector3(0, 0.3, 0), Layers.TERRAIN_AND_STATIC)
 		var is_on_terrain := _is_on_terrain(cluster_vertex_indices)
 
 		clusters.append(Cluster.new(cluster_polygon_indices, cluster_vertex_indices, has_external_edge, is_inside_geometry, is_on_terrain))
@@ -86,7 +86,7 @@ func _is_on_terrain(cluster_vertex_indices: PackedInt32Array) -> bool:
 	for f: float in checks_at:
 		var idx := floori((cluster_vertex_indices.size() - 1) * f)
 		var collision_pos := vertices[cluster_vertex_indices[idx]] + self.world_pos
-		var hit := Util.raycast(collision_pos + offset, collision_pos - offset, Layers.mask([Layers.L.TERRAIN]))
+		var hit := PhysicUtil.raycast_test(collision_pos + offset, collision_pos - offset, Layers.mask([Layers.L.TERRAIN]))
 		if hit:
 			is_on_terrain = true
 			break

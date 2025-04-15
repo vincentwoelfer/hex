@@ -38,8 +38,8 @@ func _ready() -> void:
 
 
 func get_speed() -> float:
+	# Move faster for testing if Caravan is alone
 	if GameStateManager.cam_follow_point_manager.get_active_cam_follow_nodes().size() == 1:
-		# Caravan is alone, so we need to move faster
 		return 10.0
 	else:
 		return speed
@@ -48,11 +48,9 @@ func spawn_crystal() -> void:
 	var crystal: Node3D = ResLoader.CRYSTAL_SCENE.instantiate()
 	var spawn_pos: Vector3 = self.global_position + Util.rand_circular_offset_range(1.5, 2.5) + Vector3(0, 2.0, 0)
 
-	get_tree().root.add_child(crystal)
-	crystal.global_position = spawn_pos
 	crystal.rotation = Vector3(randf_range(0, TAU), randf_range(0, TAU), randf_range(0, TAU))
-	crystal.reset_physics_interpolation()
-
+	Util.spawn(crystal, spawn_pos)
+	
 
 func _physics_process(delta: float) -> void:
 	var movement: Vector3
@@ -110,22 +108,23 @@ func _push_character(target: CharacterBody3D, collision_normal: Vector3) -> void
 
 
 func choose_new_goal() -> bool:
-	var nav_map: RID = get_world_3d().navigation_map
+	var nav_map: RID = Util.get_map()
 	if NavigationServer3D.map_get_iteration_id(nav_map) == 0:
 		has_goal = false
 		return false
 
+	# Determine random path direction
 	var r := randf_range(min_goal_distance, max_goal_distance)
 	var angle := randf_range(path_dir_mean - path_dir_rand_deviation, path_dir_mean + path_dir_rand_deviation)
 	var goal_pos := global_position + Util.vec3_from_radius_angle(r, angle)
 
-	# Match to nav-mesh -> optimize -> match again
-	goal_pos = NavigationServer3D.map_get_closest_point(nav_map, goal_pos)
-	goal_pos = _find_free_position_near(goal_pos)
-	current_goal = NavigationServer3D.map_get_closest_point(nav_map, goal_pos)
+	# Find valid nearby position - height offset
+	goal_pos += Vector3.UP * 0.5
+	current_goal = PhysicUtil.find_closest_valid_spawn_pos(goal_pos, collision.shape, 1.0, 5.0, true, Layers.TERRAIN_AND_STATIC)
 
 	# Validate the goal
-	if current_goal == Vector3.ZERO:
+	if current_goal == Vector3.INF:
+		print("Caravan goal is invalid, trying again...")
 		has_goal = false
 		return false
 
@@ -134,51 +133,3 @@ func choose_new_goal() -> bool:
 	print("Caravan has new goal : ", current_goal)
 	has_goal = true
 	return true
-
-
-# TODO move somewhere else
-# New circle must contain original center or this might clip through walls entierely
-func _find_free_position_near(origin: Vector3) -> Vector3:
-	# Util.delete_after(5.0, DebugVis3D.spawn(origin + Vector3(0, 0.5, 0), DebugVis3D.sphere(0.15, DebugVis3D.mat(Color.BLUE, true))))
-	if _is_area_free(origin):
-		return origin
-
-	# Expand outward in a spiral/sphere pattern
-	var max_search_radius: float = 4.0
-	var search_step: float = 2.0
-	var i := 0
-	for r in range(search_step, max_search_radius, search_step):
-		for angle in range(0.0, TAU, deg_to_rad(60)):
-			i += 1
-			var new_pos := origin + Util.vec3_from_radius_angle(r, angle)
-			if _is_area_free(new_pos):
-				return new_pos
-	return origin # fallback: no free space found
-
-func _is_area_free(pos: Vector3) -> bool:
-	var check_radius: float = 4.0
-	var check_height: float = 0.25
-	var check_height_offset: Vector3 = Vector3(0, 0.5, 0)
-
-	var shape := CylinderShape3D.new()
-	shape.radius = check_radius
-	shape.height = check_height
-	var query := PhysicsShapeQueryParameters3D.new()
-	query.set_shape(shape)
-	query.transform = Transform3D(Basis.IDENTITY, pos + check_height_offset)
-	query.collision_mask = Layers.TERRAIN_AND_STATIC
-	query.collide_with_bodies = true
-	query.collide_with_areas = false
-
-	var result := get_world_3d().direct_space_state.intersect_shape(query, 1)
-	var is_free := result.size() == 0
-
-	# var sp_green := DebugVis3D.cylinder(check_radius, check_height, DebugVis3D.mat(Color(Color.GREEN, 0.5), false))
-	# var sp_red := DebugVis3D.cylinder(check_radius, check_height, DebugVis3D.mat(Color(Color.RED, 0.5), false))
-
-	# if is_free:
-	# 	Util.delete_after(5.0, DebugVis3D.spawn(pos + check_height_offset * 2.0, sp_green))
-	# else:
-	# 	Util.delete_after(5.0, DebugVis3D.spawn(pos + check_height_offset, sp_red))
-
-	return is_free

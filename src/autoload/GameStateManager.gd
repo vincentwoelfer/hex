@@ -10,15 +10,6 @@ var caravan: Caravan
 var cam_follow_point_manager: CameraFollowPointManager
 
 
-# PlayerTeamTeleporter
-enum TeamTeleporterStatus {ON_COOLDOWN, READY_TO_DEPLOY, DEPLOYED}
-var team_teleporter_status: TeamTeleporterStatus = TeamTeleporterStatus.READY_TO_DEPLOY
-
-var team_teleporter_cooldown: float = 10.0
-var team_teleporter_active_time: float = 4.0
-var team_teleporter_cooldown_timer: Timer
-var team_teleporter_active_timer: Timer
-
 func _ready() -> void:
 	if not Engine.is_editor_hint():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -26,7 +17,7 @@ func _ready() -> void:
 
 	cam_follow_point_manager = CameraFollowPointManager.new()
 
-	# NAVMAP
+	# NAVMAP - Dont use Util.get_map() here - for whatever reason it doesnt work in editor mode for autoload _ready() functions
 	var nav_map := get_world_3d().navigation_map
 	NavigationServer3D.set_debug_enabled(DebugSettings.nav_server_debug_mode)
 	NavigationServer3D.map_set_cell_size(nav_map, HexConst.NAV_CELL_SIZE)
@@ -54,12 +45,10 @@ func _ready() -> void:
 	await get_tree().physics_frame
 
 	spawn_caravan()
-	await get_tree().physics_frame
-	await get_tree().physics_frame
 
-	# Always spawn keyboard player for development (not in editor)
-	if not Engine.is_editor_hint():
-		PlayerManager.add_player(-1)
+	# Always spawn keyboard player for development (after caravan has been spawened)
+	await get_tree().process_frame
+	PlayerManager.add_player(-1)
 
 	# Add enemy spawner
 	add_child(Util.timer(2.5, spawn_enemy))
@@ -113,6 +102,15 @@ func delete_far_away_entities() -> void:
 		if crystal.global_position.distance_squared_to(center) > max_dist_sqared:
 			crystal.queue_free()
 
+	# Players - Teleport to caravan if too far aways
+	var player_max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_deletion_distance_hex) * 0.7
+	var player_max_dist_sqared: float = player_max_dist * player_max_dist
+
+	for player: PlayerController in get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS):
+		if player.global_position.distance_squared_to(center) > max_dist_sqared:
+			pass
+			# TODO
+
 
 ###################################################################
 # Spawner Functions
@@ -125,15 +123,10 @@ func spawn_enemy() -> void:
 
 	# Find spawn pos
 	var shape: CollisionShape3D = enemy_node.get_node("Collision")
-	var spawn_pos: Vector3 = caravan.global_position + Util.rand_circular_offset_range(20, 25)
-
-	# Match to navmesh, get height
-	spawn_pos = NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, spawn_pos)
-	spawn_pos = MapGeneration.get_spawn_pos_height_on_map_surface(spawn_pos, shape)
-
-	get_tree().root.add_child(enemy_node)
-	enemy_node.global_position = spawn_pos
-	enemy_node.reset_physics_interpolation()
+	var spawn_pos := caravan.global_position + Util.rand_circular_offset_range(20, 25)
+	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 0.5, 3.0, true)
+	
+	Util.spawn(enemy_node, actual_spawn_pos)
 
 
 func spawn_caravan() -> void:
@@ -142,27 +135,14 @@ func spawn_caravan() -> void:
 
 	caravan = ResLoader.CARAVAN_SCENE.instantiate()
 
-	# Find spawn height
-	var spawn_pos: Vector3 = HexConst.MAP_CENTER
+	# Find spawn pos
 	var shape: CollisionShape3D = caravan.get_node("Collision")
+	var spawn_pos: Vector3 = HexConst.MAP_CENTER
+	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 1.0, 5.0, true)
 
-	# Match to navmesh, get height - this requires a navmesh
-	spawn_pos = NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, spawn_pos)
-	spawn_pos = MapGeneration.get_spawn_pos_height_on_map_surface(spawn_pos, shape)
+	Util.duplicate_material_new_color(caravan.get_node("Mesh") as MeshInstance3D, Colors.COLOR_CARAVAN)
 
-	# Set color
-	var mesh_instance := caravan.get_node("Mesh") as MeshInstance3D
-	var new_mesh: Mesh = mesh_instance.mesh.duplicate(true)
-
-	var new_mat: StandardMaterial3D = new_mesh.surface_get_material(0)
-	new_mat.albedo_color = Colors.COLOR_CARAVAN
-	new_mesh.surface_set_material(0, new_mat)
-	mesh_instance.mesh = new_mesh
-
-	# Add to scene
-	get_tree().root.add_child(caravan)
-	caravan.global_position = spawn_pos
-	caravan.reset_physics_interpolation()
+	Util.spawn(caravan, actual_spawn_pos)
 
 	cam_follow_point_manager.register_cam_follow_node(caravan)
 
@@ -173,20 +153,11 @@ func spawn_player(player: PlayerData) -> void:
 
 	# Find spawn pos
 	var shape: CollisionShape3D = player_node.get_node("Collision")
-	var spawn_pos := _find_spawn_pos_xz_near_caravan(player.id)
-
-	# Match to navmesh, get height - this requires a navmesh
-	spawn_pos = NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, spawn_pos)
-	spawn_pos = MapGeneration.get_spawn_pos_height_on_map_surface(spawn_pos, shape)
+	var spawn_pos := caravan.global_position + Util.rand_circular_offset_range(3.0, 3.0)
+	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 0.5, 3.0, true)
 
 	# Set player color
-	var mesh_instance := player_node.get_node("Mesh") as MeshInstance3D
-	var new_mesh: Mesh = mesh_instance.mesh.duplicate(true)
-
-	var new_mat: StandardMaterial3D = new_mesh.surface_get_material(0)
-	new_mat.albedo_color = player.color
-	new_mesh.surface_set_material(0, new_mat)
-	mesh_instance.mesh = new_mesh
+	Util.duplicate_material_new_color(caravan.get_node("Mesh") as MeshInstance3D, player.color)
 
 	# Add to scene
 	get_tree().root.add_child(player_node)
@@ -197,36 +168,9 @@ func spawn_player(player: PlayerData) -> void:
 	player.player_node = player_node
 	player_node.player_data = player
 	
-	GameStateManager.cam_follow_point_manager.register_cam_follow_node(player_node)
+	cam_follow_point_manager.register_cam_follow_node(player_node)
 
 
 func despawn_player(player: PlayerData) -> void:
-	GameStateManager.cam_follow_point_manager.unregister_cam_follow_node(player.player_node)
+	cam_follow_point_manager.unregister_cam_follow_node(player.player_node)
 	player.player_node.queue_free()
-
-
-###################################################################
-# Helper
-###################################################################
-# TODO move to physics utils class
-func _find_closest_valid_spawn_pos(pos: Vector3, shape: CollisionShape3D, match_to_navmesh: bool = true) -> Vector3:
-	# Match to navmesh, get height - this requires a navmesh
-	if match_to_navmesh:
-		pos = NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, pos)
-
-
-	pos = MapGeneration.get_spawn_pos_height_on_map_surface(pos, shape)
-
-	
-	# Find spawn pos
-	var shape: CollisionShape3D = player_node.get_node("Collision")
-	var spawn_pos := _find_spawn_pos_xz_near_caravan(player.id)
-
-	# Match to navmesh, get height - this requires a navmesh
-	spawn_pos = NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, spawn_pos)
-	spawn_pos = MapGeneration.get_spawn_pos_height_on_map_surface(spawn_pos, shape)
-
-
-func _find_spawn_pos_xz_near_caravan(exclude_id: int) -> Vector3:
-	var reference_pos: Vector3 = GameStateManager.caravan.global_position
-	return reference_pos + Util.rand_circular_offset_range(3.0, 3.0)

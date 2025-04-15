@@ -104,7 +104,7 @@ func _get_possible_goals() -> Array[Node3D]:
 func _choose_new_goal() -> void:
 	target = null
 
-	var nav_map: RID = get_world_3d().navigation_map
+	var nav_map: RID = Util.get_map()
 	if NavigationServer3D.map_get_iteration_id(nav_map) == 0:
 		return
 
@@ -143,15 +143,7 @@ func _compute_target_done_dist() -> float:
 		for child in target.get_children():
 			# Use first collision shape found
 			if child is CollisionShape3D:
-				var shape: Shape3D = (child as CollisionShape3D).shape
-				if shape is SphereShape3D:
-					target_radius = (shape as SphereShape3D).radius
-				elif shape is CapsuleShape3D:
-					target_radius = (shape as CapsuleShape3D).radius
-				elif shape is CylinderShape3D:
-					target_radius = (shape as CylinderShape3D).radius
-				# Add more shape types if needed
-
+				target_radius = PhysicUtil.get_shape_radius((child as CollisionShape3D).shape)
 				break
 
 	return path_finding_agent.radius + target_radius + 0.2

@@ -71,7 +71,6 @@ func init(color_: Color, sweeping_shape_reference: Shape3D, show_path_: bool = t
 		original_height = s.radius * 2.0
 		radius = s.radius
 		s.radius *= radius_factor
-
 	elif sweeping_shape is CapsuleShape3D:
 		var s := sweeping_shape as CapsuleShape3D
 
@@ -79,7 +78,6 @@ func init(color_: Color, sweeping_shape_reference: Shape3D, show_path_: bool = t
 		radius = s.radius
 		s.radius *= radius_factor
 		s.height *= height_factor
-
 	elif sweeping_shape is CylinderShape3D:
 		var s := sweeping_shape as CylinderShape3D
 
@@ -251,7 +249,7 @@ func _plan_new_path() -> void:
 		return
 
 	# Do not query when the map has never synchronized and is empty.
-	var map: RID = get_world_3d().navigation_map
+	var map: RID = Util.get_map()
 	if NavigationServer3D.map_get_iteration_id(map) == 0:
 		return
 	
@@ -271,36 +269,33 @@ func _simplify_path(p: PackedVector3Array) -> PackedVector3Array:
 	if p.size() < 3:
 		return p
 
-	# Check if we can reach the end directly        
 	var simplified_p := PackedVector3Array()
 	var current_index := 0
 	simplified_p.append(p[current_index])
 	
-	# Iterate over p, try to connect current_index (from p start) with next_index, (from p end, moving backwards)
+	# Iterate over p, try to connect current_index (from p start) with next_index, (from path end, moving backwards)
 	while current_index < p.size() - 1:
-		var next_index := p.size() - 1 # Try to jump directly to the end
+		var next_index := p.size() - 1
 
 		# Check if we can reach the furthest point directly
 		while next_index > current_index + 1:
-			# Check if we can connect current_index with next_index
 			if _can_connect_points(p[current_index], p[next_index]):
 				break
 			else:
 				next_index -= 1
 
-		# Move to the next reachable point
+		# Start again from the next reachable point
 		current_index = next_index
 		simplified_p.append(p[current_index])
 	return simplified_p
 
 
+## Try to connect two path points directly, only connect iff:
+##[br] - path is clear
+##[br] - distance is short enough
+##[br] - low height difference
+##[br] - low slope
 func _can_connect_points(curr: Vector3, next: Vector3) -> bool:
-	var visualize: bool = false
-	# Only connect if
-	# - path is clear
-	# - distance is short enough
-	# - low height difference
-	# - low slope
 	# Check distance
 	var distance := curr.distance_to(next)
 	if distance > max_simplify_dist:
@@ -326,19 +321,20 @@ func _can_connect_points(curr: Vector3, next: Vector3) -> bool:
 	query.collision_mask = Layers.TERRAIN_AND_STATIC
 
 	# First perform shape-check to check for initial collision, then a motion-sweep
-	var does_collide := get_world_3d().direct_space_state.intersect_shape(query, 1).size() > 0
+	var does_collide := not Util.get_space_state().intersect_shape(query, 1).is_empty()
 	var t := 0.0
 	if not does_collide:
-		var result: PackedFloat32Array = get_world_3d().direct_space_state.cast_motion(query)
+		var result: PackedFloat32Array = Util.get_space_state().cast_motion(query)
 		t = result[0]
 		does_collide = t < 1.0
 
-	# Debug visualization - only for caravan
+	# Debug visualization - only for caravan (thats why self.radius => 0.6 is checked)
+	var visualize: bool = false
 	if visualize:
 		if self.radius >= 0.6:
 			var col_free := Colors.set_alpha(color.lerp(Color.GREEN, 0.5), 0.9)
 			var col_hit := Colors.set_alpha(color.lerp(Color.RED, 0.5), 0.9)
-			DebugVis3D.visualize_shape_query_with_hit(query, t, col_free, col_hit, 25.0)
+			DebugVis3D.visualize_shape_query_motion_with_hit(query, t, col_free, col_hit, 25.0)
 
 	if does_collide:
 		return false
