@@ -125,10 +125,14 @@ func _physics_process(delta: float) -> void:
 			dash_timer = dash_duration
 	
 	# Lightning
-	if input.primary_input.wants:
-		input.primary_input.consume()
+	if input.skill_primary_input.wants:
+		input.skill_primary_input.consume()
 		VisualLightningStrike.spawn(self.global_position)
-		
+
+	# Throw bomb
+	if input.skill_secondary_input.wants:
+		input.skill_secondary_input.consume()
+		# TODO
 
 	# Determine target vel based on state -> TODO rework into state machine
 	var target_planar_speed: float

@@ -11,6 +11,7 @@ var path_dir_rand_deviation: float = deg_to_rad(15)
 
 var has_goal: bool = false
 var current_goal: Vector3
+var goal_marker: Node3D = null
 
 var velocity_no_collision: Vector3 = Vector3.ZERO
 
@@ -72,11 +73,11 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 	# TODO: Not perfect, but works for now
-	push_characters()
+	push_characters_objects()
 		# self.velocity = self.velocity_no_collision
 		# move_and_slide()
 
-func push_characters() -> bool:
+func push_characters_objects() -> bool:
 	var pushed_any_character: bool = false
 
 	# Check for collisions
@@ -88,6 +89,15 @@ func push_characters() -> bool:
 		if other_body is CharacterBody3D and other_body != self:
 			pushed_any_character = true
 			self._push_character(other_body as CharacterBody3D, c.get_normal())
+
+		if other_body is RigidBody3D:
+			pushed_any_character = true
+			var other_rigid_body: RigidBody3D = other_body as RigidBody3D
+			# other_rigid_body.apply_force(c.get_position() - global_position, c.get_normal() * 0.5)
+			var force := 5.0
+			# other_rigid_body.apply_central_force(c.get_normal().normalized() * force)
+			# other_rigid_body.apply_central_impulse(c.get_normal().normalized() * force)
+			other_rigid_body.apply_impulse(c.get_position(), c.get_normal().normalized() * force)
 
 	return pushed_any_character
 
@@ -135,4 +145,14 @@ func choose_new_goal() -> bool:
 	path_finding_agent.set_target(current_goal)
 	print("Caravan has new goal : ", current_goal)
 	has_goal = true
+
+	# TODO position is sometimes of, why?
+	# Replace goal marker
+	# if goal_marker != null:
+	# 	goal_marker.queue_free()
+
+	# goal_marker = ResLoader.GROUND_PORTAL_SCENE.instantiate()
+	# var pos_on_ground := PhysicUtil.get_raycast_height_on_map_surface(current_goal) + Vector3.UP * 0.2
+	# Util.spawn(goal_marker, pos_on_ground)
+
 	return true

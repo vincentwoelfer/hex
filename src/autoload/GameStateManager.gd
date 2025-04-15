@@ -74,6 +74,9 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_pressed("dev_spawn_enemy"):
 			spawn_enemy()
 
+		if event.is_action_pressed("dev_spawn_crystal"):
+			caravan.spawn_crystal()
+
 		if event.is_action_pressed("dev_toggle_cam_follow_caravan"):
 			cam_follow_point_manager.use_caravan_for_cam_follow = not cam_follow_point_manager.use_caravan_for_cam_follow
 
