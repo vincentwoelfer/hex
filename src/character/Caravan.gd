@@ -47,10 +47,12 @@ func get_speed() -> float:
 
 func spawn_crystal() -> void:
 	var crystal: Node3D = ResLoader.CRYSTAL_SCENE.instantiate()
-	var spawn_pos: Vector3 = self.global_position + Util.rand_circular_offset_range(1.5, 2.5) + Vector3(0, 2.0, 0)
+	var spawn_pos: Vector3 = self.global_position + Util.rand_circular_offset_range(1.5, 2.5) + Vector3(0, 2.0, 0) + path_finding_agent.get_direction() * 1.5
 
 	crystal.rotation = Vector3(randf_range(0, TAU), randf_range(0, TAU), randf_range(0, TAU))
 	Util.spawn(crystal, spawn_pos)
+	var torque := Vector3(randfn(0, 1), randfn(0, 1), randfn(0, 1)) * 2.0
+	(crystal as RigidBody3D).apply_torque_impulse(torque)
 	
 
 func _physics_process(delta: float) -> void:
@@ -93,11 +95,16 @@ func push_characters_objects() -> bool:
 		if other_body is RigidBody3D:
 			pushed_any_character = true
 			var other_rigid_body: RigidBody3D = other_body as RigidBody3D
-			# other_rigid_body.apply_force(c.get_position() - global_position, c.get_normal() * 0.5)
-			var force := 5.0
+			var force := 50.0
+
+			# Works but unstable/jerky
+			other_rigid_body.apply_force(c.get_position(), c.get_normal().normalized() * force)
+
+			# Does not work, seems to have no effect
 			# other_rigid_body.apply_central_force(c.get_normal().normalized() * force)
+
 			# other_rigid_body.apply_central_impulse(c.get_normal().normalized() * force)
-			other_rigid_body.apply_impulse(c.get_position(), c.get_normal().normalized() * force)
+			# other_rigid_body.apply_impulse(c.get_position(), c.get_normal().normalized() * force)
 
 	return pushed_any_character
 
