@@ -10,7 +10,7 @@ var time_between_bounces_sec: float = 0.125
 var last_bounce_time_counter: float = time_between_bounces_sec
 
 var explosion_radius: float = 3.75
-var explosion_force: float = 18.0
+var explosion_force: float = 170.0
 
 var exploded := false
 
