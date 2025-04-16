@@ -4,11 +4,13 @@
 [ext_resource type="Script" uid="uid://c060gopftivg1" path="res://src/objects/Crystal.gd" id="1_djkj4"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_bx36n"]
+margin = 0.07
 radius = 0.14
-height = 0.632
+height = 0.63
 
 [node name="Crystal" type="RigidBody3D"]
 collision_layer = 33
+mass = 5.0
 script = ExtResource("1_djkj4")
 
 [node name="CrystalObject" parent="." instance=ExtResource("1_bx36n")]
@@ -19,7 +21,5 @@ shape = SubResource("CapsuleShape3D_bx36n")
 
 [node name="OmniLight3D" type="OmniLight3D" parent="."]
 light_color = Color(0.160784, 0.721569, 1, 1)
-shadow_enabled = true
-omni_range = 4.0
-omni_attenuation = 2.0
+light_energy = 1.5
 omni_shadow_mode = 0

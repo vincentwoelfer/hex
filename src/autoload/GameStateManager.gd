@@ -52,7 +52,7 @@ func _ready() -> void:
 
 	# Add enemy spawner TODO make enemy number player number dependent
 	add_child(Util.timer(1.5, spawn_enemy))
-	add_child(Util.timer(2.0, delete_far_away_entities))
+	add_child(Util.timer(1.0, delete_far_away_entities))
 
 
 # React to keyboard inputs to directly trigger events
@@ -92,7 +92,7 @@ func request_quit_game() -> void:
 func delete_far_away_entities() -> void:
 	var center := caravan.global_position
 	# Deletion dist ist smaller than map/chunk deletion dist (but a factor of it)
-	var max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_generation_distance_hex) * 0.65
+	var max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_generation_distance_hex) * 0.45
 	var max_dist_sqared: float = max_dist * max_dist
 
 	# Enemies
@@ -106,7 +106,7 @@ func delete_far_away_entities() -> void:
 			crystal.queue_free()
 
 	# Players - Teleport to caravan if too far aways
-	var player_max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_generation_distance_hex) * 0.35
+	var player_max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_generation_distance_hex) * 0.3
 	var player_max_dist_sqared: float = player_max_dist * player_max_dist
 
 	for player: PlayerController in get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS):

@@ -125,6 +125,7 @@ func set_track_target(track_target_: Node3D) -> void:
 	self.has_target = true
 	self.target = track_target_.global_position
 
+## True after target has been reached and until new goal is set
 func is_navigation_done() -> bool:
 	return navigation_done
 
@@ -133,8 +134,11 @@ func get_target() -> Vector3:
 		return Vector3.ZERO
 	return target
 
+func get_has_path() -> bool:
+	return has_path
+
 func get_direction() -> Vector3:
-	if not has_path or navigation_done or path.size() <= 1:
+	if not has_path or path.size() <= 1:
 		return Vector3.ZERO
 
 	# We try to reach index 1, 0 is current position (in visualization)

@@ -1,5 +1,5 @@
 class_name BasicEnemy
-extends CharacterBody3D
+extends HexPhysicsCharacterBody3D
 
 # Scene references
 @onready var path_finding_agent: PathFindingAgent = $PathFindingAgent
@@ -18,12 +18,14 @@ var goal_choosing_interval: float = 0.75
 
 # Exploding
 var is_exploding := false
-var explosion_radius: float = 1.8
+var explosion_radius: float = 1.9
+var explosion_force: float = 20.0
 
-const explosion_duration := 0.85
-const explosion_wave_count := 3
-const explosion_max_size := 2.0
-var explosion_target_color := Colors.mod_sat_val_hue(Color.RED, 0.1, 1.0)
+# Explosion visual
+var explosion_duration := 0.85
+var explosion_visual_wave_count := 3
+var explosion_visual_max_size := 2.0
+var explosion_viusal_target_color := Colors.mod_sat_val_hue(Color.RED, 0.1, 1.0)
 
 
 func _ready() -> void:
@@ -44,32 +46,35 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if is_exploding:
 		# Execute move_and_slide() to enable gravity/being pushed
-		move_and_slide()
+		# move_and_slide()
 		return
 
-	# returns ZERO if no path/goal
-	var movement: Vector3 = path_finding_agent.get_direction() * speed
-
-	if movement == Vector3.ZERO:
+	# Replan if no path
+	if not path_finding_agent.get_has_path():
 		self.goal_choosing_timer.start()
 		_choose_new_goal()
-	else:
-		# Move, Dont touch y to not mess with gravity
-		velocity.x = movement.x
-		velocity.z = movement.z
-
-	# Apply gravity
-	if not is_on_floor():
-		velocity.y += HexConst.GRAVITY * delta
-
-	# Reached target - custom larger radius to enable "explosion" later on
-	if target != null and Util.get_dist_planar(global_position, target.global_position) <= target_reached_dist:
-		queue_free()
-		return
 
 	_check_player_near_for_explosion()
 
-	move_and_slide()
+	# Reached non-player target -> just delete for now
+	if target != null and Util.get_dist_planar(global_position, target.global_position) <= target_reached_dist:
+		_start_exploding()
+		return
+
+	# Movement
+	var m: CharMovement = CharMovement.new()
+	m.input_dir = Util.to_vec2(path_finding_agent.get_direction())
+	m.input_speed = self.speed
+	
+	# Fake values, instant accel/decel
+	m.accel_ramp_time = 0.0
+	m.decel_ramp_time = 0.0
+	m.max_possible_speed = self.speed
+
+	m.input_control_factor = 1.0
+	m.vertical_override = 0.0
+
+	self._custom_physics_process(delta, m)
 
 
 func _check_player_near_for_explosion() -> void:
@@ -160,20 +165,52 @@ func _start_exploding() -> void:
 	self.velocity = Vector3.ZERO
 
 	add_child(Util.timer(self.explosion_duration, _on_explodion_finish, true))
-	_explosion_effect()
+	_explosion_visual_self_effect()
 
+	# Red indicator, gets deleted because its a child
 	var effect_height := 0.5
 	var effect := DebugVis3D.cylinder(explosion_radius, effect_height, DebugVis3D.mat(Color(Color.RED.lightened(0.25), 0.15), false))
 	DebugVis3D.spawn(Vector3.UP * 0.5 * effect_height, effect, self)
 
 
 func _on_explodion_finish() -> void:
-	self.queue_free()
+	# define area
+	var area := Area3D.new()
+	var shape := CylinderShape3D.new()
+	shape.radius = explosion_radius
+	shape.height = explosion_radius
+	var collision_shape := CollisionShape3D.new()
+	collision_shape.shape = shape
+	area.add_child(collision_shape)
+	add_child(area)
+	area.set_collision_mask_value(Layers.L.PLAYER_CHARACTERS, true)
+	area.set_collision_mask_value(Layers.L.PICKABLE_OBJECTS, true)
+
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+
+	# APPLY
+	var bodies := area.get_overlapping_bodies()
+	for body in bodies:
+		if body is RigidBody3D:
+			var rigid_body: RigidBody3D = body
+			var impulse := Util.calculate_explosion_impulse(global_position, body.global_position, explosion_force, explosion_radius)
+			print("Impulse against crystal: ", impulse)
+			rigid_body.apply_central_impulse(impulse)
+
+		elif body is HexPhysicsCharacterBody3D:
+			var hex_body: HexPhysicsCharacterBody3D = body
+			var impulse := Util.calculate_explosion_impulse(global_position, body.global_position, explosion_force, explosion_radius)
+			print("Impulse against char: ", impulse)
+			hex_body.apply_external_impulse(impulse)
+
+	###################
 	# TODO drop crystal
 	# TODO add explosion effect (external particle, not self-growth)
+	self.queue_free()
 
 
-func _explosion_effect() -> void:
+func _explosion_visual_self_effect() -> void:
 	var tween_trans_type := Tween.TRANS_ELASTIC
 	var tween_ease_type := Tween.EASE_IN_OUT
 
@@ -183,20 +220,20 @@ func _explosion_effect() -> void:
 	var color_tween := create_tween()
 	color_tween.set_trans(tween_trans_type)
 	color_tween.set_ease(tween_ease_type)
-	color_tween.tween_method(_change_material_color, original_color, explosion_target_color, explosion_duration)
+	color_tween.tween_method(_change_material_color, original_color, explosion_viusal_target_color, explosion_duration)
 
 	# Add scale tween
 	var size_tween := create_tween()
 	size_tween.set_trans(tween_trans_type)
 	size_tween.set_ease(tween_ease_type)
 
-	var time_per_wave := explosion_duration / float(explosion_wave_count)
+	var time_per_wave := explosion_duration / float(explosion_visual_wave_count)
 
-	for i in range(explosion_wave_count):
+	for i in range(explosion_visual_wave_count):
 		# i = 0,1,2 for 3 waves
 		# t = 0.33 ,0.66, 1.0 for 3 waves
-		var t := float(i + 1) / float(explosion_wave_count)
-		var scale_value := lerpf(1.0, explosion_max_size, t)
+		var t := float(i + 1) / float(explosion_visual_wave_count)
+		var scale_value := lerpf(1.0, explosion_visual_max_size, t)
 
 		# These tween effects are executed after one another, we queue them all here
 		size_tween.tween_property(mesh, "scale", Vector3.ONE * scale_value, time_per_wave)

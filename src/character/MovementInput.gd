@@ -59,18 +59,19 @@ func consume_mouse_input() -> void:
 
 # Called once per frame / physics tick
 func update_keys(delta: float) -> void:
-	# Hold-Down
-	self.wants_sprint = HexInput.is_action_pressed(device_id, "sprint")
-
 	# Press-Once
 	self.jump_input.update(delta)
 	self.dash_input.update(delta)
 	self.skill_primary_input.update(delta)
+	self.skill_secondary_input.update(delta)
 
+	# Hold-Down
+	self.wants_sprint = HexInput.is_action_pressed(device_id, "sprint")
 
-	# Directional (WASD/JoyStick)
+	# Directional (WASD / JoyStick)
 	var inputDir := HexInput.get_vector(device_id, "move_left", "move_right", "move_forward", "move_backward")
 	self.input_direction = Vector3(inputDir.x, 0.0, inputDir.y)
 
-	# Rotate the input direction by the camera's rotation
-	self.input_direction = self.input_direction.rotated(Vector3.UP, GameStateManager.cam_follow_point_manager.get_global_camera_view_angle()).normalized()
+	# Rotate the input direction by the global camera's rotation
+	var cam_view_angle := GameStateManager.cam_follow_point_manager.get_global_camera_view_angle()
+	self.input_direction = self.input_direction.rotated(Vector3.UP, cam_view_angle).normalized()

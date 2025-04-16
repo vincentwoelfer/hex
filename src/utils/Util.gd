@@ -326,3 +326,26 @@ static func duplicate_material_new_color(mesh_instance: MeshInstance3D, new_colo
 	new_mat.albedo_color = new_color
 	new_mesh.surface_set_material(0, new_mat)
 	mesh_instance.mesh = new_mesh
+
+
+########################################################################
+# Gameplay Effects
+########################################################################
+## Apply a radial impulse from an explosion centered at 'origin'.
+static func calculate_explosion_impulse(origin: Vector3, target_pos: Vector3, explosion_strength: float, explosion_radius: float) -> Vector3:
+	var to_target: Vector3 = target_pos - origin
+	to_target.y = 0.0 # Ignore height difference
+
+	var dist: float = to_target.length()
+	to_target = to_target.normalized()
+
+	# out of range, no effect
+	if dist > explosion_radius:
+		return Vector3.ZERO
+
+	# Impulse diminishes with distance from the origin
+	var force_factor: float = 1.0 - (dist / explosion_radius)
+
+	# Change from [1, 0] to [1, 0.6]
+	force_factor = remap(force_factor, 1.0, 0.0, 1.0, 0.6)
+	return to_target * explosion_strength * force_factor

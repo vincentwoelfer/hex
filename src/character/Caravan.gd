@@ -1,5 +1,5 @@
 class_name Caravan
-extends CharacterBody3D
+extends HexPhysicsCharacterBody3D
 
 var speed: float = 1.5
 
@@ -23,6 +23,9 @@ var velocity_no_collision: Vector3 = Vector3.ZERO
 var crystal_timer: Timer
 
 func _ready() -> void:
+	# more than player
+	self.mass = 100.0
+
 	# Pathfinding agent
 	path_finding_agent.init(Colors.COLOR_CARAVAN, collision.shape, DebugSettings.show_path_caravan)
 	path_finding_agent.replan_interval_s = -1.0
@@ -40,7 +43,7 @@ func _ready() -> void:
 
 func get_speed() -> float:
 	# Move faster for testing if Caravan is alone
-	if GameStateManager.cam_follow_point_manager.get_active_cam_follow_nodes().size() == 1:
+	if GameStateManager.cam_follow_point_manager.get_active_cam_follow_nodes() == [self]:
 		return 10.0
 	else:
 		return speed
@@ -56,72 +59,76 @@ func spawn_crystal() -> void:
 	
 
 func _physics_process(delta: float) -> void:
-	var movement: Vector3
 	if path_finding_agent.is_navigation_done() or not has_goal:
 		if not choose_new_goal():
 			print("Unable to find new caravan goal!")
 
-	# Move, Dont touch y to not mess with gravity
-	movement = path_finding_agent.get_direction() * self.get_speed()
-	velocity.x = movement.x
-	velocity.z = movement.z
+	var m: CharMovement = CharMovement.new()
+	m.input_dir = Util.to_vec2(path_finding_agent.get_direction())
+	m.input_speed = self.get_speed()
+	
+	# Fake values, instant accel/decel
+	m.accel_ramp_time = 0.0
+	m.decel_ramp_time = 0.0
+	m.max_possible_speed = self.get_speed()
 
-	# Apply gravity
-	if not is_on_floor():
-		velocity.y += HexConst.GRAVITY * delta
+	m.input_control_factor = 1.0
+	m.vertical_override = 0.0
+
+	self._custom_physics_process(delta, m)
 
 	# Store velocity before move_and_slide
-	self.velocity_no_collision = velocity
-	move_and_slide()
+	# self.velocity_no_collision = velocity
+	# move_and_slide()
 
 	# TODO: Not perfect, but works for now
-	push_characters_objects()
+	# push_characters_objects()
 		# self.velocity = self.velocity_no_collision
 		# move_and_slide()
 
-func push_characters_objects() -> bool:
-	var pushed_any_character: bool = false
+# func push_characters_objects() -> bool:
+# 	var pushed_any_character: bool = false
 
-	# Check for collisions
-	for i: int in get_slide_collision_count():
-		var c: KinematicCollision3D = get_slide_collision(i)
-		var other_body: Node3D = c.get_collider()
+# 	# Check for collisions
+# 	for i: int in get_slide_collision_count():
+# 		var c: KinematicCollision3D = get_slide_collision(i)
+# 		var other_body: Node3D = c.get_collider()
 
-		# Only push other CharacterBody3D nodes
-		if other_body is CharacterBody3D and other_body != self:
-			pushed_any_character = true
-			self._push_character(other_body as CharacterBody3D, c.get_normal())
+# 		# Only push other CharacterBody3D nodes
+# 		if other_body is CharacterBody3D and other_body != self:
+# 			pushed_any_character = true
+# 			self._push_character(other_body as CharacterBody3D, c.get_normal())
 
-		if other_body is RigidBody3D:
-			pushed_any_character = true
-			var other_rigid_body: RigidBody3D = other_body as RigidBody3D
-			var force := 50.0
+# 		if other_body is RigidBody3D:
+# 			pushed_any_character = true
+# 			var other_rigid_body: RigidBody3D = other_body as RigidBody3D
+# 			var force := 50.0
 
-			# Works but unstable/jerky
-			other_rigid_body.apply_force(c.get_position(), c.get_normal().normalized() * force)
+# 			# Works but unstable/jerky
+# 			other_rigid_body.apply_force(c.get_position(), c.get_normal().normalized() * force)
 
-			# Does not work, seems to have no effect
-			# other_rigid_body.apply_central_force(c.get_normal().normalized() * force)
+# 			# Does not work, seems to have no effect
+# 			# other_rigid_body.apply_central_force(c.get_normal().normalized() * force)
 
-			# other_rigid_body.apply_central_impulse(c.get_normal().normalized() * force)
-			# other_rigid_body.apply_impulse(c.get_position(), c.get_normal().normalized() * force)
+# 			# other_rigid_body.apply_central_impulse(c.get_normal().normalized() * force)
+# 			# other_rigid_body.apply_impulse(c.get_position(), c.get_normal().normalized() * force)
 
-	return pushed_any_character
+# 	return pushed_any_character
 
 
-func _push_character(target: CharacterBody3D, collision_normal: Vector3) -> void:
-	var push_direction: Vector3 = - collision_normal
-	push_direction.y = 0.0
-	push_direction = push_direction.normalized()
+# func _push_character(target: CharacterBody3D, collision_normal: Vector3) -> void:
+# 	var push_direction: Vector3 = - collision_normal
+# 	push_direction.y = 0.0
+# 	push_direction = push_direction.normalized()
 
-	var push_velocity: Vector3 = self.velocity_no_collision.length() * 1.3 * push_direction
+# 	var push_velocity: Vector3 = self.velocity_no_collision.length() * 1.3 * push_direction
 
-	# Remove component of targets velocity in the direction of the push
-	var target_velocity_along_push: Vector3 = push_direction * target.velocity.dot(push_direction)
+# 	# Remove component of targets velocity in the direction of the push
+# 	var target_velocity_along_push: Vector3 = push_direction * target.velocity.dot(push_direction)
 
-	# Apply the push and remove any velocity going against that push
-	target.velocity = target.velocity - target_velocity_along_push + push_velocity
-	# target.move_and_slide()
+# 	# Apply the push and remove any velocity going against that push
+# 	target.velocity = target.velocity - target_velocity_along_push + push_velocity
+# 	# target.move_and_slide()
 
 
 func choose_new_goal() -> bool:

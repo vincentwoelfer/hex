@@ -4,10 +4,12 @@
 [ext_resource type="PackedScene" uid="uid://31nhbjtpuidj" path="res://assets/complete-models/bomb/Bomb_low.fbx" id="2_hfxc3"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_w7cjq"]
+margin = 0.07
 radius = 0.2
 
 [node name="ThrowableBomb" type="RigidBody3D"]
 collision_layer = 33
+mass = 5.0
 script = ExtResource("1_hfxc3")
 
 [node name="Bomb_low" parent="." instance=ExtResource("2_hfxc3")]

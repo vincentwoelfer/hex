@@ -16,6 +16,7 @@ height = 1.7
 
 [node name="PlayerCharacter" type="CharacterBody3D"]
 collision_layer = 9
+platform_on_leave = 2
 script = ExtResource("1_gar1i")
 
 [node name="Mesh" type="MeshInstance3D" parent="."]
@@ -29,4 +30,3 @@ debug_color = Color(1, 0, 0, 0.784314)
 
 [node name="PathFindingAgent" type="Node3D" parent="."]
 script = ExtResource("3_kn48c")
-metadata/_custom_type_script = "uid://dcbt26awrgsip"

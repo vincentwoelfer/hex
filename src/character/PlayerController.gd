@@ -1,5 +1,5 @@
 class_name PlayerController
-extends CharacterBody3D
+extends HexPhysicsCharacterBody3D
 
 # Components
 var walk_speed: float = 5.0
@@ -55,26 +55,16 @@ func init(device: int, color_: Color) -> void:
 	self.color = color_
 
 	# Compute deceleration based on walk speed and time to max acc
-	var walk_accel: float = _get_acc_for_target_vel_and_time(walk_speed, time_to_max_acc)
-	self.deceleration = walk_accel
+	# var walk_accel: float = _get_acc_for_target_vel_and_time(walk_speed, time_to_max_acc)
+	# self.deceleration = walk_accel
 
 
 func _ready() -> void:
 	add_to_group(HexConst.GROUP_PLAYERS)
 
+	# Only for visualization
 	path_finding_agent.init(color, collision.shape, DebugSettings.show_path_player_to_caravan)
 	path_finding_agent.set_track_target(GameStateManager.caravan)
-
-	
-func _get_current_gravity() -> float:
-	var jump_gravity: float = (-2.0 * jump_height) / (jump_time_to_peak_sec ** 2)
-	var fall_gravity: float = (-2.0 * jump_height) / (jump_time_to_descent_sec ** 2)
-
-	# Chose gravity based on current up vs downward vel
-	if velocity.y < 0.0:
-		return fall_gravity
-	else:
-		return jump_gravity
 
 
 func _input(event: InputEvent) -> void:
@@ -96,8 +86,8 @@ func _physics_process(delta: float) -> void:
 	# Timers
 	dash_timer -= delta
 
-	# Movement input
-	var input_dir := input.input_direction
+	# GET DESIRED INPUT DIRECTION
+	var input_dir: Vector3 = input.input_direction
 	input_dir = (transform.basis * input_dir).normalized()
 
 	# Sprinting
@@ -110,9 +100,10 @@ func _physics_process(delta: float) -> void:
 	if is_on_floor():
 		currently_used_jumps = 0
 
+	var jump_vel := 0.0
 	if input.jump_input.wants and currently_used_jumps < max_num_jumps:
 		input.jump_input.consume()
-		_jump()
+		jump_vel = _jump()
 
 	# Dashing
 	if is_dashing:
@@ -142,75 +133,23 @@ func _physics_process(delta: float) -> void:
 		target_planar_speed = sprint_speed
 	else:
 		target_planar_speed = walk_speed
-	target_planar_speed = target_planar_speed if input_dir.length() > 0.0 else 0.0
 
-	# Acceleration & Deceleration
-	var acceleration: float = _get_acc_for_target_vel_and_time(target_planar_speed, time_to_max_acc)
-	var new_vel_horizontal: Vector2 = _compute_planar_velocity(Vector2(velocity.x, velocity.z),
-															  Vector2(input_dir.x, input_dir.z),
-															  target_planar_speed, acceleration, deceleration, delta)
-
-	# Only for debugging
-	var delta_vel: float = new_vel_horizontal.length() - Vector2(velocity.x, velocity.z).length()
-
-	# Apply vel (only horizontal)
-	velocity.x = new_vel_horizontal.x
-	velocity.z = new_vel_horizontal.y
-
-	# Apply gravity
-	if not is_on_floor():
-		velocity.y += _get_current_gravity() * delta
-
-	# print_timer -= delta
-	# print_timer = -1.0
-	# if print_timer <= 0.0:
-	# 	print_timer = 1.0 / 30.0
-	# 	var cur_vel := Vector2(velocity.x, velocity.z).length()
-	# 	print("vel: %6.2f target_vel: %6.2f, delta_vel: %6.2f, accel: %.2f, decel: %.2f" % [cur_vel, target_planar_speed, delta_vel, acceleration, deceleration])
-
-	move_and_slide()
-
-	# Update path for visualization only
+	var m: CharMovement = CharMovement.new()
+	m.input_dir = Util.to_vec2(input_dir)
+	m.input_speed = target_planar_speed
 	
+	m.accel_ramp_time = self.time_to_max_acc
+	m.decel_ramp_time = self.time_to_max_acc
+	m.max_possible_speed = self.walk_speed
 
-# Speed = float
-# Velocity = Vector
-func _compute_planar_velocity(curr_vel: Vector2, input_dir: Vector2, target_speed: float, accel: float, decel: float, delta: float) -> Vector2:
-	var current_speed: float = curr_vel.length()
+	m.input_control_factor = 1.0
+	m.vertical_override = jump_vel
 
-	# Compute target velocity in the XZ plane
-	var target_vel: Vector2 = input_dir * target_speed
+	# Execute movement
+	self._custom_physics_process(delta, m)
 
-	# Compute velocity difference
-	var vel_delta: Vector2 = target_vel - curr_vel
-
-	# Determine acceleration or deceleration
-	var vel_change_strength: float = accel if vel_delta.dot(input_dir) > 0.0 else decel
-	# if is_equal_approx(vel_change_strength, accel):
-		# print("Accelerating")
-	# elif is_equal_approx(vel_change_strength, decel):
-		# print("Decelerating")
-	# else:
-		# print("No acceleration or deceleration")
-
-	# Apply acceleration/deceleration
-	var vel_change: Vector2 = vel_delta.normalized() * vel_change_strength * delta
-
-	# Prevent overshooting (this also works for deceleration towards 0)
-	if vel_change.length() > vel_delta.length():
-		vel_change = vel_delta
-
-	# Update velocity & limit to target speed
-	var new_vel: Vector2 = curr_vel + vel_change
-	curr_vel = curr_vel.limit_length(target_speed)
-	return new_vel
-
-
-func _get_acc_for_target_vel_and_time(target_vel: float, time_to_max: float) -> float:
-	return target_vel / time_to_max
-
-
-func _jump() -> void:
+	
+func _jump() -> float:
 	# Determine number of _jump
 	var jump_index: int = currently_used_jumps
 	currently_used_jumps += 1
@@ -220,7 +159,20 @@ func _jump() -> void:
 	jump_vel *= jump_strength_factors[jump_index]
 
 	# Overwrite current vertical vel => this always gives the same impulse
-	velocity.y = jump_vel
+	# velocity.y = jump_vel
 
 	# Vibration
 	Input.start_joy_vibration(0, 0.0, 1.0, 0.2 + 0.1 * jump_index)
+
+	return jump_vel
+
+
+func _get_custom_gravity() -> float:
+	var jump_gravity: float = (-2.0 * jump_height) / (jump_time_to_peak_sec ** 2)
+	var fall_gravity: float = (-2.0 * jump_height) / (jump_time_to_descent_sec ** 2)
+
+	# Chose gravity based on current up vs downward vel
+	if velocity.y < 0.0:
+		return fall_gravity
+	else:
+		return jump_gravity

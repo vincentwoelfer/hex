@@ -73,7 +73,6 @@ const NAV_AGENT_MAX_SLOPE_NAV_MESH_OFFSET_DEG := -2.5
 # ==================== STUFF =============================
 const MAP_CENTER: Vector3 = Vector3(-10, 0, -10)
 
-static var GRAVITY: float = - ProjectSettings.get_setting("physics/3d/default_gravity")
 
 # ========================================================
 # ==================== Derived values ====================
