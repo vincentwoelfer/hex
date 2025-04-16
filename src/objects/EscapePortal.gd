@@ -35,7 +35,7 @@ func _on_body_entered(body: Node3D) -> void:
             return
 
         queued_for_deletion.append(crystal)
-        await Util.await_time(2.25)
+        await Util.await_time(1.8)
         queued_for_deletion.erase(crystal)
 
         # Check if the crystal is still in portal
