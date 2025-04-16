@@ -9,8 +9,8 @@ var max_bounces: int = 2
 var time_between_bounces_sec: float = 0.125
 var last_bounce_time_counter: float = time_between_bounces_sec
 
-var explosion_radius: float = 2.75
-var explosion_force: float = 250.0
+var explosion_radius: float = 3.75
+var explosion_force: float = 18.0
 
 var exploded := false
 
@@ -90,7 +90,8 @@ func explode() -> void:
 			elif hex_body.is_in_group(HexConst.GROUP_ENEMIES):
 				var enemy := hex_body as BasicEnemy
 				enemy.pick_up_manager._drop_object()
-				enemy._start_exploding()
+				enemy.queue_free()
+				# enemy._start_exploding()
 
 			
 	# TODO add explosion effect (external particle, not self-growth) ?

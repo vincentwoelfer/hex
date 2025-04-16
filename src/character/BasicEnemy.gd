@@ -39,8 +39,11 @@ func _ready() -> void:
 	self.floor_max_angle = deg_to_rad(HexConst.NAV_AGENT_MAX_SLOPE_BASIS_DEG + HexConst.NAV_AGENT_MAX_SLOPE_ACTUAL_OFFSET_DEG)
 
 	# Set initial goal
-	_choose_new_goal()
-
+	if not _choose_new_goal():
+		print("BasicEnemy: No goal found, deleting!")
+		queue_free()
+		return
+		
 	# This is for choosing a new goal, replanning the already found path to same goal happens periodically inside path_finding_agent
 	goal_choosing_timer = Util.timer(goal_choosing_interval, _choose_new_goal)
 	add_child(goal_choosing_timer)

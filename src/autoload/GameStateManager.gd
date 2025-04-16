@@ -46,9 +46,11 @@ func _ready() -> void:
 
 	spawn_caravan()
 
-	# Always spawn keyboard player for development (after caravan has been spawened)
 	await get_tree().process_frame
-	PlayerManager.add_player(-1)
+
+	if HexInput.device_actions.size() > 1:
+		# Always spawn keyboard player for development (after caravan has been spawened)
+		PlayerManager.add_player(-1)
 
 	# Add enemy spawner TODO make enemy number player number dependent
 	add_child(Util.timer(1.5, spawn_enemy))
@@ -153,9 +155,9 @@ func spawn_escape_portal(caravan_goal: Vector3) -> void:
 
 	# Chose one side of path vector
 	var side_vector := path_vector.cross(Vector3.UP).normalized()
-	var angle: float = randf_range(deg_to_rad(60), deg_to_rad(120)) * Util.rand_sign()
-	var side_vector_rotated := side_vector.rotated(Vector3.UP, angle)
-	spawn_pos += side_vector_rotated * randf_range(15.0, 20.0)
+	var angle: float = randf_range(deg_to_rad(80), deg_to_rad(180 - 80))
+	var side_vector_rotated := side_vector.rotated(Vector3.UP, angle) * Util.rand_sign()
+	spawn_pos += side_vector_rotated * randf_range(30.0, 35.0)
 
 	var mask := Layers.mask([Layers.L.TERRAIN])
 	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 0.5, 3.0, true, mask)
