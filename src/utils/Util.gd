@@ -23,6 +23,10 @@ static func rand_circular_offset_normal_dist(r_max: float) -> Vector3:
 	return vec3_from_radius_angle(r, angle)
 
 
+static func rand_sign() -> float:
+	return 1.0 if randf() > 0.5 else -1.0
+
+
 ########################################################################
 # ANGLES + VECTORS (Geometry)
 ########################################################################

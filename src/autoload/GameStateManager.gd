@@ -142,13 +142,23 @@ func spawn_enemy() -> void:
 	Util.spawn(enemy_node, actual_spawn_pos)
 
 
-func spawn_escape_portal() -> void:
+func spawn_escape_portal(caravan_goal: Vector3) -> void:
 	var portal_node: EscapePortal = ResLoader.ESCAPE_PORTAL_SCENE.instantiate()
 
 	# Find spawn pos
 	var shape: CollisionShape3D = portal_node.get_node("Area3D/CollisionShape3D")
-	var spawn_pos := caravan.global_position + Util.rand_circular_offset_range(25, 25)
-	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 0.5, 3.0, true)
+
+	var path_vector := (caravan_goal - caravan.global_position)
+	var spawn_pos := caravan.global_position + randf() * path_vector
+
+	# Chose one side of path vector
+	var side_vector := path_vector.cross(Vector3.UP).normalized()
+	var angle: float = randf_range(deg_to_rad(60), deg_to_rad(120)) * Util.rand_sign()
+	var side_vector_rotated := side_vector.rotated(Vector3.UP, angle)
+	spawn_pos += side_vector_rotated * randf_range(15.0, 20.0)
+
+	var mask := Layers.mask([Layers.L.TERRAIN])
+	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 0.5, 3.0, true, mask)
 	
 	Util.spawn(portal_node, actual_spawn_pos)
 

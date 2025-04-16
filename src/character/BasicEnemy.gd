@@ -8,13 +8,13 @@ extends HexPhysicsCharacterBody3D
 @onready var mesh: MeshInstance3D = $RotationAxis/Mesh
 var mesh_material: StandardMaterial3D
 
-var speed: float = 2.75
+var speed: float = 3.3
 
 var target: Node3D = null
 
 # Goal choosing logic
 var goal_choosing_timer: Timer
-var goal_choosing_interval: float = 0.75
+var goal_choosing_interval: float = 0.5
 
 # Exploding
 var is_exploding := false

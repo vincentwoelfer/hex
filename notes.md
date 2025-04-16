@@ -18,6 +18,4 @@ TODO
 
 - bouncy bomben
 
-- gegener weglaufen mit kristallen: Distanz oder Maulwurf-löcher
-
 - chaos skills, bouncy bombe, friendly-fire?

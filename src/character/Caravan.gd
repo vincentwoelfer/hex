@@ -160,17 +160,8 @@ func choose_new_goal() -> bool:
 	print("Caravan has new goal : ", current_goal)
 	has_goal = true
 
-	# Spawn portals
-	for i in range(3):
-		GameStateManager.spawn_escape_portal()
-
-	# TODO position is sometimes of, why?
-	# Replace goal marker
-	# if goal_marker != null:
-	# 	goal_marker.queue_free()
-
-	# goal_marker = ResLoader.GROUND_PORTAL_SCENE.instantiate()
-	# var pos_on_ground := PhysicUtil.get_raycast_height_on_map_surface(current_goal) + Vector3.UP * 0.2
-	# Util.spawn(goal_marker, pos_on_ground)
+	# Spawn portals TODO along path, not around caravan
+	for i in range(5):
+		GameStateManager.spawn_escape_portal(current_goal)
 
 	return true
