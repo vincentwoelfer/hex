@@ -27,6 +27,8 @@ var explosion_visual_wave_count := 3
 var explosion_visual_max_size_scale := 2.0
 var explosion_viusal_target_color := Colors.mod_sat_val_hue(Color.RED, 0.1, 1.0)
 
+# stuck check
+var stuck_check_last_pos: Vector3 = Vector3.ZERO
 
 func _ready() -> void:
 	self.mass = 10.0
@@ -42,6 +44,8 @@ func _ready() -> void:
 	# This is for choosing a new goal, replanning the already found path to same goal happens periodically inside path_finding_agent
 	goal_choosing_timer = Util.timer(goal_choosing_interval, _choose_new_goal)
 	add_child(goal_choosing_timer)
+
+	add_child(Util.timer(1.5, _periodic_stuck_check))
 
 
 func _physics_process(delta: float) -> void:
@@ -182,10 +186,10 @@ func _on_explodion_finish() -> void:
 	shape.height = explosion_radius
 	var collision_shape := CollisionShape3D.new()
 	collision_shape.shape = shape
-	area.add_child(collision_shape)
-	add_child(area)
 	area.set_collision_mask_value(Layers.L.PLAYER_CHARACTERS, true)
 	area.set_collision_mask_value(Layers.L.PICKABLE_OBJECTS, true)
+	area.add_child(collision_shape)
+	add_child(area)
 
 	# Required for the newly added area to work
 	await get_tree().physics_frame
@@ -255,3 +259,11 @@ func _change_material_color(c: Color) -> void:
 		mesh.set_surface_override_material(0, mesh_material)
 	
 	mesh_material.albedo_color = c
+
+
+func _periodic_stuck_check() -> void:
+	if global_position.distance_to(stuck_check_last_pos) < 0.1:
+		print("BasicEnemy: Stuck, exploding!")
+		_start_exploding()
+		return
+	stuck_check_last_pos = global_position

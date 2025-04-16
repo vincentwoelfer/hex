@@ -160,6 +160,25 @@ func _get_custom_gravity() -> float:
 func throw_bomb() -> void:
 	Input.start_joy_vibration(input.device_id, 0.0, 1.0, 0.3)
 
+	var bomb: Node3D = ResLoader.THROWABLE_BOMB_SCENE.instantiate()
+
+	var hold_offset: Vector3 = Vector3.FORWARD * 0.7 + Vector3.UP * 1.0
+	var throw_origin := global_transform.origin + rotation_axis.basis * hold_offset
+
+	# bomb.rotation = Vector3(randf_range(0, TAU), randf_range(0, TAU), randf_range(0, TAU))
+	Util.spawn(bomb, throw_origin)
+
+	# Apply torque (rotation)
+	var torque_strength: float = 1.5
+	var torque := Vector3(randfn(0, 1), randfn(0, 1), randfn(0, 1)) * torque_strength
+	(bomb as RigidBody3D).apply_torque_impulse(torque)
+
+	# Apply force
+	var throw_dir: Vector3 = Vector3.FORWARD * 0.7 + Vector3.UP * 0.35
+	var throw_force: float = 45.0
+	var force: Vector3 = rotation_axis.basis * throw_dir.normalized() * throw_force
+	(bomb as RigidBody3D).apply_central_impulse(force)
+
 
 func _huge_impulse_received() -> void:
 	Input.start_joy_vibration(input.device_id, 1.0, 0.0, 0.3)

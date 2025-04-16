@@ -1,7 +1,7 @@
 class_name Caravan
 extends HexPhysicsCharacterBody3D
 
-var speed: float = 1.5
+var speed: float = 1.0
 
 # Global Path params
 var min_goal_distance: float = 30.0
@@ -76,59 +76,6 @@ func _physics_process(delta: float) -> void:
 	m.vertical_override = 0.0
 
 	self._custom_physics_process(delta, m)
-
-	# Store velocity before move_and_slide
-	# self.velocity_no_collision = velocity
-	# move_and_slide()
-
-	# TODO: Not perfect, but works for now
-	# push_characters_objects()
-		# self.velocity = self.velocity_no_collision
-		# move_and_slide()
-
-# func push_characters_objects() -> bool:
-# 	var pushed_any_character: bool = false
-
-# 	# Check for collisions
-# 	for i: int in get_slide_collision_count():
-# 		var c: KinematicCollision3D = get_slide_collision(i)
-# 		var other_body: Node3D = c.get_collider()
-
-# 		# Only push other CharacterBody3D nodes
-# 		if other_body is CharacterBody3D and other_body != self:
-# 			pushed_any_character = true
-# 			self._push_character(other_body as CharacterBody3D, c.get_normal())
-
-# 		if other_body is RigidBody3D:
-# 			pushed_any_character = true
-# 			var other_rigid_body: RigidBody3D = other_body as RigidBody3D
-# 			var force := 50.0
-
-# 			# Works but unstable/jerky
-# 			other_rigid_body.apply_force(c.get_position(), c.get_normal().normalized() * force)
-
-# 			# Does not work, seems to have no effect
-# 			# other_rigid_body.apply_central_force(c.get_normal().normalized() * force)
-
-# 			# other_rigid_body.apply_central_impulse(c.get_normal().normalized() * force)
-# 			# other_rigid_body.apply_impulse(c.get_position(), c.get_normal().normalized() * force)
-
-# 	return pushed_any_character
-
-
-# func _push_character(target: CharacterBody3D, collision_normal: Vector3) -> void:
-# 	var push_direction: Vector3 = - collision_normal
-# 	push_direction.y = 0.0
-# 	push_direction = push_direction.normalized()
-
-# 	var push_velocity: Vector3 = self.velocity_no_collision.length() * 1.3 * push_direction
-
-# 	# Remove component of targets velocity in the direction of the push
-# 	var target_velocity_along_push: Vector3 = push_direction * target.velocity.dot(push_direction)
-
-# 	# Apply the push and remove any velocity going against that push
-# 	target.velocity = target.velocity - target_velocity_along_push + push_velocity
-# 	# target.move_and_slide()
 
 
 func choose_new_goal() -> bool:

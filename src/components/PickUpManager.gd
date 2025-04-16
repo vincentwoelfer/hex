@@ -88,7 +88,7 @@ func _pick_up_object(obj: Crystal) -> void:
 
 	hex_character.add_collision_exception_with(obj)
 
-	obj.global_transform.origin = global_transform.origin + global_transform.basis * hold_offset
+	obj.global_transform.origin = _get_carried_object_position()
 	carried_object = obj
 
 
@@ -103,6 +103,10 @@ func _drop_object() -> void:
 
 	remove_child(carried_object)
 	get_tree().root.add_child(carried_object)
-	carried_object.global_transform.origin = global_transform.origin + global_transform.basis * hold_offset
+	carried_object.global_transform.origin = _get_carried_object_position()
 	carried_object.freeze = false
 	carried_object = null
+
+
+func _get_carried_object_position() -> Vector3:
+	return global_transform.origin + global_transform.basis * hold_offset
