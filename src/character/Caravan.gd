@@ -160,6 +160,10 @@ func choose_new_goal() -> bool:
 	print("Caravan has new goal : ", current_goal)
 	has_goal = true
 
+	# Spawn portals
+	for i in range(3):
+		GameStateManager.spawn_escape_portal()
+
 	# TODO position is sometimes of, why?
 	# Replace goal marker
 	# if goal_marker != null:

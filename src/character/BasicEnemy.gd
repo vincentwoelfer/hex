@@ -4,13 +4,13 @@ extends HexPhysicsCharacterBody3D
 # Scene references
 @onready var path_finding_agent: PathFindingAgent = $PathFindingAgent
 @onready var collision: CollisionShape3D = $Collision
+@onready var pick_up_manager: PickUpManager = $RotationAxis/PickUpManager
 @onready var mesh: MeshInstance3D = $RotationAxis/Mesh
 var mesh_material: StandardMaterial3D
 
 var speed: float = 2.75
 
 var target: Node3D = null
-var target_reached_dist: float
 
 # Goal choosing logic
 var goal_choosing_timer: Timer
@@ -53,14 +53,14 @@ func _physics_process(delta: float) -> void:
 	# Replan if no path
 	if not path_finding_agent.get_has_path():
 		self.goal_choosing_timer.start()
-		_choose_new_goal()
+		if not _choose_new_goal():
+			print("BasicEnemy: No goal found, exploding!")
+			_start_exploding()
 
-	_check_player_near_for_explosion()
+	_check_crystal_pickup()
 
-	# Reached non-player target -> just delete for now
-	if target != null and Util.get_dist_planar(global_position, target.global_position) <= target_reached_dist:
-		_start_exploding()
-		return
+	if not pick_up_manager.is_carrying():
+		_check_player_near_for_explosion()
 
 	# Movement
 	var m: CharMovement = CharMovement.new()
@@ -87,37 +87,51 @@ func _check_player_near_for_explosion() -> void:
 			_start_exploding()
 
 
+func _check_crystal_pickup() -> void:
+	if is_exploding:
+		return
+
+	if not pick_up_manager.is_carrying() and pick_up_manager.has_object_to_pick_up():
+		pick_up_manager.pickup_or_drop()
+
+
 func _get_possible_goals() -> Array[Node3D]:
 	var possible_goals: Array[Node3D] = []
 
-	# Add caravan by default (TODO maybe check if caravan has crystals left?)
-	possible_goals.append(GameStateManager.caravan)
-	
-	# Add players
-	for player: PlayerController in get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS):
-		possible_goals.append(player)
+	# MODE WITHD CRYSTAL -> run away
+	if pick_up_manager.is_carrying():
+		for portal: Node3D in get_tree().get_nodes_in_group(HexConst.GROUP_ESCAPE_PORTALS):
+			possible_goals.append(portal)
 
-	# Add crystals
-	for crystal: Crystal in get_tree().get_nodes_in_group(HexConst.GROUP_CRYSTALS):
-		# Carried by player is already in goal selection through player itself
-		# Carried by caravan is already in goal selection through caravan itself
-		if crystal.state in [Crystal.State.ON_GROUND]:
-			possible_goals.append(crystal)
+	# MODE NO CRYSTAL -> seek crystal/players
+	else:
+		# Add caravan
+		possible_goals.append(GameStateManager.caravan)
+
+		# Add players
+		for player: PlayerController in get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS):
+			possible_goals.append(player)
+
+		# Add crystals
+		for crystal: Crystal in get_tree().get_nodes_in_group(HexConst.GROUP_CRYSTALS):
+			# Carried by player is already in goal selection through player itself
+			# Carried by caravan is already in goal selection through caravan itself
+			if crystal.state in [Crystal.State.ON_GROUND]:
+				possible_goals.append(crystal)
 
 	return possible_goals
 
 
-func _choose_new_goal() -> void:
+func _choose_new_goal() -> bool:
 	target = null
 
 	var nav_map: RID = Util.get_map()
 	if NavigationServer3D.map_get_iteration_id(nav_map) == 0:
-		return
+		return false
 
-	# REAL HACKY, rework!
 	var possible_goals := _get_possible_goals()
 	if possible_goals.size() == 0:
-		return
+		return false
 
 	# Choose closest goal - TODO add weighting logic in future
 	var min_dist := INF
@@ -133,26 +147,12 @@ func _choose_new_goal() -> void:
 			best_goal = goal
 
 	if best_goal == null:
-		return
+		return false
 
 	# Plan optimized path to choosen goal
 	target = best_goal
 	path_finding_agent.set_track_target(target)
-	target_reached_dist = _compute_target_done_dist()
-
-
-func _compute_target_done_dist() -> float:
-	# This is a bit hacky, but we need to get the target's collision shape
-	# and use its extents to determine how far we need to be from the target
-	var target_radius: float = 0.0
-	if target != null:
-		for child in target.get_children():
-			# Use first collision shape found
-			if child is CollisionShape3D:
-				target_radius = PhysicUtil.get_shape_radius((child as CollisionShape3D).shape)
-				break
-
-	return path_finding_agent.radius + target_radius + 0.2
+	return true
 
 
 # Exploding
@@ -208,9 +208,10 @@ func _on_explodion_finish() -> void:
 			impulse *= 2.0
 			hex_body.apply_external_impulse(impulse)
 
-	###################
-	# TODO drop crystal
-	# TODO add explosion effect (external particle, not self-growth)
+
+	pick_up_manager._drop_object()
+	
+	# TODO add explosion effect (external particle, not self-growth) ?
 	self.queue_free()
 
 

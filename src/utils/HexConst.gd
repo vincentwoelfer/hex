@@ -57,6 +57,7 @@ const GROUP_NAV_CHUNKS: String = "nav_chunks"
 const GROUP_PLAYERS: String = "players"
 const GROUP_ENEMIES: String = "enemies"
 const GROUP_CRYSTALS: String = "crystals"
+const GROUP_ESCAPE_PORTALS: String = "escape_portals"
 
 # ==================== Navigation ========================
 # These must be multiples of each others

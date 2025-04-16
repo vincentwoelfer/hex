@@ -92,7 +92,7 @@ func request_quit_game() -> void:
 func delete_far_away_entities() -> void:
 	var center := caravan.global_position
 	# Deletion dist ist smaller than map/chunk deletion dist (but a factor of it)
-	var max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_generation_distance_hex) * 0.45
+	var max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_generation_distance_hex) * 0.55
 	var max_dist_sqared: float = max_dist * max_dist
 
 	# Enemies
@@ -104,6 +104,11 @@ func delete_far_away_entities() -> void:
 	for crystal: Node3D in get_tree().get_nodes_in_group(HexConst.GROUP_CRYSTALS):
 		if crystal.global_position.distance_squared_to(center) > max_dist_sqared:
 			crystal.queue_free()
+
+	# Escape portals
+	for portal: Node3D in get_tree().get_nodes_in_group(HexConst.GROUP_ESCAPE_PORTALS):
+		if portal.global_position.distance_squared_to(center) > max_dist_sqared:
+			portal.queue_free()
 
 	# Players - Teleport to caravan if too far aways
 	var player_max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_generation_distance_hex) * 0.3
@@ -135,6 +140,17 @@ func spawn_enemy() -> void:
 	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 0.5, 3.0, true)
 	
 	Util.spawn(enemy_node, actual_spawn_pos)
+
+
+func spawn_escape_portal() -> void:
+	var portal_node: EscapePortal = ResLoader.ESCAPE_PORTAL_SCENE.instantiate()
+
+	# Find spawn pos
+	var shape: CollisionShape3D = portal_node.get_node("Area3D/CollisionShape3D")
+	var spawn_pos := caravan.global_position + Util.rand_circular_offset_range(25, 25)
+	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 0.5, 3.0, true)
+	
+	Util.spawn(portal_node, actual_spawn_pos)
 
 
 func spawn_caravan() -> void:

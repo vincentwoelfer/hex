@@ -6,14 +6,14 @@ class_name PickUpManager
 var area: Area3D
 var radius: float = 1.8
 
-var hold_offset: Vector3 = Vector3.FORWARD * 0.6 + Vector3.UP * 0.9
+var hold_offset: Vector3 = Vector3.FORWARD * 0.5 + Vector3.UP * 0.9
 var carried_object: Crystal = null
 
 func _ready() -> void:
 	hex_character.connect("Signal_huge_impulse_received", _drop_object)
 
 	area = Area3D.new()
-	
+
 	var shape := CylinderShape3D.new()
 	shape.radius = radius
 	shape.height = radius
@@ -25,6 +25,10 @@ func _ready() -> void:
 
 	# var effect := DebugVis3D.cylinder(radius, radius, DebugVis3D.mat(Color(Color.GREEN, 0.05), false))
 	# DebugVis3D.spawn(Vector3.ZERO, effect, self)
+
+
+func is_carrying() -> bool:
+	return carried_object != null
 
 
 func has_object_to_pick_up() -> bool:
@@ -75,6 +79,15 @@ func _pick_up_object(obj: Crystal) -> void:
 		original_parent.remove_child(obj)
 	add_child(obj)
 
+	if hex_character is PlayerController:
+		obj.state = Crystal.State.CARRIED_BY_PLAYER
+	elif hex_character is BasicEnemy:
+		obj.state = Crystal.State.CARRIED_BY_ENEMY
+	else:
+		print("Unknown character type: ", hex_character)
+
+	hex_character.add_collision_exception_with(obj)
+
 	obj.global_transform.origin = global_transform.origin + global_transform.basis * hold_offset
 	carried_object = obj
 
@@ -84,6 +97,9 @@ func _drop_object() -> void:
 		return
 
 	# TODO ensure spawn position is outside of geometry
+
+	hex_character.remove_collision_exception_with(carried_object)
+	carried_object.state = Crystal.State.ON_GROUND
 
 	remove_child(carried_object)
 	get_tree().root.add_child(carried_object)

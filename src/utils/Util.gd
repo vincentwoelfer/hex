@@ -131,6 +131,9 @@ static func timer(wait_time: float, timeout_callable: Callable, one_shot: bool =
 	t.timeout.connect(timeout_callable)
 	return t
 
+static func await_time(time: float) -> void:
+	await get_scene_root().get_tree().create_timer(time).timeout
+
 ########################################################################
 # 3D Vector Math
 ########################################################################

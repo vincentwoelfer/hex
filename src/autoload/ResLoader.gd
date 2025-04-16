@@ -25,7 +25,7 @@ const BASIC_ENEMY_SCENE: PackedScene = preload('res://scenes/BasicEnemy.tscn')
 const CRYSTAL_SCENE: PackedScene = preload('res://scenes/Crystal.tscn')
 const THROWABLE_BOMB_SCENE: PackedScene = preload('res://scenes/ThrowableBomb.tscn')
 
-const GROUND_PORTAL_SCENE: PackedScene = preload('res://scenes/GroundPortal.tscn')
+const ESCAPE_PORTAL_SCENE: PackedScene = preload('res://scenes/EscapePortal.tscn')
 
 # Highlight
 const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')

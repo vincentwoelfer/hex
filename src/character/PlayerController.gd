@@ -4,8 +4,8 @@ extends HexPhysicsCharacterBody3D
 # Components
 var walk_speed: float = 5.0
 var sprint_speed: float = 9.0
-var dash_speed: float = 25.0
-var dash_duration: float = 0.2
+var dash_speed: float = 28.0
+var dash_duration: float = 0.05
 var player_data: PlayerData
 
 var time_to_max_acc: float = 0.085
@@ -37,6 +37,7 @@ var input: InputManager
 @onready var collision: CollisionShape3D = $Collision
 @onready var path_finding_agent: PathFindingAgent = $PathFindingAgent
 @onready var pick_up_manager: PickUpManager = $RotationAxis/PickUpManager
+@onready var hex_character: HexPhysicsCharacterBody3D = $"."
 
 var color: Color
 
@@ -48,6 +49,8 @@ func init(device: int, color_: Color) -> void:
 
 func _ready() -> void:
 	add_to_group(HexConst.GROUP_PLAYERS)
+
+	hex_character.connect("Signal_huge_impulse_received", _huge_impulse_received)
 
 	# Only for visualization
 	path_finding_agent.init(color, collision.shape, DebugSettings.show_path_player_to_caravan)
@@ -87,14 +90,14 @@ func _physics_process(delta: float) -> void:
 			dash_timer = dash_duration
 	
 	# Lightning
-	if input.skill_primary_input.wants:
-		input.skill_primary_input.consume()
-		VisualLightningStrike.spawn(self.global_position)
+	# if input.skill_primary_input.wants:
+		# input.skill_primary_input.consume()
+		# VisualLightningStrike.spawn(self.global_position)
 
 	# Throw bomb
 	if input.skill_secondary_input.wants:
 		input.skill_secondary_input.consume()
-		# TODO
+		throw_bomb()
 
 	if input.pickup_drop_input.wants:
 		input.pickup_drop_input.consume()
@@ -137,11 +140,8 @@ func _jump() -> float:
 	var jump_vel: float = (2.0 * jump_height) / jump_time_to_peak_sec
 	jump_vel *= jump_strength_factors[jump_index]
 
-	# Overwrite current vertical vel => this always gives the same impulse
-	# velocity.y = jump_vel
-
 	# Vibration
-	Input.start_joy_vibration(0, 0.0, 1.0, 0.2 + 0.1 * jump_index)
+	Input.start_joy_vibration(input.device_id, 0.0, 1.0, 0.2 + 0.15 * jump_index)
 
 	return jump_vel
 
@@ -155,3 +155,11 @@ func _get_custom_gravity() -> float:
 		return fall_gravity
 	else:
 		return jump_gravity
+
+
+func throw_bomb() -> void:
+	Input.start_joy_vibration(input.device_id, 0.0, 1.0, 0.3)
+
+
+func _huge_impulse_received() -> void:
+	Input.start_joy_vibration(input.device_id, 1.0, 0.0, 0.3)

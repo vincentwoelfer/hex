@@ -219,12 +219,14 @@ func _update_path_progress() -> void:
 		
 func _process(delta: float) -> void:
 	# Update visual path
-	visual_path.update_path(path, global_position)
-	visual_path.enabled = show_path
+	if visual_path:
+		visual_path.update_path(path, global_position)
+		visual_path.enabled = show_path
 
 	if DebugSettings.show_raw_debug_path:
-		visual_path_raw.update_path(path_raw, global_position)
-		visual_path_raw.enabled = show_path
+		if visual_path_raw:
+			visual_path_raw.update_path(path_raw, global_position)
+			visual_path_raw.enabled = show_path
 	
 		 
 func _update_target_from_tracking() -> void:
