@@ -337,6 +337,9 @@ static func calculate_explosion_impulse(origin: Vector3, target_pos: Vector3, ex
 	to_target.y = 0.0 # Ignore height difference
 
 	var dist: float = to_target.length()
+
+	# Create fake upward component
+	to_target.y = dist * 0.2
 	to_target = to_target.normalized()
 
 	# out of range, no effect

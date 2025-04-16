@@ -7,7 +7,7 @@ extends HexPhysicsCharacterBody3D
 @onready var mesh: MeshInstance3D = $Mesh
 var mesh_material: StandardMaterial3D
 
-var speed: float = 2.5
+var speed: float = 2.75
 
 var target: Node3D = null
 var target_reached_dist: float
@@ -18,17 +18,18 @@ var goal_choosing_interval: float = 0.75
 
 # Exploding
 var is_exploding := false
-var explosion_radius: float = 1.9
-var explosion_force: float = 20.0
+var explosion_radius: float = 2.0
+var explosion_force: float = 200.0
 
 # Explosion visual
-var explosion_duration := 0.85
+var explosion_duration := 0.5
 var explosion_visual_wave_count := 3
-var explosion_visual_max_size := 2.0
+var explosion_visual_max_size_scale := 2.0
 var explosion_viusal_target_color := Colors.mod_sat_val_hue(Color.RED, 0.1, 1.0)
 
 
 func _ready() -> void:
+	self.mass = 10.0
 	add_to_group(HexConst.GROUP_ENEMIES)
 
 	path_finding_agent.init(Color.RED, collision.shape, DebugSettings.show_path_basic_enemy)
@@ -186,22 +187,25 @@ func _on_explodion_finish() -> void:
 	area.set_collision_mask_value(Layers.L.PLAYER_CHARACTERS, true)
 	area.set_collision_mask_value(Layers.L.PICKABLE_OBJECTS, true)
 
+	# Required for the newly added area to work
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
 	# APPLY
 	var bodies := area.get_overlapping_bodies()
 	for body in bodies:
+		if body == self:
+			continue
 		if body is RigidBody3D:
 			var rigid_body: RigidBody3D = body
 			var impulse := Util.calculate_explosion_impulse(global_position, body.global_position, explosion_force, explosion_radius)
-			print("Impulse against crystal: ", impulse)
 			rigid_body.apply_central_impulse(impulse)
 
 		elif body is HexPhysicsCharacterBody3D:
 			var hex_body: HexPhysicsCharacterBody3D = body
 			var impulse := Util.calculate_explosion_impulse(global_position, body.global_position, explosion_force, explosion_radius)
-			print("Impulse against char: ", impulse)
+			# TODO for now add additional force to the character to counteract the bug in its movement code
+			impulse *= 2.0
 			hex_body.apply_external_impulse(impulse)
 
 	###################
@@ -233,7 +237,7 @@ func _explosion_visual_self_effect() -> void:
 		# i = 0,1,2 for 3 waves
 		# t = 0.33 ,0.66, 1.0 for 3 waves
 		var t := float(i + 1) / float(explosion_visual_wave_count)
-		var scale_value := lerpf(1.0, explosion_visual_max_size, t)
+		var scale_value := lerpf(1.0, explosion_visual_max_size_scale, t)
 
 		# These tween effects are executed after one another, we queue them all here
 		size_tween.tween_property(mesh, "scale", Vector3.ONE * scale_value, time_per_wave)

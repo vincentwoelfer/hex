@@ -24,7 +24,7 @@ var crystal_timer: Timer
 
 func _ready() -> void:
 	# more than player
-	self.mass = 100.0
+	self.mass = 150.0
 
 	# Pathfinding agent
 	path_finding_agent.init(Colors.COLOR_CARAVAN, collision.shape, DebugSettings.show_path_caravan)

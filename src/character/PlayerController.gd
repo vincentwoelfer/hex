@@ -53,6 +53,7 @@ var is_carrying: bool = false
 func init(device: int, color_: Color) -> void:
 	input = MovementInput.new(device)
 	self.color = color_
+	self.mass = 10.0
 
 	# Compute deceleration based on walk speed and time to max acc
 	# var walk_accel: float = _get_acc_for_target_vel_and_time(walk_speed, time_to_max_acc)

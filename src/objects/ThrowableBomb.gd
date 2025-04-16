@@ -5,8 +5,7 @@ class_name ThrowableBomb
 
 
 func _ready() -> void:
-	add_to_group(HexConst.GROUP_CRYSTALS)
-
+	# add_to_group(HexConst.GROUP_CRYSTALS)
     # Set the physics material
 	var mat := PhysicsMaterial.new()
 	mat.bounce = 0.5
@@ -16,4 +15,4 @@ func _ready() -> void:
 
 	# Collision config
 	self.angular_damp = 4.5
-	self.linear_damp = 0.3
+	self.linear_damp = 3.0

@@ -24,7 +24,6 @@ class_name HexPhysicsCharacterBody3D
 ########################################################################
 ## Mass of this character for physics calculations
 var mass: float = 50.0
-var external_impulse_damp_lerp_speed: float = 8.0
 
 var rigid_body_impulse_factor: float = 2.0
 var character_body_force_factor: float = 2.0
@@ -95,8 +94,7 @@ func _compute_self_controlled_planar_velocity_change(delta: float, m: CharMoveme
 		vel_change = vel_delta
 
 	# Factor in control factor
-	if m.input_control_factor > 0.0:
-		vel_change *= m.input_control_factor
+	vel_change *= m.input_control_factor
 
 	return Util.to_vec3(vel_change)
 
@@ -115,6 +113,9 @@ func _update_vertical_velocity(delta: float, m: CharMovement) -> void:
 
 
 func _compute_vel_change_through_external_forces(self_controlled_vel_change: Vector3) -> Vector3:
+	if external_force_this_frame == Vector3.ZERO:
+		return self_controlled_vel_change
+
 	var external_force_dir := external_force_this_frame.normalized()
 	# Remove component of self_controlled_vel_change against the direction of the external force
 	var intended_velocity_against_force: Vector3 = external_force_dir * self_controlled_vel_change.dot(external_force_dir)
@@ -126,19 +127,28 @@ func _compute_vel_change_through_external_forces(self_controlled_vel_change: Vec
 
 	return resulting_vel_change
 
+func _compute_vel_change_through_external_impulses() -> Vector3:
+	var temp := external_impulse
+	external_impulse = Vector3.ZERO
+	return temp
+
+
 ########################################################################
 # Physics TICK
 ########################################################################
 func _custom_physics_process(delta: float, m: CharMovement) -> void:
+	# TODO this is not good, if input_dir dir is zero, we compute a counter-acting velocity to come to a stop
+	# This does make sense for own velocity, it however also actively counteracts external forces
+	# For now we can compensate this with an extra control factor on own input depending on external forces
 	# Compute new self-controlled velocity change based on desired input
 	var self_controlled_vel_change := _compute_self_controlled_planar_velocity_change(delta, m)
 
 	# Apply one-frame external force
 	var vel_change := _compute_vel_change_through_external_forces(self_controlled_vel_change)
+	var external_impulse_change := _compute_vel_change_through_external_impulses()
 
 	# Apply velocity change & impulses
-	velocity += vel_change + external_impulse
-	external_impulse = Vector3.ZERO
+	velocity += vel_change + external_impulse_change
 
 	self._update_vertical_velocity(delta, m)
 
@@ -147,23 +157,7 @@ func _custom_physics_process(delta: float, m: CharMovement) -> void:
 
 	_handle_collisions(delta)
 
-	_dampen_external_impulse(delta)
-
-	if self is PlayerController and external_impulse.length() > 0.001:
-		print("Curr player external impulse strenght: ", external_impulse.length())
-
-
-# func _compute_impulse_velocity_change(delta: float) -> Vector3:
-# 	# Compute impulse velocity change
-# 	var impulse_vel_change: Vector3 = external_impulse.normalized() * external_impulse.length()
-# 	# Apply impulse velocity change
-# 	velocity += impulse_vel_change
-
-# 	# Reset external impulse
-# 	external_impulse = Vector3.ZERO
-
-# 	return impulse_vel_change
-
+	# _dampen_external_impulse(delta)
 
 ########################################################################
 # Collision Handling
@@ -190,14 +184,13 @@ func _handle_collisions(delta: float) -> void:
 
 			# Impulse vector directed away from this character (into the collider)
 			var impulse_vec: Vector3 = push_normal * (contact_speed * rigid_body_impulse_factor)
-			# var push_position := coll_pos - rigid_body.global_position
-			var push_position := coll_pos
+			var push_position := coll_pos - rigid_body.global_position
 
 			# Apply impulse to the rigid body
-			rigid_body.apply_central_impulse(impulse_vec)
-			print("RigidBody3D normal:           ", push_normal)
-			print("RigidBody3D speed:            ", contact_speed)
-			print("RigidBody3D impulse strenght: ", impulse_vec.length())
+			rigid_body.apply_impulse(impulse_vec, push_position)
+			# print("RigidBody3D normal:           ", push_normal)
+			# print("RigidBody3D speed:            ", contact_speed)
+			# print("RigidBody3D impulse strenght: ", impulse_vec.length())
 			continue
 
 		# If collided with another CharacterBody3D that has this component, apply forces to both
@@ -220,22 +213,19 @@ func _handle_collisions(delta: float) -> void:
 
 
 ## Dampen external velocity over time (simulate friction or regaining control)
-func _dampen_external_impulse(delta: float) -> void:
-	external_impulse = Util.lerp_towards_vec3(external_impulse, Vector3.ZERO, external_impulse_damp_lerp_speed, delta)
+# func _dampen_external_impulse(delta: float) -> void:
+	# external_impulse = Util.lerp_towards_vec3(external_impulse, Vector3.ZERO, external_impulse_damp_lerp_speed, delta)
 
 
 ## Add a continuous force to be applied this frame
 func apply_external_force(force: Vector3) -> void:
-	force.y = 0.0
 	external_force_this_frame += force
 
 
 ## Apply an instantaneous impulse (knockback force) to this character.
 ## This adds to the external velocity, factoring in this character's mass.
 func apply_external_impulse(impulse: Vector3) -> void:
-	impulse.y = 0.0
-	external_impulse += impulse
-	# external_impulse += impulse / mass
+	external_impulse += impulse / mass
 
 
 func _get_current_gravity() -> float:
