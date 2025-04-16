@@ -1,24 +1,5 @@
 extends CharacterBody3D
 class_name HexPhysicsCharacterBody3D
-# A component that enables physics-based force interactions.
-
-########################################################################
-# Configurable Properties
-########################################################################
-# ## Velocity magnitude above which an impulse is considered strong
-# @export var strong_impulse_threshold: float = 10.0
-
-# ## Fraction of input retained when a strong impulse hits
-# @export var strong_impulse_control_factor: float = 0.5
-
-# ## Multiplier for force applied to others when colliding
-# @export var push_force_factor: float = 10.0
-
-# ## Whether to apply forces to other characters with this component
-# @export var allow_char_push: bool = true
-
-# var blend_mode_mix := true
-
 ########################################################################
 # CONFIGURABLE PROPERTIES
 ########################################################################
@@ -31,6 +12,8 @@ var character_body_force_factor: float = 2.0
 ########################################################################
 # Internal state
 ########################################################################
+@onready var rotation_axis: Node3D = $RotationAxis
+var rotation_speed: float = 10.0
 
 # IMPULSES (instantaneous forces)
 var external_impulse: Vector3 = Vector3.ZERO
@@ -40,6 +23,11 @@ var external_force_this_frame: Vector3 = Vector3.ZERO
 
 var velocity_before_move: Vector3
 
+
+#########################################################################
+# Signals
+#########################################################################
+signal Signal_huge_impulse_received()
 
 ########################################################################
 # Character Movement Input
@@ -157,7 +145,23 @@ func _custom_physics_process(delta: float, m: CharMovement) -> void:
 
 	_handle_collisions(delta)
 
+	_rotate_towards_velocity(delta)
+
 	# _dampen_external_impulse(delta)
+
+func _rotate_towards_velocity(delta: float) -> void:
+	if not rotation_axis:
+		return
+
+	var vel_planar: Vector3 = velocity
+	vel_planar.y = 0.0
+	vel_planar = vel_planar.normalized()
+
+	if vel_planar.length_squared() > 0.0:
+		var target_direction: Vector3 = vel_planar.normalized()
+		var target_rotation: Basis = Basis.looking_at(target_direction, Vector3.UP)
+		rotation_axis.transform.basis = rotation_axis.transform.basis.slerp(target_rotation, rotation_speed * delta)
+
 
 ########################################################################
 # Collision Handling
@@ -225,7 +229,12 @@ func apply_external_force(force: Vector3) -> void:
 ## Apply an instantaneous impulse (knockback force) to this character.
 ## This adds to the external velocity, factoring in this character's mass.
 func apply_external_impulse(impulse: Vector3) -> void:
-	external_impulse += impulse / mass
+	var new_force := impulse / mass
+
+	if new_force.length() >= 1.5:
+		emit_signal("Signal_huge_impulse_received")
+
+	external_impulse += new_force
 
 
 func _get_current_gravity() -> float:

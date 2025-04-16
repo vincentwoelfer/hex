@@ -7,6 +7,11 @@ enum State {ON_CARAVAN, ON_GROUND, CARRIED_BY_PLAYER, CARRIED_BY_ENEMY}
 
 var state: Crystal.State = State.ON_GROUND
 
+
+func can_be_picked_up() -> bool:
+	return state == State.ON_GROUND or state == State.ON_CARAVAN
+
+
 func _ready() -> void:
 	add_to_group(HexConst.GROUP_CRYSTALS)
 

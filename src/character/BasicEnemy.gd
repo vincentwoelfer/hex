@@ -4,7 +4,7 @@ extends HexPhysicsCharacterBody3D
 # Scene references
 @onready var path_finding_agent: PathFindingAgent = $PathFindingAgent
 @onready var collision: CollisionShape3D = $Collision
-@onready var mesh: MeshInstance3D = $Mesh
+@onready var mesh: MeshInstance3D = $RotationAxis/Mesh
 var mesh_material: StandardMaterial3D
 
 var speed: float = 2.75
@@ -120,7 +120,7 @@ func _choose_new_goal() -> void:
 		return
 
 	# Choose closest goal - TODO add weighting logic in future
-	var min_distance := 9999.0
+	var min_dist := INF
 	var best_goal: Node3D = null
 	for goal: Node3D in possible_goals:
 		if goal == null or goal.is_queued_for_deletion():
@@ -128,8 +128,8 @@ func _choose_new_goal() -> void:
 
 		var path := NavigationServer3D.map_get_path(nav_map, global_position, goal.global_position, false)
 		var distance := Util.get_total_path_length(path)
-		if distance < min_distance:
-			min_distance = distance
+		if distance < min_dist:
+			min_dist = distance
 			best_goal = goal
 
 	if best_goal == null:

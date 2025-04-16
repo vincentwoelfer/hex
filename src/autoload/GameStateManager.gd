@@ -148,7 +148,7 @@ func spawn_caravan() -> void:
 	var spawn_pos: Vector3 = HexConst.MAP_CENTER
 	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 1.0, 5.0, true)
 
-	Util.duplicate_material_new_color(caravan.get_node("Mesh") as MeshInstance3D, Colors.COLOR_CARAVAN)
+	Util.duplicate_material_new_color(caravan.get_node("RotationAxis/Mesh") as MeshInstance3D, Colors.COLOR_CARAVAN)
 
 	Util.spawn(caravan, actual_spawn_pos)
 	cam_follow_point_manager.register_cam_follow_node(caravan)
@@ -164,7 +164,7 @@ func spawn_player(player: PlayerData) -> void:
 	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 0.5, 3.0, true)
 
 	# Set player color
-	Util.duplicate_material_new_color(player_node.get_node("Mesh") as MeshInstance3D, player.color)
+	Util.duplicate_material_new_color(player_node.get_node("RotationAxis/Mesh") as MeshInstance3D, player.color)
 
 	Util.spawn(player_node, actual_spawn_pos)
 	cam_follow_point_manager.register_cam_follow_node(player_node)

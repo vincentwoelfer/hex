@@ -1,4 +1,4 @@
-class_name MovementInput
+class_name InputManager
 extends Node
 
 var device_id: int
@@ -23,6 +23,8 @@ var dash_input: BufferedInputAction
 var skill_primary_input: BufferedInputAction
 var skill_secondary_input: BufferedInputAction
 
+var pickup_drop_input: BufferedInputAction
+
 func _init(device_id_: int) -> void:
 	device_id = device_id_
 
@@ -30,32 +32,8 @@ func _init(device_id_: int) -> void:
 	dash_input = BufferedInputAction.new(device_id, "dash", 0.08)
 	skill_primary_input = BufferedInputAction.new(device_id, "skill_primary", 0.1)
 	skill_secondary_input = BufferedInputAction.new(device_id, "skill_secondary", 0.1)
-
-func handle_input_event(event: InputEvent) -> void:
-	pass
-	###################
-	### Mouse Input
-	###################
-	# if event is InputEventMouseMotion:
-	# 	var e := event as InputEventMouseMotion
-	# 	# Character rotation
-	# 	self.relative_rotation.y = deg_to_rad(-e.relative.x * mouse_sensitivity)
-
-	# 	# Head rotation
-	# 	self.relative_rotation.x = deg_to_rad(-e.relative.y * mouse_sensitivity)
-
-	# ###################
-	# ### Controller Input
-	# ###################
-	# if Input.get_connected_joypads().size() > 0:
-	# 	var input := Input.get_vector("view_left", "view_right", "view_up", "view_down", 0.2)
-	# 	self.relative_rotation.y = deg_to_rad(-input.x * controller_sensitivity)
-	# 	self.relative_rotation.x = deg_to_rad(-input.y * controller_sensitivity)
-
-
-func consume_mouse_input() -> void:
-	self.relative_rotation = Vector2.ZERO
-
+	pickup_drop_input = BufferedInputAction.new(device_id, "pickup_drop", 0.1)
+	
 
 # Called once per frame / physics tick
 func update_keys(delta: float) -> void:
@@ -64,6 +42,7 @@ func update_keys(delta: float) -> void:
 	self.dash_input.update(delta)
 	self.skill_primary_input.update(delta)
 	self.skill_secondary_input.update(delta)
+	self.pickup_drop_input.update(delta)
 
 	# Hold-Down
 	self.wants_sprint = HexInput.is_action_pressed(device_id, "sprint")

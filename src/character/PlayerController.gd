@@ -10,9 +10,7 @@ var player_data: PlayerData
 
 var time_to_max_acc: float = 0.085
 
-# Computed once based on walk_speed / walk_acceleration
-var deceleration: float
-
+# First person youtube videos: # https://www.youtube.com/watch?v=xIKErMgJ1Yk
 # var air_control: float = 0.35
 # var dash_control: float = 0.5
 
@@ -24,9 +22,6 @@ var jump_time_to_peak_sec: float = 0.65
 var jump_time_to_descent_sec: float = 0.55
 # todo apex time
 
-# Debugging
-var print_timer: float = 0.0
-
 # Multi-Jump
 var max_num_jumps: int = 2
 var currently_used_jumps: int = 0
@@ -37,27 +32,18 @@ var is_sprinting: bool = false
 var is_dashing: bool = false
 var dash_timer: float = 0.0
 
-var input: MovementInput
+var input: InputManager
 
 @onready var collision: CollisionShape3D = $Collision
 @onready var path_finding_agent: PathFindingAgent = $PathFindingAgent
-
-# First person youtube videos:
-# https://www.youtube.com/watch?v=xIKErMgJ1Yk
+@onready var pick_up_manager: PickUpManager = $RotationAxis/PickUpManager
 
 var color: Color
 
-# Carrying / Crystals
-var is_carrying: bool = false
-
 func init(device: int, color_: Color) -> void:
-	input = MovementInput.new(device)
+	input = InputManager.new(device)
 	self.color = color_
 	self.mass = 10.0
-
-	# Compute deceleration based on walk speed and time to max acc
-	# var walk_accel: float = _get_acc_for_target_vel_and_time(walk_speed, time_to_max_acc)
-	# self.deceleration = walk_accel
 
 
 func _ready() -> void:
@@ -68,28 +54,12 @@ func _ready() -> void:
 	path_finding_agent.set_track_target(GameStateManager.caravan)
 
 
-func _input(event: InputEvent) -> void:
-	input.handle_input_event(event)
-
-	# Apply mouse movement: Character rotation
-	# rotate_y(input.relative_rotation.y)
-
-	# Apply mouse movement: Head rotation
-	# head.rotate_x(input.relative_rotation.x)
-	# head.rotation.x = clamp(head.rotation.x, deg_to_rad(-85), deg_to_rad(85))
-
-	input.consume_mouse_input()
-
-
 func _physics_process(delta: float) -> void:
 	input.update_keys(delta)
 
 	# Timers
 	dash_timer -= delta
 
-	# GET DESIRED INPUT DIRECTION
-	var input_dir: Vector3 = input.input_direction
-	input_dir = (transform.basis * input_dir).normalized()
 
 	# Sprinting
 	if input.wants_sprint and not is_dashing:
@@ -126,18 +96,15 @@ func _physics_process(delta: float) -> void:
 		input.skill_secondary_input.consume()
 		# TODO
 
-	# Determine target vel based on state -> TODO rework into state machine
-	var target_planar_speed: float
-	if is_dashing:
-		target_planar_speed = dash_speed
-	elif is_sprinting:
-		target_planar_speed = sprint_speed
-	else:
-		target_planar_speed = walk_speed
+	if input.pickup_drop_input.wants:
+		input.pickup_drop_input.consume()
+		pick_up_manager.pickup_or_drop()
+
+	var input_dir: Vector3 = (transform.basis * input.input_direction).normalized()
 
 	var m: CharMovement = CharMovement.new()
 	m.input_dir = Util.to_vec2(input_dir)
-	m.input_speed = target_planar_speed
+	m.input_speed = _get_current_speed()
 	
 	m.accel_ramp_time = self.time_to_max_acc
 	m.decel_ramp_time = self.time_to_max_acc
@@ -149,6 +116,17 @@ func _physics_process(delta: float) -> void:
 	# Execute movement
 	self._custom_physics_process(delta, m)
 
+
+func _get_current_speed() -> float:
+	# Determine target vel based on state -> TODO rework into state machine
+	var target_planar_speed: float
+	if is_dashing:
+		target_planar_speed = dash_speed
+	elif is_sprinting:
+		target_planar_speed = sprint_speed
+	else:
+		target_planar_speed = walk_speed
+	return target_planar_speed
 	
 func _jump() -> float:
 	# Determine number of _jump

@@ -19,9 +19,19 @@ floor_snap_length = 1.5
 platform_on_leave = 2
 script = ExtResource("1_4v2ye")
 
-[node name="Mesh" type="MeshInstance3D" parent="."]
+[node name="RotationAxis" type="Node3D" parent="."]
+
+[node name="Mesh" type="MeshInstance3D" parent="RotationAxis"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
 mesh = SubResource("TorusMesh_4v2ye")
+skeleton = NodePath("../..")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="RotationAxis"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+light_color = Color(0, 0.407843, 0.164706, 1)
+light_energy = 25.0
+shadow_enabled = true
+omni_range = 15.0
 
 [node name="Collision" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
@@ -29,10 +39,3 @@ shape = SubResource("CylinderShape3D_4v2ye")
 
 [node name="PathFindingAgent" type="Node3D" parent="."]
 script = ExtResource("3_kn48b")
-
-[node name="OmniLight3D" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
-light_color = Color(0, 0.407843, 0.164706, 1)
-light_energy = 25.0
-shadow_enabled = true
-omni_range = 15.0

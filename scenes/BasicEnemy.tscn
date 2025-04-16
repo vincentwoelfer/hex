@@ -20,9 +20,12 @@ collision_layer = 17
 platform_on_leave = 2
 script = ExtResource("1_cg60k")
 
-[node name="Mesh" type="MeshInstance3D" parent="."]
+[node name="RotationAxis" type="Node3D" parent="."]
+
+[node name="Mesh" type="MeshInstance3D" parent="RotationAxis"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 mesh = SubResource("SphereMesh_84j8r")
+skeleton = NodePath("../..")
 
 [node name="Collision" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
