@@ -172,18 +172,19 @@ func throw_bomb() -> void:
 	# Apply torque (rotation)
 	var torque_strength: float = 1.5
 	var torque := Vector3(randfn(0, 1), randfn(0, 1), randfn(0, 1)) * torque_strength
-	(bomb as RigidBody3D).apply_torque_impulse(torque)
+	bomb.apply_torque_impulse(torque)
 
 	# Apply force
 	var throw_dir: Vector3 = Vector3.FORWARD * 0.65 + Vector3.UP * 0.55
 	throw_dir = throw_dir.normalized()
 	var throw_force: float = 40.0
 	var force: Vector3 = rotation_axis.basis * throw_dir * throw_force
-	(bomb as RigidBody3D).apply_central_impulse(force)
+	bomb.apply_central_impulse(force)
 
 	# Hacky
 	await Util.await_time(0.5)
-	bomb.remove_collision_exception_with(self)
+	if bomb != null:	
+		bomb.remove_collision_exception_with(self)
 
 
 func _huge_impulse_received() -> void:
