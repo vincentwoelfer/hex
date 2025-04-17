@@ -31,13 +31,6 @@ var explosion_viusal_target_color := Colors.mod_sat_val_hue(Color.RED, 0.1, 1.0)
 var stuck_check_last_pos: Vector3 = Vector3.ZERO
 
 
-func _get_speed() -> float:
-	if pick_up_manager.is_carrying():
-		return speed * 0.85
-	else:
-		return speed
-
-
 func _ready() -> void:
 	self.mass = 10.0
 	add_to_group(HexConst.GROUP_ENEMIES)
@@ -45,6 +38,8 @@ func _ready() -> void:
 	path_finding_agent.init(Color.RED, collision.shape, DebugSettings.show_path_basic_enemy)
 
 	self.floor_max_angle = deg_to_rad(HexConst.NAV_AGENT_MAX_SLOPE_BASIS_DEG + HexConst.NAV_AGENT_MAX_SLOPE_ACTUAL_OFFSET_DEG)
+
+	self.pick_up_manager.set_pickup_radius(1.3)
 
 	# Set initial goal
 	if not _choose_new_goal():
@@ -121,7 +116,8 @@ func _get_possible_goals() -> Array[Node3D]:
 	# MODE NO CRYSTAL -> seek crystal/players
 	else:
 		# Add caravan
-		possible_goals.append(GameStateManager.caravan)
+		if GameStateManager.caravan.caravan_depot.has_objects():
+			possible_goals.append(GameStateManager.caravan)
 
 		# Add players
 		for player: PlayerController in get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS):
@@ -278,3 +274,10 @@ func _periodic_stuck_check() -> void:
 		_start_exploding()
 		return
 	stuck_check_last_pos = global_position
+
+
+func _get_speed() -> float:
+	if pick_up_manager.is_carrying():
+		return speed * 0.85
+	else:
+		return speed

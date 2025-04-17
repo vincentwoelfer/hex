@@ -4,7 +4,7 @@ class_name PickUpManager
 @onready var hex_character: HexPhysicsCharacterBody3D = $'../..'
 
 var area: Area3D
-var radius: float = 1.9
+var pickup_radius: float = 1.7
 
 var hold_offset: Vector3 = Vector3.FORWARD * 0.45 + Vector3.UP * 0.85
 var carried_object: Crystal = null
@@ -15,8 +15,8 @@ func _ready() -> void:
 	area = Area3D.new()
 
 	var shape := CylinderShape3D.new()
-	shape.radius = radius
-	shape.height = radius
+	shape.radius = pickup_radius
+	shape.height = pickup_radius
 	var collision_shape := CollisionShape3D.new()
 	collision_shape.shape = shape
 	area.add_child(collision_shape)
@@ -24,8 +24,15 @@ func _ready() -> void:
 	area.set_collision_mask_value(Layers.L.PICKABLE_OBJECTS, true)
 	area.set_collision_mask_value(Layers.L.CARAVAN, true)
 
-	# var effect := DebugVis3D.cylinder(radius, radius, DebugVis3D.mat(Color(Color.GREEN, 0.05), false))
+	# var effect := DebugVis3D.cylinder(pickup_radius, pickup_radius, DebugVis3D.mat(Color(Color.GREEN, 0.05), false))
 	# DebugVis3D.spawn(Vector3.ZERO, effect, self)
+
+
+func set_pickup_radius(radius: float) -> void:
+	pickup_radius = radius
+	var shape := ((area.get_node("CollisionShape3D") as CollisionShape3D).shape as CylinderShape3D)
+	shape.radius = pickup_radius
+	shape.height = pickup_radius
 
 
 func is_carrying() -> bool:
@@ -46,7 +53,7 @@ func has_depot_for_pickup_in_range() -> bool:
 
 func perform_pickup_or_drop_action() -> bool:
 	var performed_any_action := false
-	
+
 	if carried_object:
 		# Drop to depot if possible, otherwise drop to ground
 		var depot: CaravanDepot = _get_closest_depot(false)
