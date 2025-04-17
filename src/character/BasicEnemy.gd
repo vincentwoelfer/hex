@@ -39,7 +39,7 @@ func _ready() -> void:
 
 	self.floor_max_angle = deg_to_rad(HexConst.NAV_AGENT_MAX_SLOPE_BASIS_DEG + HexConst.NAV_AGENT_MAX_SLOPE_ACTUAL_OFFSET_DEG)
 
-	self.pick_up_manager.set_pickup_radius(1.3)
+	self.pick_up_manager.set_pickup_radius(1.1)
 
 	# Set initial goal
 	if not _choose_new_goal():

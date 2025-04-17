@@ -4,7 +4,7 @@ class_name PickUpManager
 @onready var hex_character: HexPhysicsCharacterBody3D = $'../..'
 
 var area: Area3D
-var pickup_radius: float = 1.7
+var pickup_radius: float = 1.6
 
 var hold_offset: Vector3 = Vector3.FORWARD * 0.45 + Vector3.UP * 0.85
 var carried_object: Crystal = null
@@ -30,7 +30,7 @@ func _ready() -> void:
 
 func set_pickup_radius(radius: float) -> void:
 	pickup_radius = radius
-	var shape := ((area.get_node("CollisionShape3D") as CollisionShape3D).shape as CylinderShape3D)
+	var shape := ((area.get_child(0) as CollisionShape3D).shape as CylinderShape3D)
 	shape.radius = pickup_radius
 	shape.height = pickup_radius
 
