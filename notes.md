@@ -4,6 +4,7 @@ TODO
 # https://www.youtube.com/watch?v=C-1AerTEjFU&t=210s
 
 # TODO
+
 - detect stuck enemies
 
 - align trerrain-gen with nav-mesh capabilities
@@ -13,11 +14,8 @@ TODO
   - Nav-Mesh Generation verbessern? -> use lower-detail version of terrain?
 - Thread-Safe materials?
 
-
-
 # Ideen Nek
-- bouncy bomben
 
-- gegener weglaufen mit kristallen: Distanz oder Maulwurf-löcher
+- bouncy bomben
 
 - chaos skills, bouncy bombe, friendly-fire?

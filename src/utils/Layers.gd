@@ -11,10 +11,11 @@ enum L {
 	PLAYER_CHARACTERS = 4,
 	ENEMY_CHARACTERS = 5,
 	PICKABLE_OBJECTS = 6,
+	CARAVAN = 7,
 }
 
 # Handy Shortcuts
-static var TERRAIN_AND_STATIC := mask([L.TERRAIN , L.STATIC_GEOM])
+static var TERRAIN_AND_STATIC := mask([L.TERRAIN, L.STATIC_GEOM])
 
 static func mask(layers: Array[int]) -> int:
 	var result: int = 0

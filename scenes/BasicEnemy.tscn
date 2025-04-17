@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://b8strb7jpy7y8"]
+[gd_scene load_steps=7 format=3 uid="uid://b8strb7jpy7y8"]
 
 [ext_resource type="Script" uid="uid://b85un111vchva" path="res://src/character/BasicEnemy.gd" id="1_cg60k"]
 [ext_resource type="Material" uid="uid://ddiid83wdl655" path="res://assets/materials/basic_enemy_material.tres" id="2_cg60k"]
+[ext_resource type="Script" uid="uid://ce1olcw7fa5n8" path="res://src/components/PickUpManager.gd" id="3_2korg"]
 [ext_resource type="Script" uid="uid://gshrogpvra5v" path="res://src/components/PathFindingAgent.gd" id="3_3ox23"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_84j8r"]
@@ -17,11 +18,19 @@ height = 1.0
 
 [node name="BasicEnemy" type="CharacterBody3D"]
 collision_layer = 17
+platform_on_leave = 2
 script = ExtResource("1_cg60k")
 
-[node name="Mesh" type="MeshInstance3D" parent="."]
+[node name="RotationAxis" type="Node3D" parent="."]
+
+[node name="Mesh" type="MeshInstance3D" parent="RotationAxis"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 mesh = SubResource("SphereMesh_84j8r")
+skeleton = NodePath("../..")
+
+[node name="PickUpManager" type="Node3D" parent="RotationAxis"]
+script = ExtResource("3_2korg")
+metadata/_custom_type_script = "uid://ce1olcw7fa5n8"
 
 [node name="Collision" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
@@ -30,4 +39,3 @@ debug_color = Color(0, 0.6, 0.701961, 0.905882)
 
 [node name="PathFindingAgent" type="Node3D" parent="."]
 script = ExtResource("3_3ox23")
-metadata/_custom_type_script = "uid://dcbt26awrgsip"

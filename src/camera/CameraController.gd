@@ -125,36 +125,24 @@ func update_position() -> void:
 	camera.look_at_from_position(cam_pos, follow_point_curr, Vector3.UP)
 
 
-func check_for_selection() -> void:
-	var hit: Dictionary = self.raycast_into_world()
-	# 99999 is a placeholder for no hit, required to deselect tiles if none is selected
-	var hit_pos := Vector3(99999, 0, 0)
-	if not hit.is_empty():
-		hit_pos = hit['position']
-
-	# EventBus.emit_signal("Signal_SelectedWorldPosition", hit_pos)
-
-
 func draw_debug_mesh(location: Vector3) -> void:
 	if draw_debug_follow_point:
 		if debug_mesh == null:
-			var scene_root := get_tree().root
 			debug_mesh = MeshInstance3D.new()
 			debug_mesh.mesh = DebugVis3D.sphere(0.2, DebugVis3D.mat(Color.CYAN))
 			debug_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			scene_root.add_child(debug_mesh)
+			Util.get_scene_root().add_child(debug_mesh)
 
+		# Just update global position
 		debug_mesh.global_position = location
+		debug_mesh.reset_physics_interpolation()
 
 
 func raycast_into_world() -> Dictionary:
 	var mouse_pos := get_viewport().get_mouse_position()
-	var ray_origin: Vector3 = camera.project_ray_origin(mouse_pos)
-	var ray_direction: Vector3 = camera.project_ray_normal(mouse_pos)
+	var ray_origin := camera.project_ray_origin(mouse_pos)
+	var ray_direction := camera.project_ray_normal(mouse_pos)
+	var ray_end := ray_origin + ray_direction * 1000.0
 
-	var ray_query := PhysicsRayQueryParameters3D.create(ray_origin, ray_origin + ray_direction * 1000.0)
-	ray_query.collide_with_areas = true
-
-	var space_state := get_world_3d().direct_space_state
-	var result := space_state.intersect_ray(ray_query)
+	var result := PhysicUtil.raycast(ray_origin, ray_end, Layers.L.ALL)
 	return result

@@ -1,5 +1,8 @@
-Low Poly Rocks:
+Low Poly Rocks 1:
 https://sketchfab.com/3d-models/low-poly-rocks-9823ec262054408dbe26f6ddb9c0406e
+
+Rocks 2:
+https://sketchfab.com/3d-models/free-pack-rocks-stylized-7c60b4d1b8ab4187965f30c5e0212fc0
 
 Grass:
 https://github.com/2Retr0/GodotGrass
@@ -7,3 +10,7 @@ https://github.com/2Retr0/GodotGrass
 
 Crystals:
 https://www.cgtrader.com/free-3d-models/architectural/decoration/enchanted-crystal
+
+
+Bomb:
+https://sketchfab.com/3d-models/stylized-bomb-19116a7b863842f9acfcdaf9ef34d7a1#download

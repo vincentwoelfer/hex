@@ -65,11 +65,11 @@ func _on_joy_connection_changed(device: int, connected: bool) -> void:
 
 
 func _create_actions_for_device(device: int) -> void:
-	print("Creating actions for device %s" % device)
-
 	# skip action creation if the device should be ignored
 	if Input.get_joy_guid(device) in ignored_guids:
 		return
+
+	print("Creating actions for device %s" % device)
 
 	device_actions[device] = {}
 	for core_action in core_actions:

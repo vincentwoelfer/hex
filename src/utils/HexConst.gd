@@ -52,10 +52,17 @@ const MAP_HEIGHT_MAX: int = 18
 const MAP_HEIGHT_INVALID: int = -999
 
 
+# ==================== GROUPS ========================
+const GROUP_NAV_CHUNKS: String = "nav_chunks"
+const GROUP_PLAYERS: String = "players"
+const GROUP_ENEMIES: String = "enemies"
+const GROUP_CRYSTALS: String = "crystals"
+const GROUP_ESCAPE_PORTALS: String = "escape_portals"
+
 # ==================== Navigation ========================
-const NAV_CELL_SIZE: float = 0.125
-const NAV_AGENT_RADIUS: float = 0.5
-const NAV_CHUNKS_GROUP_NAME: String = "nav_chunks"
+# These must be multiples of each others
+const NAV_CELL_SIZE: float = 0.1
+const NAV_AGENT_RADIUS: float = 0.8
 
 # Define a basis slope angle, then give the agents more ability (to compensate for small path errors)
 # but also reduce the nav-mesh generation a bit to avoid too steep slopes
@@ -67,7 +74,6 @@ const NAV_AGENT_MAX_SLOPE_NAV_MESH_OFFSET_DEG := -2.5
 # ==================== STUFF =============================
 const MAP_CENTER: Vector3 = Vector3(-10, 0, -10)
 
-static var GRAVITY: float = - ProjectSettings.get_setting("physics/3d/default_gravity")
 
 # ========================================================
 # ==================== Derived values ====================

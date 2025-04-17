@@ -56,8 +56,9 @@ var goal_reached_distance: float = 0.5
 # https://docs.godotengine.org/en/4.0/tutorials/navigation/navigation_different_actor_types.html
 
 
-func init(color_: Color, sweeping_shape_reference: Shape3D) -> void:
+func init(color_: Color, sweeping_shape_reference: Shape3D, show_path_: bool = true) -> void:
 	self.color = color_
+	self.show_path = show_path_
 	self.sweeping_shape = sweeping_shape_reference.duplicate(false)
 
 	# Make shape smaller - depends on type
@@ -70,7 +71,6 @@ func init(color_: Color, sweeping_shape_reference: Shape3D) -> void:
 		original_height = s.radius * 2.0
 		radius = s.radius
 		s.radius *= radius_factor
-
 	elif sweeping_shape is CapsuleShape3D:
 		var s := sweeping_shape as CapsuleShape3D
 
@@ -78,7 +78,6 @@ func init(color_: Color, sweeping_shape_reference: Shape3D) -> void:
 		radius = s.radius
 		s.radius *= radius_factor
 		s.height *= height_factor
-
 	elif sweeping_shape is CylinderShape3D:
 		var s := sweeping_shape as CylinderShape3D
 
@@ -93,12 +92,12 @@ func init(color_: Color, sweeping_shape_reference: Shape3D) -> void:
 	self.shape_cast_height_offset = Vector3.UP * original_height * (1.0 - height_factor)
 
 	const width := 0.06
-	visual_path = DebugPathInstance.new(color, width)
+	visual_path = DebugPathInstance.new(color, width, show_path)
 	add_child(visual_path)
 
 	if DebugSettings.show_raw_debug_path:
 		var debug_color := Colors.set_alpha(Colors.mod_sat_val_hue(color, -0.4, 0.0, 0.05), color.a * 0.75)
-		visual_path_raw = DebugPathInstance.new(debug_color, width * 0.75)
+		visual_path_raw = DebugPathInstance.new(debug_color, width * 0.75, show_path)
 		add_child(visual_path_raw)
 	
 
@@ -126,6 +125,7 @@ func set_track_target(track_target_: Node3D) -> void:
 	self.has_target = true
 	self.target = track_target_.global_position
 
+## True after target has been reached and until new goal is set
 func is_navigation_done() -> bool:
 	return navigation_done
 
@@ -134,8 +134,11 @@ func get_target() -> Vector3:
 		return Vector3.ZERO
 	return target
 
+func get_has_path() -> bool:
+	return has_path
+
 func get_direction() -> Vector3:
-	if not has_path or navigation_done:
+	if not has_path or path.size() <= 1:
 		return Vector3.ZERO
 
 	# We try to reach index 1, 0 is current position (in visualization)
@@ -216,12 +219,14 @@ func _update_path_progress() -> void:
 		
 func _process(delta: float) -> void:
 	# Update visual path
-	visual_path.update_path(path, global_position)
-	visual_path.enabled = show_path
+	if visual_path:
+		visual_path.update_path(path, global_position)
+		visual_path.enabled = show_path
 
 	if DebugSettings.show_raw_debug_path:
-		visual_path_raw.update_path(path_raw, global_position)
-		visual_path_raw.enabled = show_path
+		if visual_path_raw:
+			visual_path_raw.update_path(path_raw, global_position)
+			visual_path_raw.enabled = show_path
 	
 		 
 func _update_target_from_tracking() -> void:
@@ -229,7 +234,7 @@ func _update_target_from_tracking() -> void:
 		return
 
 	# Check if tracking target became invalid
-	if tracking_target == null or !is_instance_valid(tracking_target):
+	if tracking_target == null or tracking_target.is_queued_for_deletion() or !is_instance_valid(tracking_target):
 		self.is_tracking_target = false
 		self.tracking_target = null
 		self.has_target = false
@@ -250,7 +255,7 @@ func _plan_new_path() -> void:
 		return
 
 	# Do not query when the map has never synchronized and is empty.
-	var map: RID = get_world_3d().navigation_map
+	var map: RID = Util.get_map()
 	if NavigationServer3D.map_get_iteration_id(map) == 0:
 		return
 	
@@ -262,44 +267,41 @@ func _plan_new_path() -> void:
 	has_path = true
 	last_target_replan_pos = target
 	last_target_replan_time = Time.get_unix_time_from_system()
-	path = simplify_path(path_raw)
+	path = _simplify_path(path_raw)
 
 
-func simplify_path(p: PackedVector3Array) -> PackedVector3Array:
+func _simplify_path(p: PackedVector3Array) -> PackedVector3Array:
 	# Nothing to simplify if p has less than 3 points
 	if p.size() < 3:
 		return p
 
-	# Check if we can reach the end directly        
 	var simplified_p := PackedVector3Array()
 	var current_index := 0
 	simplified_p.append(p[current_index])
 	
-	# Iterate over p, try to connect current_index (from p start) with next_index, (from p end, moving backwards)
+	# Iterate over p, try to connect current_index (from p start) with next_index, (from path end, moving backwards)
 	while current_index < p.size() - 1:
-		var next_index := p.size() - 1 # Try to jump directly to the end
+		var next_index := p.size() - 1
 
 		# Check if we can reach the furthest point directly
 		while next_index > current_index + 1:
-			# Check if we can connect current_index with next_index
-			if can_connect_points(p[current_index], p[next_index]):
+			if _can_connect_points(p[current_index], p[next_index]):
 				break
 			else:
 				next_index -= 1
 
-		# Move to the next reachable point
+		# Start again from the next reachable point
 		current_index = next_index
 		simplified_p.append(p[current_index])
 	return simplified_p
 
 
-func can_connect_points(curr: Vector3, next: Vector3) -> bool:
-	var visualize: bool = false
-	# Only connect if
-	# - path is clear
-	# - distance is short enough
-	# - low height difference
-	# - low slope
+## Try to connect two path points directly, only connect iff:
+##[br] - path is clear
+##[br] - distance is short enough
+##[br] - low height difference
+##[br] - low slope
+func _can_connect_points(curr: Vector3, next: Vector3) -> bool:
 	# Check distance
 	var distance := curr.distance_to(next)
 	if distance > max_simplify_dist:
@@ -325,19 +327,20 @@ func can_connect_points(curr: Vector3, next: Vector3) -> bool:
 	query.collision_mask = Layers.TERRAIN_AND_STATIC
 
 	# First perform shape-check to check for initial collision, then a motion-sweep
-	var does_collide := get_world_3d().direct_space_state.intersect_shape(query, 1).size() > 0
+	var does_collide := not Util.get_space_state().intersect_shape(query, 1).is_empty()
 	var t := 0.0
 	if not does_collide:
-		var result: PackedFloat32Array = get_world_3d().direct_space_state.cast_motion(query)
+		var result: PackedFloat32Array = Util.get_space_state().cast_motion(query)
 		t = result[0]
 		does_collide = t < 1.0
 
-	# Debug visualization - only for caravan
+	# Debug visualization - only for caravan (thats why self.radius => 0.6 is checked)
+	var visualize: bool = false
 	if visualize:
 		if self.radius >= 0.6:
 			var col_free := Colors.set_alpha(color.lerp(Color.GREEN, 0.5), 0.9)
 			var col_hit := Colors.set_alpha(color.lerp(Color.RED, 0.5), 0.9)
-			DebugVis3D.visualize_shape_query_with_hit(query, t, col_free, col_hit, 25.0)
+			DebugVis3D.visualize_shape_query_motion_with_hit(query, t, col_free, col_hit, 25.0)
 
 	if does_collide:
 		return false

@@ -25,7 +25,7 @@ var threads_running_mutex: Mutex
 # Generation Data. Distances are in tile-sizes, the formula takes in meters to convert
 var generation_position: HexPos = HexPos.invalid() # Gets updated before first generation-tick. Needs to be invalid to instantly trigger "changed position"
 var tile_generation_distance_hex := HexConst.distance_m_to_hex(90)
-var tile_deletion_distance_hex := HexConst.distance_m_to_hex(125)
+var tile_deletion_distance_hex := HexConst.distance_m_to_hex(110)
 
 var is_active: bool = false
 
@@ -346,8 +346,7 @@ func _exit_tree() -> void:
 ##############################
 # Additional API
 ##############################
-
-func _get_approx_map_height_at_pos(pos: Vector3) -> float:
+func get_hex_tile_height_at_map_pos(pos: Vector3) -> float:
 	var hex_pos: HexPos = HexPos.xyz_to_hexpos_frac(pos).round()
 	var tile: HexTile = HexTileMap.get_by_pos(hex_pos)
 
@@ -355,34 +354,3 @@ func _get_approx_map_height_at_pos(pos: Vector3) -> float:
 		return tile.height * HexConst.height
 	else:
 		return 0.0
-
-
-func get_spawn_pos_height_on_map_surface(pos: Vector3, shape: CollisionShape3D) -> Vector3:
-	pos.y = _get_approx_map_height_at_pos(pos)
-
-	# Prepare shape query
-	var query: PhysicsShapeQueryParameters3D = PhysicsShapeQueryParameters3D.new()
-	query.shape = shape.shape
-	var distance := 30.0
-	query.transform.origin = pos + Vector3.UP * distance / 2.0
-	query.motion = Vector3.DOWN * distance
-
-	# Set collision mask
-	query.collision_mask = Layers.TERRAIN_AND_STATIC
-
-	# Perform query
-	var space_state := get_world_3d().direct_space_state
-	var t: float = space_state.cast_motion(query)[0]
-	var shape_height: float
-	
-	if shape.shape is SphereShape3D:
-		shape_height = (shape.shape as SphereShape3D).radius * 2.0
-	elif shape.shape is CapsuleShape3D:
-		shape_height = (shape.shape as CapsuleShape3D).height
-	elif shape.shape is CylinderShape3D:
-		shape_height = (shape.shape as CylinderShape3D).height
-	else:
-		push_error("Shape not supported for spawn pos height query")
-
-	# Offset upwards by half the shape height
-	return (query.transform.origin + query.motion * t) - (Vector3.UP * shape_height / 2.0)
