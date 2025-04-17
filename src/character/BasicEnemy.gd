@@ -8,7 +8,7 @@ extends HexPhysicsCharacterBody3D
 @onready var mesh: MeshInstance3D = $RotationAxis/Mesh
 var mesh_material: StandardMaterial3D
 
-var speed: float = 3.3
+var speed: float = 3.6
 
 var target: Node3D = null
 
@@ -29,6 +29,14 @@ var explosion_viusal_target_color := Colors.mod_sat_val_hue(Color.RED, 0.1, 1.0)
 
 # stuck check
 var stuck_check_last_pos: Vector3 = Vector3.ZERO
+
+
+func _get_speed() -> float:
+	if pick_up_manager.is_carrying():
+		return speed * 0.85
+	else:
+		return speed
+
 
 func _ready() -> void:
 	self.mass = 10.0
@@ -72,12 +80,12 @@ func _physics_process(delta: float) -> void:
 	# Movement
 	var m: CharMovement = CharMovement.new()
 	m.input_dir = Util.to_vec2(path_finding_agent.get_direction())
-	m.input_speed = self.speed
+	m.input_speed = _get_speed()
 	
 	# Fake values, instant accel/decel
 	m.accel_ramp_time = 0.0
 	m.decel_ramp_time = 0.0
-	m.max_possible_speed = self.speed
+	m.max_possible_speed = self.speed # use max speed here
 
 	m.input_control_factor = 1.0
 	m.vertical_override = 0.0

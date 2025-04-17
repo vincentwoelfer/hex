@@ -161,9 +161,10 @@ func _get_custom_gravity() -> float:
 func throw_bomb() -> void:
 	Input.start_joy_vibration(input.device_id, 0.0, 0.3, 0.2)
 
-	var bomb: Node3D = ResLoader.THROWABLE_BOMB_SCENE.instantiate()
+	var bomb: ThrowableBomb = ResLoader.THROWABLE_BOMB_SCENE.instantiate()
+	bomb.add_collision_exception_with(self)
 
-	var hold_offset: Vector3 = Vector3.FORWARD * 0.7 + Vector3.UP * 1.0
+	var hold_offset: Vector3 = Vector3.FORWARD * 0.5 + Vector3.UP * 0.8
 	var throw_origin := global_transform.origin + rotation_axis.basis * hold_offset
 
 	Util.spawn(bomb, throw_origin)
@@ -179,6 +180,10 @@ func throw_bomb() -> void:
 	var throw_force: float = 40.0
 	var force: Vector3 = rotation_axis.basis * throw_dir * throw_force
 	(bomb as RigidBody3D).apply_central_impulse(force)
+
+	# Hacky
+	await Util.await_time(0.5)
+	bomb.remove_collision_exception_with(self)
 
 
 func _huge_impulse_received() -> void:

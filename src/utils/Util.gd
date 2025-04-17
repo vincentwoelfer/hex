@@ -356,6 +356,6 @@ static func calculate_explosion_impulse(origin: Vector3, target_pos: Vector3, ex
 	# Impulse diminishes with distance from the origin
 	var force_factor: float = 1.0 - (dist / explosion_radius)
 
-	# Change from [1, 0] to [1, 0.6]
-	force_factor = remap(force_factor, 1.0, 0.0, 1.0, 0.6)
+	# Change from [1, 0] to [1, 0.5]
+	force_factor = remap(force_factor, 1.0, 0.0, 1.0, 0.5)
 	return to_target * explosion_strength * force_factor

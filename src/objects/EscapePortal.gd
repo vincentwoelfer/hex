@@ -39,10 +39,8 @@ func _on_body_entered(body: Node3D) -> void:
         queued_for_deletion.erase(crystal)
 
         # Check if the crystal is still in portal
-        if Util.get_dist_planar(crystal.global_position, global_position) > radius:
-            return
-
-        if not crystal.is_queued_for_deletion():
-            crystal.queue_free()
+        if Util.get_dist_planar(crystal.global_position, global_position) <= radius * 1.5:
+            if not crystal.is_queued_for_deletion():
+                crystal.queue_free()
         
-        # print("Crystal picked up by escape portal")
+            # print("Crystal picked up by escape portal")

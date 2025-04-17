@@ -6,7 +6,7 @@ class_name PickUpManager
 var area: Area3D
 var radius: float = 1.8
 
-var hold_offset: Vector3 = Vector3.FORWARD * 0.5 + Vector3.UP * 0.9
+var hold_offset: Vector3 = Vector3.FORWARD * 0.45 + Vector3.UP * 0.85
 var carried_object: Crystal = null
 
 func _ready() -> void:

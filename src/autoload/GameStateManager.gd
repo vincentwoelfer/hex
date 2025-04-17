@@ -48,12 +48,12 @@ func _ready() -> void:
 
 	await get_tree().process_frame
 
-	if HexInput.device_actions.size() > 1:
-		# Always spawn keyboard player for development (after caravan has been spawened)
-		PlayerManager.add_player(-1)
+	# if HexInput.device_actions.size() > 1:
+	# Always spawn keyboard player for development (after caravan has been spawened)
+	PlayerManager.add_player(-1)
 
 	# Add enemy spawner TODO make enemy number player number dependent
-	add_child(Util.timer(1.5, spawn_enemy))
+	add_child(Util.timer(1.15, spawn_enemy))
 	add_child(Util.timer(1.0, delete_far_away_entities))
 
 
@@ -75,9 +75,6 @@ func _input(event: InputEvent) -> void:
 		# Spawn enemy
 		if event.is_action_pressed("dev_spawn_enemy"):
 			spawn_enemy()
-
-		if event.is_action_pressed("dev_spawn_crystal"):
-			caravan.spawn_crystal()
 
 		if event.is_action_pressed("dev_toggle_cam_follow_caravan"):
 			cam_follow_point_manager.use_caravan_for_cam_follow = not cam_follow_point_manager.use_caravan_for_cam_follow

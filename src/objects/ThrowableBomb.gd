@@ -6,10 +6,10 @@ class_name ThrowableBomb
 var bounces: int = 0
 var max_bounces: int = 2
 
-var time_between_bounces_sec: float = 0.125
-var last_bounce_time_counter: float = time_between_bounces_sec
+var min_time_between_bounces_sec: float = 0.12
+var last_bounce_time_counter: float = min_time_between_bounces_sec
 
-var explosion_radius: float = 3.75
+var explosion_radius: float = 3.8
 var explosion_force: float = 170.0
 
 var exploded := false
@@ -35,7 +35,7 @@ func _physics_process(delta: float) -> void:
 
 	# If contact
 	if last_bounce_time_counter <= 0.0 and get_contact_count() > 0:
-		last_bounce_time_counter = time_between_bounces_sec
+		last_bounce_time_counter = min_time_between_bounces_sec
 		bounces += 1
 
 	if bounces >= max_bounces and not exploded:
@@ -75,6 +75,11 @@ func explode() -> void:
 		if body is RigidBody3D:
 			var rigid_body: RigidBody3D = body
 			var impulse := Util.calculate_explosion_impulse(global_position, body.global_position, explosion_force, explosion_radius)
+
+			# Less impulse for other bombs
+			if body is ThrowableBomb:
+				impulse *= 0.5
+
 			rigid_body.apply_central_impulse(impulse)
 
 		elif body is HexPhysicsCharacterBody3D:

@@ -19,9 +19,6 @@ var velocity_no_collision: Vector3 = Vector3.ZERO
 @onready var path_finding_agent: PathFindingAgent = $PathFindingAgent
 @onready var collision: CollisionShape3D = $Collision
 
-# TEST
-var crystal_timer: Timer
-
 func _ready() -> void:
 	# more than player
 	self.mass = 150.0
@@ -36,10 +33,6 @@ func _ready() -> void:
 	# Set initial goal
 	choose_new_goal()
 
-	# TEST
-	crystal_timer = Util.timer(1.5, spawn_crystal)
-	add_child(crystal_timer)
-
 
 func get_speed() -> float:
 	# Move faster for testing if Caravan is alone
@@ -47,15 +40,6 @@ func get_speed() -> float:
 		return 10.0
 	else:
 		return speed
-
-func spawn_crystal() -> void:
-	var crystal: Node3D = ResLoader.CRYSTAL_SCENE.instantiate()
-	var spawn_pos: Vector3 = self.global_position + Util.rand_circular_offset_range(1.5, 2.5) + Vector3(0, 2.0, 0) + path_finding_agent.get_direction() * 1.5
-
-	crystal.rotation = Vector3(randf_range(0, TAU), randf_range(0, TAU), randf_range(0, TAU))
-	Util.spawn(crystal, spawn_pos)
-	var torque := Vector3(randfn(0, 1), randfn(0, 1), randfn(0, 1)) * 2.0
-	(crystal as RigidBody3D).apply_torque_impulse(torque)
 	
 
 func _physics_process(delta: float) -> void:
