@@ -107,7 +107,7 @@ func _check_crystal_pickup() -> void:
 		return
 
 	if not pick_up_manager.is_carrying() and pick_up_manager.has_object_to_pick_up():
-		pick_up_manager.pickup_or_drop()
+		pick_up_manager.perform_pickup_or_drop_action()
 
 
 func _get_possible_goals() -> Array[Node3D]:
@@ -224,7 +224,7 @@ func _on_explodion_finish() -> void:
 			hex_body.apply_external_impulse(impulse)
 
 
-	pick_up_manager._drop_object()
+	pick_up_manager.drop_object()
 	
 	# TODO add explosion effect (external particle, not self-growth) ?
 	self.queue_free()

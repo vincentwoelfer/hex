@@ -12,38 +12,38 @@ var crystal_capsule_shape: CapsuleShape3D
 
 var carried_objects: Array[Crystal] = []
 
+const num_start_crystals: int = 10
+
 func _ready() -> void:
 	# React to huge impulses
-	hex_character.connect("Signal_huge_impulse_received", _drop_object)
+	hex_character.connect("Signal_huge_impulse_received", _drop_object_to_ground)
 
-	# Fetch crystal size
+	# Fetch crystal dimensions
 	var crystal_node: Node3D = ResLoader.CRYSTAL_SCENE.instantiate()
 	crystal_capsule_shape = (crystal_node.get_node("Collision") as CollisionShape3D).shape as CapsuleShape3D
+	crystal_node.queue_free()
 
-	area = Area3D.new()
-	var shape := CylinderShape3D.new()
-	shape.radius = radius
-	shape.height = radius
-	var collision_shape := CollisionShape3D.new()
-	collision_shape.shape = shape
-	area.add_child(collision_shape)
-	add_child(area)
+	# area = Area3D.new()
+	# var shape := CylinderShape3D.new()
+	# shape.radius = radius
+	# shape.height = radius
+	# var collision_shape := CollisionShape3D.new()
+	# collision_shape.shape = shape
+	# area.add_child(collision_shape)
+	# add_child(area)
 
-	# TODO
-	area.set_collision_mask_value(Layers.L.PICKABLE_OBJECTS, true)
+	# area.set_collision_mask_value(Layers.L.ALL, true)
 
-	# Visualize area
-	var effect := DebugVis3D.cylinder(radius, radius, DebugVis3D.mat(Color(Color.DARK_CYAN, 0.1), false))
-	DebugVis3D.spawn(Vector3.ZERO, effect, self)
+	# # Visualize area
+	# var effect := DebugVis3D.cylinder(radius, radius, DebugVis3D.mat(Color(Color.DARK_CYAN, 0.1), false))
+	# DebugVis3D.spawn(Vector3.ZERO, effect, self)
 
 	# Add initial crystals
-	_fill_storage(10)
+	_fill_storage(num_start_crystals)
 
 	# FOR TESTING
 	await Util.await_time(1.0)
-	_drop_object()
-	await Util.await_time(1.0)
-	_drop_object()
+	_drop_object_to_ground()
 
 
 func has_objects() -> bool:
@@ -86,6 +86,9 @@ func add_to_storage(crystal: Crystal) -> void:
 	crystal.linear_velocity = Vector3.ZERO
 	crystal.angular_velocity = Vector3.ZERO
 
+	# Set collision mask
+	hex_character.add_collision_exception_with(crystal)
+
 	# Re-Parent
 	var original_parent: Node = crystal.get_parent()
 	if original_parent:
@@ -101,9 +104,6 @@ func add_to_storage(crystal: Crystal) -> void:
 	crystal.global_transform.origin = get_object_position_in_storage(index)
 	crystal.global_transform.basis = get_object_rotation_in_storage(index)
 
-	# Set collision mask
-	hex_character.add_collision_exception_with(crystal)
-
 
 # Removes from storage, DOES NOT ADD BACK TO TREE
 func remove_from_storage() -> Crystal:
@@ -113,14 +113,15 @@ func remove_from_storage() -> Crystal:
 	# Remove from storage
 	var crystal: Crystal = carried_objects.pop_back()
 	var index: int = carried_objects.size()
-	crystal.state = Crystal.State.ON_GROUND # TODO ???
+	 # TODO ???
+	crystal.state = Crystal.State.ON_GROUND
 
 	# Re-parent
 	self.remove_child(crystal)
 
 	# Set position TODO ???
-	crystal.global_transform.origin = get_object_position_in_storage(index)
-	crystal.global_transform.basis = get_object_rotation_in_storage(index)
+	# crystal.global_transform.origin = get_object_position_in_storage(index)
+	# crystal.global_transform.basis = get_object_rotation_in_storage(index)
 
 	# Set collision mask
 	hex_character.remove_collision_exception_with(crystal)
@@ -132,10 +133,12 @@ func remove_from_storage() -> Crystal:
 	return crystal
 
 
-func _drop_object() -> void:
+func _drop_object_to_ground() -> void:
 	var crystal: Crystal = remove_from_storage()
 	if not crystal:
 		return
+
+	crystal.state = Crystal.State.ON_GROUND
 
 	var index := carried_objects.size()
 	var spawn_pos := get_object_position_in_storage(index) + Vector3.UP * 0.05
@@ -191,7 +194,7 @@ func _drop_object() -> void:
 # 	carried_object = obj
 
 
-# func _drop_object() -> void:
+# func _drop_object_to_ground() -> void:
 # 	if carried_objects.is_empty():
 # 		return
 

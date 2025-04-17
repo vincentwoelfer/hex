@@ -11,6 +11,7 @@ enum L {
 	PLAYER_CHARACTERS = 4,
 	ENEMY_CHARACTERS = 5,
 	PICKABLE_OBJECTS = 6,
+	CARAVAN = 7,
 }
 
 # Handy Shortcuts

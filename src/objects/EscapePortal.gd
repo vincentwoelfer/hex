@@ -24,7 +24,7 @@ func _on_body_entered(body: Node3D) -> void:
 
     if body.is_in_group(HexConst.GROUP_ENEMIES):
         var enemy: BasicEnemy = body as BasicEnemy
-        enemy.pick_up_manager._drop_object()
+        enemy.pick_up_manager.drop_object()
         enemy.queue_free()
         # print("Enemy picked up by escape portal")
 
@@ -38,8 +38,9 @@ func _on_body_entered(body: Node3D) -> void:
         await Util.await_time(1.8)
         queued_for_deletion.erase(crystal)
 
-        # Check if the crystal is still in portal
-        if Util.get_dist_planar(crystal.global_position, global_position) <= radius * 1.5:
+        # Check if the crystal is still in portal and not grabbed
+        if Util.get_dist_planar(crystal.global_position, global_position) <= radius * 1.5 and \
+                                crystal.state == Crystal.State.ON_GROUND:
             if not crystal.is_queued_for_deletion():
                 crystal.queue_free()
         

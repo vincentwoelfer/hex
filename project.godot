@@ -198,6 +198,7 @@ pickup_drop={
 3d_physics/layer_4="PLAYER_CHARACTERS"
 3d_physics/layer_5="ENEMY_CHARACTERS"
 3d_physics/layer_6="PICKABLE_OBJECTS"
+3d_physics/layer_7="CARAVAN"
 
 [navigation]
 

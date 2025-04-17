@@ -231,7 +231,7 @@ func apply_external_force(force: Vector3) -> void:
 func apply_external_impulse(impulse: Vector3) -> void:
 	var new_force := impulse / mass
 
-	if new_force.length() >= 1.5:
+	if new_force.length() >= 1.0:
 		emit_signal("Signal_huge_impulse_received")
 
 	external_impulse += new_force

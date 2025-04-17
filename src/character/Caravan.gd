@@ -18,6 +18,7 @@ var velocity_no_collision: Vector3 = Vector3.ZERO
 # Scene references
 @onready var path_finding_agent: PathFindingAgent = $PathFindingAgent
 @onready var collision: CollisionShape3D = $Collision
+@onready var caravan_depot: CaravanDepot = $RotationAxis/CaravanDepot
 
 func _ready() -> void:
 	# more than player

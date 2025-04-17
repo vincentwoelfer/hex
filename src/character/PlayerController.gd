@@ -102,7 +102,7 @@ func _physics_process(delta: float) -> void:
 
 	if input.pickup_drop_input.wants:
 		input.pickup_drop_input.consume()
-		pick_up_manager.pickup_or_drop()
+		pick_up_manager.perform_pickup_or_drop_action()
 
 	var input_dir: Vector3 = (transform.basis * input.input_direction).normalized()
 
