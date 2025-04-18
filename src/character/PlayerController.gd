@@ -31,6 +31,7 @@ var jump_strength_factors: Array[float] = [1.0, 0.8, 0.8]
 var is_sprinting: bool = false
 var is_dashing: bool = false
 var dash_timer: float = 0.0
+var is_slamming := false
 
 var input: InputManager
 
@@ -71,16 +72,32 @@ func _physics_process(delta: float) -> void:
 	# TODO DISABLED for not
 	is_sprinting = false
 
-	# Jumping
+	#################################################
+	# Jumping / Slamming
+	#################################################
 	if is_on_floor():
 		currently_used_jumps = 0
 
-	var jump_vel := 0.0
-	if input.jump_input.wants and currently_used_jumps < max_num_jumps:
-		input.jump_input.consume()
-		jump_vel = _jump()
+		# Slam check
+		if is_slamming:
+			is_slamming = false
+			_slam_effect()
 
+	var vertical_vel_override := 0.0
+	if input.jump_input.wants:
+		# Normal jump
+		if currently_used_jumps < max_num_jumps:
+			input.jump_input.consume()
+			vertical_vel_override = _jump()
+		# Slam (exactly once)
+		elif currently_used_jumps == max_num_jumps and not is_on_floor():
+			input.jump_input.consume()
+			vertical_vel_override = _slam()
+			is_slamming = true
+			
+	#################################################
 	# Dashing
+	#################################################
 	if is_dashing:
 		if dash_timer <= 0.0:
 			is_dashing = false
@@ -115,7 +132,7 @@ func _physics_process(delta: float) -> void:
 	m.max_possible_speed = self.walk_speed
 
 	m.input_control_factor = 1.0
-	m.vertical_override = jump_vel
+	m.vertical_override = vertical_vel_override
 
 	# Execute movement
 	self._custom_physics_process(delta, m)
@@ -145,6 +162,32 @@ func _jump() -> float:
 	Input.start_joy_vibration(input.device_id, 0.0, 1.0, 0.2 + 0.15 * jump_index)
 
 	return jump_vel
+
+func _slam() -> float:
+	currently_used_jumps += 1
+
+	# TODO base slam vel on height (ray-cast) to get semi-consistent slam time
+	var slam_vel := -25.0
+
+	# Vibration
+	Input.start_joy_vibration(input.device_id, 0.0, 1.0, 0.3)
+
+	return slam_vel
+
+
+# Only executed once per slam
+func _slam_effect() -> void:
+	var slam_radius: float = 2.5
+	var effect := DebugVis3D.cylinder(slam_radius, slam_radius, DebugVis3D.mat(Color(Color.RED.lightened(0.25), 0.15), false))
+	var effect_node := DebugVis3D.spawn(global_position + Vector3.UP * 0.25 * slam_radius, effect)
+	Util.delete_after(0.35, effect_node)
+
+	# TODO add slam effect
+	# TODO add slam damage
+	# TODO add slam sound
+	# TODO add slam particles
+
+	pass
 
 
 func _get_custom_gravity() -> float:
@@ -183,7 +226,7 @@ func throw_bomb() -> void:
 
 	# Hacky
 	await Util.await_time(0.5)
-	if bomb != null:	
+	if bomb != null:
 		bomb.remove_collision_exception_with(self)
 
 
