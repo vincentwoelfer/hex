@@ -51,7 +51,8 @@ func has_depot_for_pickup_in_range() -> bool:
 	return _get_closest_depot(true) != null
 
 
-func perform_pickup_or_drop_action() -> bool:
+enum PickupPriority {DEPOT, GROUND}
+func perform_pickup_or_drop_action(priority: PickupPriority) -> bool:
 	var performed_any_action := false
 
 	if carried_object:
@@ -61,20 +62,32 @@ func perform_pickup_or_drop_action() -> bool:
 		performed_any_action = true
 
 	else:
-		# Pick up from ground is preferred (for players. For enemies maybe change this)
-		var target: Crystal = _get_closest_pickup_candidate_from_ground()
-		if target:
-			pick_up_object(target)
+		# Pick up from ground or depot, depending on the priority
+		var callables: Array[Callable] = [Callable(self, "_pickup_from_depot"), Callable(self, "pickup_from_ground")]
+		if priority == PickupPriority.GROUND:
+			callables.reverse()
+
+		if callables[0].call():
 			performed_any_action = true
-		else:
-			# Pick up from depot
-			var depot: CaravanDepot = _get_closest_depot(true)
-			if depot:
-				var crystal := depot.remove_from_storage()
-				pick_up_object(crystal)
-				performed_any_action = true
+		elif callables[1].call():
+			performed_any_action = true
 
 	return performed_any_action
+
+func _pickup_from_ground() -> bool:
+	var target: Crystal = _get_closest_pickup_candidate_from_ground()
+	if target:
+		pick_up_object(target)
+		return true
+	return false
+
+func _pickup_from_depot() -> bool:
+	var depot: CaravanDepot = _get_closest_depot(true)
+	if depot:
+		var crystal := depot.remove_from_storage()
+		pick_up_object(crystal)
+		return true
+	return false
 
 
 func pick_up_object(obj: Crystal) -> void:
