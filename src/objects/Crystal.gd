@@ -26,5 +26,5 @@ func _ready() -> void:
 	self.physics_material_override = mat
 
 	# Collision config
-	self.angular_damp = 4.5
-	self.linear_damp = 3.0
+	self.angular_damp = 1.5
+	self.linear_damp = 1.5

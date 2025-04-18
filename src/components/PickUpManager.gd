@@ -63,7 +63,7 @@ func perform_pickup_or_drop_action(priority: PickupPriority) -> bool:
 
 	else:
 		# Pick up from ground or depot, depending on the priority
-		var callables: Array[Callable] = [Callable(self, "_pickup_from_depot"), Callable(self, "pickup_from_ground")]
+		var callables: Array[Callable] = [Callable(self, "_pickup_from_depot"), Callable(self, "_pickup_from_ground")]
 		if priority == PickupPriority.GROUND:
 			callables.reverse()
 

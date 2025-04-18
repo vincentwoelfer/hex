@@ -24,11 +24,11 @@ func _ready() -> void:
 	self.physics_material_override = mat
 
 	self.contact_monitor = true
-	self.max_contacts_reported = 4
+	self.max_contacts_reported = 1 # only one contact per bounce
 
 	# Collision config
 	# self.angular_damp = 1.5
-	# self.linear_damp = 3.0
+	# self.linear_damp = 1.5
 
 func _physics_process(delta: float) -> void:
 	last_bounce_time_counter -= delta
@@ -106,6 +106,6 @@ func explode() -> void:
 
 			
 	# TODO add explosion effect (external particle, not self-growth) ?
-	await Util.await_time(0.1)
+	await Util.await_time(0.15)
 	area.queue_free()
 	self.queue_free()
