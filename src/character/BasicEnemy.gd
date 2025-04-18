@@ -8,7 +8,8 @@ extends HexPhysicsCharacterBody3D
 @onready var mesh: MeshInstance3D = $RotationAxis/Mesh
 var mesh_material: StandardMaterial3D
 
-var speed: float = 3.6
+var speed_normal: float = 3.5
+var speed_carrying: float = 2.7
 
 var target: Node3D = null
 
@@ -18,14 +19,14 @@ var goal_choosing_interval: float = 0.5
 
 # Exploding
 var is_exploding := false
-var explosion_radius: float = 2.0
+var explosion_radius: float = 2.2
 var explosion_force: float = 200.0
 
 # Explosion visual
 var explosion_duration := 0.5
 var explosion_visual_wave_count := 3
-var explosion_visual_max_size_scale := 2.0
-var explosion_viusal_target_color := Colors.mod_sat_val_hue(Color.RED, 0.1, 1.0)
+var explosion_visual_max_size_scale := 2.1
+var explosion_viusal_target_color := Color.RED.lightened(0.5)
 
 # stuck check
 var stuck_check_last_pos: Vector3 = Vector3.ZERO
@@ -80,7 +81,7 @@ func _physics_process(delta: float) -> void:
 	# Fake values, instant accel/decel
 	m.accel_ramp_time = 0.0
 	m.decel_ramp_time = 0.0
-	m.max_possible_speed = self.speed # use max speed here
+	m.max_possible_speed = self.speed_normal # use max speed here
 
 	m.input_control_factor = 1.0
 	m.vertical_override = 0.0
@@ -230,19 +231,16 @@ func _explosion_visual_self_effect() -> void:
 	var tween_trans_type := Tween.TRANS_ELASTIC
 	var tween_ease_type := Tween.EASE_IN_OUT
 
+	var color_tween := create_tween()
+	var size_tween := create_tween().set_trans(tween_trans_type).set_ease(tween_ease_type)
+
 	# Add color tween
 	mesh_material = mesh.get_active_material(0) as StandardMaterial3D
 	var original_color := mesh_material.albedo_color
-	var color_tween := create_tween()
-	color_tween.set_trans(tween_trans_type)
-	color_tween.set_ease(tween_ease_type)
+	_change_material_color(original_color) # Trigger once to duplicate
 	color_tween.tween_method(_change_material_color, original_color, explosion_viusal_target_color, explosion_duration)
 
 	# Add scale tween
-	var size_tween := create_tween()
-	size_tween.set_trans(tween_trans_type)
-	size_tween.set_ease(tween_ease_type)
-
 	var time_per_wave := explosion_duration / float(explosion_visual_wave_count)
 
 	for i in range(explosion_visual_wave_count):
@@ -278,6 +276,6 @@ func _periodic_stuck_check() -> void:
 
 func _get_speed() -> float:
 	if pick_up_manager.is_carrying():
-		return speed * 0.85
+		return speed_carrying
 	else:
-		return speed
+		return speed_normal
