@@ -167,27 +167,12 @@ func _slam() -> float:
 	currently_used_jumps += 1
 
 	# TODO base slam vel on height (ray-cast) to get semi-consistent slam time
-	var slam_vel := -25.0
+	var slam_vel := -45.0
 
 	# Vibration
 	Input.start_joy_vibration(input.device_id, 0.0, 1.0, 0.3)
 
 	return slam_vel
-
-
-# Only executed once per slam
-func _slam_effect() -> void:
-	var slam_radius: float = 2.5
-	var effect := DebugVis3D.cylinder(slam_radius, slam_radius, DebugVis3D.mat(Color(Color.RED.lightened(0.25), 0.15), false))
-	var effect_node := DebugVis3D.spawn(global_position + Vector3.UP * 0.25 * slam_radius, effect)
-	Util.delete_after(0.35, effect_node)
-
-	# TODO add slam effect
-	# TODO add slam damage
-	# TODO add slam sound
-	# TODO add slam particles
-
-	pass
 
 
 func _get_custom_gravity() -> float:
@@ -232,3 +217,71 @@ func throw_bomb() -> void:
 
 func _huge_impulse_received() -> void:
 	Input.start_joy_vibration(input.device_id, 0.5, 0.0, 0.2)
+
+
+# Only executed once per slam
+func _slam_effect() -> void:
+	const slam_radius := 2.5
+	const slam_height := 0.75
+	const slam_force := 130.0
+
+	var effect := DebugVis3D.cylinder(slam_radius, slam_height, DebugVis3D.mat(Color(Color.RED.lightened(0.25), 0.15), false))
+	var effect_node := DebugVis3D.spawn(global_position + Vector3.UP * 0.5 * slam_height, effect)
+	Util.delete_after(0.25, effect_node)
+
+	# Define area
+	var area := Area3D.new()
+	var shape := CylinderShape3D.new()
+	shape.radius = slam_radius
+	shape.height = slam_height
+	var collision_shape := CollisionShape3D.new()
+	collision_shape.shape = shape
+	area.set_collision_mask_value(Layers.L.PLAYER_CHARACTERS, true)
+	area.set_collision_mask_value(Layers.L.ENEMY_CHARACTERS, true)
+	area.set_collision_mask_value(Layers.L.PICKABLE_OBJECTS, true)
+	area.add_child(collision_shape)
+
+	Util.spawn(area, global_position)
+	
+	# Required for the newly added area to work
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+
+	# APPLY
+	var bodies := area.get_overlapping_bodies()
+	for body in bodies:
+		if body == self:
+			continue
+
+		var impulse := Util.calculate_explosion_impulse(global_position, body.global_position, slam_force, slam_radius)
+
+		if body is RigidBody3D:
+			var rigid_body: RigidBody3D = body
+
+			# Less impulse for bombs
+			if body is ThrowableBomb:
+				impulse *= 0.5
+			rigid_body.apply_central_impulse(impulse)
+			continue
+
+		elif body is HexPhysicsCharacterBody3D:
+			var hex_body: HexPhysicsCharacterBody3D = body
+
+			# IMPULSE to players / Caravan
+			if hex_body.is_in_group(HexConst.GROUP_PLAYERS) or (hex_body == GameStateManager.caravan):
+				# TODO for now add additional force to the character to counteract the bug in its movement code
+				impulse *= 2.0
+				hex_body.apply_external_impulse(impulse)
+				continue
+
+			# Kill Enemies
+			elif hex_body.is_in_group(HexConst.GROUP_ENEMIES):
+				var enemy := hex_body as BasicEnemy
+				enemy.pick_up_manager.drop_object()
+				enemy.queue_free()
+				continue
+
+			
+	# TODO add explosion effect (external particle, not self-growth) ?
+	await Util.await_time(0.15)
+	area.queue_free()
