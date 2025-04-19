@@ -162,11 +162,11 @@ func delete_far_away_entities() -> void:
 			portal.queue_free()
 
 	# Players - Teleport to caravan if too far aways
-	var player_max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_generation_distance_hex) * 0.3
+	var player_max_dist: float = HexConst.distance_hex_to_m(MapGeneration.tile_generation_distance_hex) * 0.45
 	var player_max_dist_sqared: float = player_max_dist * player_max_dist
 
 	for player: PlayerController in get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS):
-		if player.global_position.distance_squared_to(center) > max_dist_sqared:
+		if player.global_position.distance_squared_to(center) > player_max_dist_sqared:
 			# Find spawn pos
 			var shape: CollisionShape3D = player.get_node("Collision")
 			var teleport_pos := caravan.global_position + Util.rand_circular_offset_range(3.0, 3.0)
