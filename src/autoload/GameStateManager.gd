@@ -13,10 +13,10 @@ var is_game_running := true
 var cam_follow_point_manager: CameraFollowPointManager
 
 # Difficulty
-var enemy_spawn_timer: Timer
-var difficulty_scale_per_player: Array[float] = [1.0, 1.6, 2.2, 2.8]
-var difficulty_scale_per_caravan_meter: float = 0.01 # 0.01 = 1 player per 100m
-var difficulty_base_enemys_per_second: float = 0.5
+var num_wave := 0 # starts at 0 (gets incremented before spawning)
+var base_enemies_per_wave := 8
+var scaling_enemies_per_wave := 4
+var caravan_distance_per_wave := 40.0
 
 
 func _ready() -> void:
@@ -61,9 +61,6 @@ func _ready() -> void:
 	# Always spawn keyboard player for development (after caravan has been spawened)
 	PlayerManager.add_player(-1)
 	add_child(Util.timer(1.0, delete_far_away_entities))
-
-	enemy_spawn_timer = Util.timer(_get_enemy_spawn_interval(), spawn_enemy)
-	add_child(enemy_spawn_timer)
 
 
 # React to keyboard inputs to directly trigger events
@@ -118,28 +115,42 @@ func _process(delta: float) -> void:
 				caravan_distance_traveled += Util.get_dist_planar(caravan.global_position, caravan_last_pos)
 			caravan_last_pos = caravan.global_position
 
+	# Spawn wave every caravan_distance_per_wave m traveled (+ 15.0 m starting offset)
+	if is_game_running and caravan_distance_traveled > caravan_distance_per_wave * num_wave + 15.0:
+		spawn_wave()
+
 
 ###################################################################
 # Enemy Spawning / Difficulty
 ###################################################################
-func _get_enemy_spawn_interval() -> float:
-	var enemies_per_second: float = difficulty_base_enemys_per_second
+func spawn_wave() -> void:
+	self.num_wave += 1
+	var num_enemies := _get_wave_num_enemies(num_wave)
+	print("Spawning wave %d with %d enemies (%d players)" % [num_wave, num_enemies, _get_num_players()])
 
-	# Scale with players
-	var num_players: int = get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS).size()
-	if num_players > 0:
-		enemies_per_second *= difficulty_scale_per_player[num_players - 1]
+	for i in range(num_enemies):
+		spawn_enemy()
 
-	# Scale with distance
-	enemies_per_second *= 1.0 + (caravan_distance_traveled * difficulty_scale_per_caravan_meter)
-	# print("Spawning enemy, rate: %.2f / sec" % enemies_per_second)
+	# Spawn escape portals
+	for i in range(4):
+		GameStateManager.spawn_escape_portal()
 
-	var spawn_interval: float = 1.0 / enemies_per_second
-	return spawn_interval
+
+func _get_wave_num_enemies(wave: int) -> int:
+	var player_scaling: Array[float] = [1.0, 1.5, 2.0, 2.5]
+	var player_scaling_factor: float = player_scaling[_get_num_players() - 1]
+
+	var num_enemies: float = base_enemies_per_wave + scaling_enemies_per_wave * wave
+	num_enemies *= player_scaling_factor
+
+	return roundi(num_enemies)
 
 ###################################################################
 # Stuff
 ###################################################################
+func _get_num_players() -> int:
+	return get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS).size()
+
 func delete_far_away_entities() -> void:
 	var center := caravan.global_position
 	# Deletion dist ist smaller than map/chunk deletion dist (but a factor of it)
@@ -180,11 +191,8 @@ func delete_far_away_entities() -> void:
 # Spawner Functions
 ###################################################################
 func spawn_enemy() -> void:
-	if caravan == null or caravan_distance_traveled <= 15.0:
+	if caravan == null:
 		return
-
-	# Adapt enemy spawn interval - restart is necessary
-	enemy_spawn_timer.start(_get_enemy_spawn_interval())
 
 	# Actual Spawning
 	var enemy_node: BasicEnemy = ResLoader.BASIC_ENEMY_SCENE.instantiate()
@@ -197,22 +205,15 @@ func spawn_enemy() -> void:
 	Util.spawn(enemy_node, actual_spawn_pos)
 
 
-func spawn_escape_portal(caravan_goal: Vector3) -> void:
+func spawn_escape_portal() -> void:
 	var portal_node: EscapePortal = ResLoader.ESCAPE_PORTAL_SCENE.instantiate()
 
 	# Find spawn pos
 	var shape: CollisionShape3D = portal_node.get_node("Area3D/CollisionShape3D")
 
-	var path_vector := (caravan_goal - caravan.global_position)
-	var spawn_pos := caravan.global_position + randf() * path_vector
+	var spawn_pos := caravan.global_position + Util.rand_circular_offset_range(25, 30)
 
-	# Chose one side of path vector
-	var side_vector := path_vector.cross(Vector3.UP).normalized()
-	var angle: float = randf_range(deg_to_rad(80), deg_to_rad(180 - 80))
-	var side_vector_rotated := side_vector.rotated(Vector3.UP, angle) * Util.rand_sign()
-	spawn_pos += side_vector_rotated * randf_range(30.0, 35.0)
-
-	var mask := Layers.mask([Layers.L.TERRAIN])
+	var mask := Layers.mask([Layers.L.TERRAIN, Layers.L.STATIC_GEOM])
 	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 0.5, 3.0, true, mask)
 	
 	Util.spawn(portal_node, actual_spawn_pos)

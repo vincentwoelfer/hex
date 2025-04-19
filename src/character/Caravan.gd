@@ -96,8 +96,4 @@ func choose_new_goal() -> bool:
 	print("Caravan has new goal : ", current_goal)
 	has_goal = true
 
-	# Spawn portals TODO along path, not around caravan
-	for i in range(5):
-		GameStateManager.spawn_escape_portal(current_goal)
-
 	return true
