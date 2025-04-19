@@ -159,7 +159,7 @@ func _jump() -> float:
 	jump_vel *= jump_strength_factors[jump_index]
 
 	# Vibration
-	Input.start_joy_vibration(input.device_id, 0.0, 1.0, 0.2 + 0.15 * jump_index)
+	Input.start_joy_vibration(input.device_id, 0.0, 1.0, 0.1 + 0.1 * jump_index)
 
 	return jump_vel
 
@@ -170,7 +170,7 @@ func _slam() -> float:
 	var slam_vel := -45.0
 
 	# Vibration
-	Input.start_joy_vibration(input.device_id, 0.0, 1.0, 0.3)
+	Input.start_joy_vibration(input.device_id, 0.0, 1.0, 0.2)
 
 	return slam_vel
 
@@ -187,7 +187,7 @@ func _get_custom_gravity() -> float:
 
 
 func throw_bomb() -> void:
-	Input.start_joy_vibration(input.device_id, 0.0, 0.3, 0.2)
+	Input.start_joy_vibration(input.device_id, 0.0, 0.3, 0.1)
 
 	var bomb: ThrowableBomb = ResLoader.THROWABLE_BOMB_SCENE.instantiate()
 	bomb.add_collision_exception_with(self)
@@ -216,7 +216,7 @@ func throw_bomb() -> void:
 
 
 func _huge_impulse_received(impulse: Vector3) -> void:
-	Input.start_joy_vibration(input.device_id, 0.5, 0.0, 0.2)
+	Input.start_joy_vibration(input.device_id, 0.0, 1.0, 0.05)
 
 
 # Only executed once per slam

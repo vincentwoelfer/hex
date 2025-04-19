@@ -14,9 +14,9 @@ var cam_follow_point_manager: CameraFollowPointManager
 
 # Difficulty
 var enemy_spawn_timer: Timer
-var difficulty_scale_per_player: Array[float] = [1.0, 1.8, 2.6, 3.3]
-var difficulty_scale_per_caravan_meter: float = 0.008 # 0.01 = 1 player per 100m
-var difficulty_base_enemys_per_second: float = 0.6
+var difficulty_scale_per_player: Array[float] = [1.0, 1.6, 2.2, 2.8]
+var difficulty_scale_per_caravan_meter: float = 0.01 # 0.01 = 1 player per 100m
+var difficulty_base_enemys_per_second: float = 0.5
 
 
 func _ready() -> void:
@@ -132,7 +132,7 @@ func _get_enemy_spawn_interval() -> float:
 
 	# Scale with distance
 	enemies_per_second *= 1.0 + (caravan_distance_traveled * difficulty_scale_per_caravan_meter)
-	print("Spawning enemy, rate: %.2f / sec" % enemies_per_second)
+	# print("Spawning enemy, rate: %.2f / sec" % enemies_per_second)
 
 	var spawn_interval: float = 1.0 / enemies_per_second
 	return spawn_interval
@@ -180,7 +180,7 @@ func delete_far_away_entities() -> void:
 # Spawner Functions
 ###################################################################
 func spawn_enemy() -> void:
-	if caravan == null:
+	if caravan == null or caravan_distance_traveled <= 15.0:
 		return
 
 	# Adapt enemy spawn interval - restart is necessary
