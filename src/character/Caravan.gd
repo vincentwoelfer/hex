@@ -40,7 +40,11 @@ func get_speed() -> float:
 	if GameStateManager.cam_follow_point_manager.get_active_cam_follow_nodes() == [self]:
 		return 10.0
 	else:
-		return speed
+		if caravan_depot.has_objects():
+			return speed
+		else:
+			# TODO: Caravan movement breaks if this is 0 -> investigate
+			return 0.001
 	
 
 func _physics_process(delta: float) -> void:
@@ -55,7 +59,7 @@ func _physics_process(delta: float) -> void:
 	# Fake values, instant accel/decel
 	m.accel_ramp_time = 0.0
 	m.decel_ramp_time = 0.0
-	m.max_possible_speed = self.get_speed()
+	m.max_possible_speed = self.speed
 
 	m.input_control_factor = 1.0
 	m.vertical_override = 0.0

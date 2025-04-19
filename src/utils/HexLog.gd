@@ -10,13 +10,13 @@ const BANNER_CHAR: String = "="
 static func print_only_banner() -> void:
 	print(BANNER_CHAR.repeat(BANNER_WIDTH))
 
-static func print_banner(string: String) -> void:
+static func print_banner_with_text(string: String) -> void:
 	# Souround string with spaces
 	string = " " + string + " "
 
 	print(center_text(string, BANNER_WIDTH, BANNER_CHAR))
 
-static func print_multiline_banner(string: String) -> void:
+static func print_multiline_banner_with_text(string: String) -> void:
 	# Souround string with spaces
 	string = " " + string + " "
 
@@ -74,7 +74,7 @@ static func center_text(text: String, width: int, filler: String) -> String:
 # 	var sorted_hotkeys: Array[String] = actions_dict.values()
 # 	sorted_hotkeys.sort_custom(func(a: String, b: String) -> bool: return a < b)
 
-# 	HexLog.print_banner("Key Bindings")
+# 	HexLog.print_banner_with_text("Key Bindings")
 # 	for hotkey: String in sorted_hotkeys:
 # 		var action := get_key_by_value(actions_dict, hotkey)
 # 		var padding: String = " ".repeat(max_action_length - action.length())

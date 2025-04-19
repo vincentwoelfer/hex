@@ -5,9 +5,18 @@ extends Node3D
 
 # Caravan
 var caravan: Caravan
+var caravan_distance_traveled: float = 0.0
+var caravan_last_pos: Vector3 = Vector3.ZERO
+var is_game_running := true
 
 # Sub-Managers
 var cam_follow_point_manager: CameraFollowPointManager
+
+# Difficulty
+var enemy_spawn_timer: Timer
+var difficulty_scale_per_player: Array[float] = [1.0, 1.8, 2.6, 3.3]
+var difficulty_scale_per_caravan_meter: float = 0.008 # 0.01 = 1 player per 100m
+var difficulty_base_enemys_per_second: float = 0.6
 
 
 func _ready() -> void:
@@ -51,10 +60,10 @@ func _ready() -> void:
 	# if HexInput.device_actions.size() > 1:
 	# Always spawn keyboard player for development (after caravan has been spawened)
 	PlayerManager.add_player(-1)
-
-	# Add enemy spawner TODO make enemy number player number dependent
-	add_child(Util.timer(1.15, spawn_enemy))
 	add_child(Util.timer(1.0, delete_far_away_entities))
+
+	enemy_spawn_timer = Util.timer(_get_enemy_spawn_interval(), spawn_enemy)
+	add_child(enemy_spawn_timer)
 
 
 # React to keyboard inputs to directly trigger events
@@ -81,9 +90,51 @@ func _input(event: InputEvent) -> void:
 
 
 func request_quit_game() -> void:
-	HexLog.print_multiline_banner("Quitting game")
+	HexLog.print_multiline_banner_with_text("Quitting game")
 	MapGeneration.request_shutdown_threads()
 
+
+###################################################################
+# Process
+###################################################################
+func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
+
+	# End of Game Check
+	if is_game_running and get_tree().get_nodes_in_group(HexConst.GROUP_CRYSTALS).is_empty() and caravan_distance_traveled > 0.0:
+		HexLog.print_only_banner()
+		HexLog.print_banner_with_text("Game Over - You have no crystals left!")
+		HexLog.print_banner_with_text("You have traveled %.2f m" % caravan_distance_traveled)
+		HexLog.print_only_banner()
+		is_game_running = false
+
+	if caravan != null and is_game_running:
+		# Dont update if caravan is in debug-fast-speed mode
+		if caravan.get_speed() <= caravan.speed:
+			if caravan_last_pos != Vector3.ZERO:
+				# Update distance traveled
+				caravan_distance_traveled += Util.get_dist_planar(caravan.global_position, caravan_last_pos)
+			caravan_last_pos = caravan.global_position
+
+
+###################################################################
+# Enemy Spawning / Difficulty
+###################################################################
+func _get_enemy_spawn_interval() -> float:
+	var enemies_per_second: float = difficulty_base_enemys_per_second
+
+	# Scale with players
+	var num_players: int = get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS).size()
+	if num_players > 0:
+		enemies_per_second *= difficulty_scale_per_player[num_players - 1]
+
+	# Scale with distance
+	enemies_per_second *= 1.0 + (caravan_distance_traveled * difficulty_scale_per_caravan_meter)
+	print("Spawning enemy, rate: %.2f / sec" % enemies_per_second)
+
+	var spawn_interval: float = 1.0 / enemies_per_second
+	return spawn_interval
 
 ###################################################################
 # Stuff
@@ -131,6 +182,10 @@ func spawn_enemy() -> void:
 	if caravan == null:
 		return
 
+	# Adapt enemy spawn interval - restart is necessary
+	enemy_spawn_timer.start(_get_enemy_spawn_interval())
+
+	# Actual Spawning
 	var enemy_node: BasicEnemy = ResLoader.BASIC_ENEMY_SCENE.instantiate()
 
 	# Find spawn pos

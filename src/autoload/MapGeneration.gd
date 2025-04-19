@@ -259,7 +259,7 @@ func tick_check_map_reset() -> void:
 	if self.regenerate and (now - last_regeneration_timestamp) > max_regeneration_delay:
 		last_regeneration_timestamp = now
 		self.regenerate = false
-		HexLog.print_multiline_banner("Regenerating map")
+		HexLog.print_multiline_banner_with_text("Regenerating map")
 		delete_everything()
 
 ##############################
@@ -334,7 +334,7 @@ func _exit_tree() -> void:
 	delete_everything()
 
 	if not threads.is_empty():
-		HexLog.print_multiline_banner("MapGeneration cleaning up on _exit_tree")
+		HexLog.print_multiline_banner_with_text("MapGeneration cleaning up on _exit_tree")
 		request_shutdown_threads()
 
 		while not threads.is_empty():
