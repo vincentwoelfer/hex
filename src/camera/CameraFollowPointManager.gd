@@ -3,7 +3,7 @@ extends Object
 
 var global_camera_view_angle: float
 var cam_follow_nodes: Array[Node3D] = []
-var use_caravan_for_cam_follow: bool = true
+var use_caravan_for_cam_follow: bool = false
 
 
 func set_global_camera_view_angle(angle: float) -> void:

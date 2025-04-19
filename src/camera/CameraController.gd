@@ -5,12 +5,12 @@ class_name CameraController
 var zoom_curr: float = 15.0
 var zoom_goal: float = zoom_curr
 var zoom_min: float = 15.0
-var zoom_max: float = 30.0
+var zoom_max: float = 35.0
 var zoom_input_speed: float = 4.0
 var zoom_lerp_speed: float = 10.0
 
 var zoom_min_at_dist: float = 12.0
-var zoom_max_at_dist: float = 28.0
+var zoom_max_at_dist: float = 25.0
 
 var zoom_min_manual: float = 3.0
 var zoom_max_manual: float = 50.0
