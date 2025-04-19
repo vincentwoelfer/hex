@@ -215,7 +215,7 @@ func throw_bomb() -> void:
 		bomb.remove_collision_exception_with(self)
 
 
-func _huge_impulse_received() -> void:
+func _huge_impulse_received(impulse: Vector3) -> void:
 	Input.start_joy_vibration(input.device_id, 0.5, 0.0, 0.2)
 
 

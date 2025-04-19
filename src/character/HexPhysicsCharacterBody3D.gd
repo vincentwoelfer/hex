@@ -27,7 +27,7 @@ var velocity_before_move: Vector3
 #########################################################################
 # Signals
 #########################################################################
-signal Signal_huge_impulse_received()
+signal Signal_huge_impulse_received(impulse: Vector3)
 
 ########################################################################
 # Character Movement Input
@@ -232,7 +232,7 @@ func apply_external_impulse(impulse: Vector3) -> void:
 	var new_force := impulse / mass
 
 	if new_force.length() >= 1.0:
-		emit_signal("Signal_huge_impulse_received")
+		emit_signal("Signal_huge_impulse_received", impulse)
 
 	external_impulse += new_force
 

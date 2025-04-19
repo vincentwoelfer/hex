@@ -10,7 +10,7 @@ var hold_offset: Vector3 = Vector3.FORWARD * 0.45 + Vector3.UP * 0.85
 var carried_object: Crystal = null
 
 func _ready() -> void:
-	hex_character.connect("Signal_huge_impulse_received", drop_object)
+	hex_character.connect("Signal_huge_impulse_received", _drop_to_ground_with_impulse)
 
 	area = Area3D.new()
 
@@ -49,6 +49,18 @@ func has_depot_for_dropoff_in_range() -> bool:
 
 func has_depot_for_pickup_in_range() -> bool:
 	return _get_closest_depot(true) != null
+
+func _drop_to_ground_with_impulse(impulse: Vector3) -> void:
+	if not carried_object:
+		return
+
+	# Drop to ground - no caravan depot considered
+	var prev_carried_object: Crystal = carried_object
+	drop_object(null)
+
+	# 0.5 for rigid bodies in general, additional 0.5 because object was dropped
+	var impulse_factor := 0.5 * 0.5
+	prev_carried_object.apply_impulse(Vector3.ZERO, impulse * impulse_factor)
 
 
 enum PickupPriority {DEPOT, GROUND}

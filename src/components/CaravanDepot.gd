@@ -124,7 +124,7 @@ func remove_from_storage() -> Crystal:
 	return crystal
 
 
-func _drop_object_to_ground() -> void:
+func _drop_object_to_ground(impulse: Vector3 = Vector3.ZERO) -> void:
 	var crystal: Crystal = remove_from_storage()
 	if not crystal:
 		return
@@ -139,4 +139,12 @@ func _drop_object_to_ground() -> void:
 
 	var torque := Vector3(randfn(0, 1), randfn(0, 1), randfn(0, 1)) * 0.75
 	crystal.apply_torque_impulse(torque)
-	crystal.apply_central_impulse(Vector3.UP * 0.05)
+
+	if impulse == Vector3.ZERO:
+		# Default impulse
+		impulse = Vector3.UP * 0.05
+	else:
+		# Scale impulse by 0.5 for rigid bodies + 0.25 because it fell from depot
+		impulse *= 0.5 * 0.25
+
+	crystal.apply_central_impulse(impulse)

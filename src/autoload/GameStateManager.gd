@@ -108,6 +108,7 @@ func _process(delta: float) -> void:
 		HexLog.print_banner_with_text("You have traveled %.2f m" % caravan_distance_traveled)
 		HexLog.print_only_banner()
 		is_game_running = false
+		apply_grayscale_to_active_environment()
 
 	if caravan != null and is_game_running:
 		# Dont update if caravan is in debug-fast-speed mode
@@ -257,3 +258,14 @@ func spawn_player(player: PlayerData) -> void:
 func despawn_player(player: PlayerData) -> void:
 	cam_follow_point_manager.unregister_cam_follow_node(player.player_node)
 	player.player_node.queue_free()
+
+
+func apply_grayscale_to_active_environment() -> void:
+	# Find the active WorldEnvironment in the current scene
+	var world_env: Environment = Util.get_world().environment
+	if world_env == null:
+		push_warning("No active environment found.")
+		return
+
+	world_env.adjustment_enabled = true
+	world_env.adjustment_saturation = 0.1
