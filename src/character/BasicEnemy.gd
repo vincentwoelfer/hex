@@ -38,9 +38,12 @@ func _ready() -> void:
 
 	path_finding_agent.init(Color.RED, collision.shape, DebugSettings.show_path_basic_enemy)
 
-	self.floor_max_angle = deg_to_rad(HexConst.NAV_AGENT_MAX_SLOPE_BASIS_DEG + HexConst.NAV_AGENT_MAX_SLOPE_ACTUAL_OFFSET_DEG)
+	floor_max_angle = deg_to_rad(HexConst.NAV_AGENT_MAX_SLOPE_BASIS_DEG + HexConst.NAV_AGENT_MAX_SLOPE_ACTUAL_OFFSET_DEG)
 
-	self.pick_up_manager.set_pickup_radius(1.1)
+	pick_up_manager.set_pickup_radius(1.1)
+	pick_up_manager.can_pickup_from_depot = true
+	pick_up_manager.can_drop_to_depot = false
+	
 
 	# Set initial goal
 	if not _choose_new_goal():

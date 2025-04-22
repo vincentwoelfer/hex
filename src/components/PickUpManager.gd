@@ -4,10 +4,15 @@ class_name PickUpManager
 @onready var hex_character: HexPhysicsCharacterBody3D = $'../..'
 
 var area: Area3D
-var pickup_radius: float = 1.6
 
 var hold_offset: Vector3 = Vector3.FORWARD * 0.45 + Vector3.UP * 0.85
 var carried_object: Crystal = null
+
+# Customizeable
+var pickup_radius: float = 1.6
+var can_pickup_from_depot: bool = true
+var can_drop_to_depot: bool = true
+
 
 func _ready() -> void:
 	hex_character.connect("Signal_huge_impulse_received", _drop_to_ground_with_impulse)
@@ -28,6 +33,9 @@ func _ready() -> void:
 	# DebugVis3D.spawn(Vector3.ZERO, effect, self)
 
 
+########################################################################
+# General Stuff
+########################################################################
 func set_pickup_radius(radius: float) -> void:
 	pickup_radius = radius
 	var shape := ((area.get_child(0) as CollisionShape3D).shape as CylinderShape3D)
@@ -39,52 +47,51 @@ func is_carrying() -> bool:
 	return carried_object != null
 
 
-func has_object_to_pick_up() -> bool:
-	return _get_closest_pickup_candidate_from_ground() != null or has_depot_for_pickup_in_range()
+func _get_carried_object_position() -> Vector3:
+	return global_transform.origin + global_transform.basis * hold_offset
 
 
-func has_depot_for_dropoff_in_range() -> bool:
-	return _get_closest_depot(false) != null
-
-
-func has_depot_for_pickup_in_range() -> bool:
-	return _get_closest_depot(true) != null
-
-func _drop_to_ground_with_impulse(impulse: Vector3) -> void:
-	if not carried_object:
-		return
-
-	# Drop to ground - no caravan depot considered
-	var prev_carried_object: Crystal = carried_object
-	drop_object(null)
-
-	# 0.5 for rigid bodies in general, additional 0.5 because object was dropped
-	var impulse_factor := 0.5 * 0.5
-	prev_carried_object.apply_impulse(Vector3.ZERO, impulse * impulse_factor)
-
-
+## General function, this equals the "pickup/drop button pressed" event
+## Returns true/false if an action was performed
 enum PickupPriority {DEPOT, GROUND}
 func perform_pickup_or_drop_action(priority: PickupPriority) -> bool:
 	var performed_any_action := false
 
 	if carried_object:
-		# Drop to depot if possible, otherwise drop to ground
-		var depot: CaravanDepot = _get_closest_depot(false)
+		var depot: CaravanDepot = null
+		if can_drop_to_depot:
+			# Drop to depot if possible, otherwise drop to ground
+			depot = _get_closest_depot(false)
 		drop_object(depot)
 		performed_any_action = true
 
 	else:
-		# Pick up from ground or depot, depending on the priority
-		var callables: Array[Callable] = [Callable(self, "_pickup_from_depot"), Callable(self, "_pickup_from_ground")]
-		if priority == PickupPriority.GROUND:
+		# Pick up from ground or depot, depending on the priority and ability
+		var callables: Array[Callable] = [Callable(self, "_pickup_from_ground")]
+		if can_pickup_from_depot:
+			callables.append(Callable(self, "_pickup_from_depot"))
+
+		# If depot is priority, reverse the order of callables
+		if priority == PickupPriority.DEPOT:
 			callables.reverse()
 
-		if callables[0].call():
-			performed_any_action = true
-		elif callables[1].call():
-			performed_any_action = true
+		for callable: Callable in callables:
+			if callable.call():
+				performed_any_action = true
+				break
 
 	return performed_any_action
+
+
+########################################################################
+# PICKUP
+########################################################################
+
+func has_object_to_pick_up() -> bool:
+	if can_pickup_from_depot:
+		return _get_closest_pickup_candidate_from_ground() != null or _get_closest_depot(true) != null
+	else:
+		return _get_closest_pickup_candidate_from_ground() != null
 
 func _pickup_from_ground() -> bool:
 	var target: Crystal = _get_closest_pickup_candidate_from_ground()
@@ -100,7 +107,6 @@ func _pickup_from_depot() -> bool:
 		pick_up_object(crystal)
 		return true
 	return false
-
 
 func pick_up_object(obj: Crystal) -> void:
 	if carried_object:
@@ -119,13 +125,35 @@ func pick_up_object(obj: Crystal) -> void:
 		obj.state = Crystal.State.CARRIED_BY_PLAYER
 	elif self.hex_character is BasicEnemy:
 		obj.state = Crystal.State.CARRIED_BY_ENEMY
-	else:
-		print("Unknown character type: ", hex_character)
 
 	hex_character.add_collision_exception_with(obj)
 
 	obj.global_transform.origin = _get_carried_object_position()
 	carried_object = obj
+
+
+func _get_closest_pickup_candidate_from_ground() -> Crystal:
+	var bodies: Array[Node3D] = area.get_overlapping_bodies()
+	var closest: Crystal = null
+	var min_dist_sq: float = INF
+
+	for body in bodies:
+		if body is Crystal:
+			var crystal := body as Crystal
+			if not crystal.can_be_picked_up():
+				continue
+			var dist_sq: float = global_position.distance_squared_to(crystal.global_position)
+			if dist_sq < min_dist_sq:
+				min_dist_sq = dist_sq
+				closest = crystal
+	return closest
+
+########################################################################
+# DROPING
+########################################################################
+
+func has_depot_for_dropoff_in_range() -> bool:
+	return _get_closest_depot(false) != null
 
 
 func drop_object(depot: CaravanDepot = null) -> void:
@@ -148,25 +176,18 @@ func drop_object(depot: CaravanDepot = null) -> void:
 	carried_object = null
 
 
-func _get_carried_object_position() -> Vector3:
-	return global_transform.origin + global_transform.basis * hold_offset
+func _drop_to_ground_with_impulse(impulse: Vector3) -> void:
+	if not carried_object:
+		return
 
+	# Drop to ground - no caravan depot considered
+	var prev_carried_object: Crystal = carried_object
+	drop_object(null)
 
-func _get_closest_pickup_candidate_from_ground() -> Crystal:
-	var bodies: Array[Node3D] = area.get_overlapping_bodies()
-	var closest: Crystal = null
-	var min_dist_sq: float = INF
+	# 0.5 for rigid bodies in general, additional 0.5 because object was dropped
+	var impulse_factor := 0.5 * 0.5
+	prev_carried_object.apply_impulse(Vector3.ZERO, impulse * impulse_factor)
 
-	for body in bodies:
-		if body is Crystal:
-			var crystal := body as Crystal
-			if not crystal.can_be_picked_up():
-				continue
-			var dist_sq: float = global_position.distance_squared_to(crystal.global_position)
-			if dist_sq < min_dist_sq:
-				min_dist_sq = dist_sq
-				closest = crystal
-	return closest
 
 func _get_closest_depot(require_not_empty: bool) -> CaravanDepot:
 	var bodies: Array[Node3D] = area.get_overlapping_bodies()

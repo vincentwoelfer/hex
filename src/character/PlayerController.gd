@@ -57,6 +57,9 @@ func _ready() -> void:
 	path_finding_agent.init(color, collision.shape, DebugSettings.show_path_player_to_caravan)
 	path_finding_agent.set_track_target(GameStateManager.caravan)
 
+	pick_up_manager.can_pickup_from_depot = false
+	pick_up_manager.can_drop_to_depot = true
+
 
 func _physics_process(delta: float) -> void:
 	input.update_keys(delta)
