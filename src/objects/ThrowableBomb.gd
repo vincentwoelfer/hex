@@ -12,7 +12,11 @@ var last_bounce_time_counter: float = min_time_between_bounces_sec
 var explosion_radius: float = 3.8
 var explosion_force: float = 170.0
 
+var direct_hit_radius: float = 1.5
+
 var exploded := false
+
+var area: Area3D
 
 
 func _ready() -> void:
@@ -24,37 +28,14 @@ func _ready() -> void:
 	self.physics_material_override = mat
 
 	self.contact_monitor = true
-	self.max_contacts_reported = 1 # only one contact per bounce
+	self.max_contacts_reported = 1 # only one contact per bounce, this is only for performance, not logic
 
 	# Collision config
 	# self.angular_damp = 1.5
 	# self.linear_damp = 1.5
 
-func _physics_process(delta: float) -> void:
-	last_bounce_time_counter -= delta
-
-	# If contact
-	if last_bounce_time_counter <= 0.0 and get_contact_count() > 0:
-		last_bounce_time_counter = min_time_between_bounces_sec
-		bounces += 1
-
-	if bounces >= max_bounces:
-		explode()
-
-
-func explode() -> void:
-	# Only explode once
-	if exploded:
-		return
-	exploded = true
-
-	var effect_height := explosion_radius * 0.5
-	var effect := DebugVis3D.cylinder(explosion_radius, effect_height, DebugVis3D.mat(Color(Color.RED.lightened(0.25), 0.15), false))
-	var effect_node := DebugVis3D.spawn(global_position + Vector3.UP * 0.5 * effect_height, effect)
-	Util.delete_after(0.35, effect_node)
-
 	# define area
-	var area := Area3D.new()
+	area = Area3D.new()
 	var shape := CylinderShape3D.new()
 	shape.radius = explosion_radius
 	shape.height = explosion_radius
@@ -64,12 +45,45 @@ func explode() -> void:
 	area.set_collision_mask_value(Layers.L.ENEMY_CHARACTERS, true)
 	area.set_collision_mask_value(Layers.L.PICKABLE_OBJECTS, true)
 	area.add_child(collision_shape)
+	add_child(area)
+	area.top_level = true
 
-	Util.spawn(area, global_position)
-	
-	# Required for the newly added area to work
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+
+func _physics_process(delta: float) -> void:
+	# Update area position
+	area.global_position = global_position
+
+	# Bounce logic
+	last_bounce_time_counter -= delta
+
+	# If contact
+	var should_explode := false
+	if last_bounce_time_counter <= 0.0 and get_contact_count() > 0:
+		last_bounce_time_counter = min_time_between_bounces_sec
+		bounces += 1
+
+		# If enemy near, explode directly
+		if check_direct_hit():
+			should_explode = true
+
+	if bounces >= max_bounces:
+		should_explode = true
+
+	if should_explode:
+		explode()
+
+
+func explode() -> void:
+	# Only explode once
+	if exploded:
+		return
+	exploded = true
+
+	# Spawn visual explosion range indicator
+	var effect_height := explosion_radius * 0.5
+	var effect := DebugVis3D.cylinder(explosion_radius, effect_height, DebugVis3D.mat(Color(Color.RED.lightened(0.25), 0.15), false))
+	var effect_node := DebugVis3D.spawn(global_position + Vector3.UP * 0.5 * effect_height, effect)
+	Util.delete_after(0.35, effect_node)
 
 	# APPLY
 	var bodies := area.get_overlapping_bodies()
@@ -107,5 +121,14 @@ func explode() -> void:
 			
 	# TODO add explosion effect (external particle, not self-growth) ?
 	await Util.await_time(0.15)
-	area.queue_free()
 	self.queue_free()
+
+
+func check_direct_hit() -> bool:
+	var mask := Layers.mask([Layers.L.ENEMY_CHARACTERS])
+	for body in area.get_overlapping_bodies():
+		if body is CollisionObject3D:
+			if ((body as CollisionObject3D).collision_layer & mask) != 0:
+				if global_position.distance_to(body.global_position) <= direct_hit_radius:
+					return true
+	return false
