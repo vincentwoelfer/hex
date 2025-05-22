@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://b8strb7jpy7y8"]
+[gd_scene load_steps=8 format=3 uid="uid://b8strb7jpy7y8"]
 
 [ext_resource type="Script" uid="uid://b85un111vchva" path="res://src/character/BasicEnemy.gd" id="1_cg60k"]
 [ext_resource type="Material" uid="uid://ddiid83wdl655" path="res://assets/materials/basic_enemy_material.tres" id="2_cg60k"]
 [ext_resource type="Script" uid="uid://ce1olcw7fa5n8" path="res://src/components/PickUpManager.gd" id="3_2korg"]
 [ext_resource type="Script" uid="uid://gshrogpvra5v" path="res://src/components/PathFindingAgent.gd" id="3_3ox23"]
+[ext_resource type="PackedScene" uid="uid://dhk4mqtgm88ua" path="res://scenes/ui/BasicEnemyUI.tscn" id="5_mtca4"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_84j8r"]
 material = ExtResource("2_cg60k")
@@ -20,6 +21,13 @@ height = 1.0
 collision_layer = 17
 platform_on_leave = 2
 script = ExtResource("1_cg60k")
+
+[node name="UIAnchor" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="BasicEnemyUI" parent="." instance=ExtResource("5_mtca4")]
+offset_top = 1.0
+offset_bottom = 1.0
 
 [node name="RotationAxis" type="Node3D" parent="."]
 

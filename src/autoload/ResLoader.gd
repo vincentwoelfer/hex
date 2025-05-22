@@ -18,14 +18,14 @@ const GRASS_MESH_LRES := preload('res://assets/meshes/basic_grass/basic_grass_lr
 const DEFAULT_TERRAIN_MAT: Material = preload('res://assets/materials/default_geom_material.tres')
 
 # SCENES
-const CARAVAN_SCENE: PackedScene = preload('res://scenes/Caravan.tscn')
-const PLAYER_SCENE: PackedScene = preload('res://scenes/PlayerCharacter.tscn')
-const BASIC_ENEMY_SCENE: PackedScene = preload('res://scenes/BasicEnemy.tscn')
+const CARAVAN_SCENE: PackedScene = preload('res://scenes/characters/Caravan.tscn')
+const PLAYER_SCENE: PackedScene = preload('res://scenes/characters/PlayerCharacter.tscn')
+const BASIC_ENEMY_SCENE: PackedScene = preload('res://scenes/characters/BasicEnemy.tscn')
 
-const CRYSTAL_SCENE: PackedScene = preload('res://scenes/Crystal.tscn')
-const THROWABLE_BOMB_SCENE: PackedScene = preload('res://scenes/ThrowableBomb.tscn')
+const CRYSTAL_SCENE: PackedScene = preload('res://scenes/objects/Crystal.tscn')
+const THROWABLE_BOMB_SCENE: PackedScene = preload('res://scenes/objects/ThrowableBomb.tscn')
 
-const ESCAPE_PORTAL_SCENE: PackedScene = preload('res://scenes/EscapePortal.tscn')
+const ESCAPE_PORTAL_SCENE: PackedScene = preload('res://scenes/objects/EscapePortal.tscn')
 
 # Highlight
 const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')

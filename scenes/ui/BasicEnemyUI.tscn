@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3 uid="uid://dhk4mqtgm88ua"]
+
+[ext_resource type="Script" uid="uid://d36vjyoftepwn" path="res://src/ui/BasicEnemyUI.gd" id="1_fsl35"]
+[ext_resource type="Texture2D" uid="uid://dy8cmkkfxg0m" path="res://assets/shaders/lightning/lightning_gradient_texture_pink.tres" id="2_eaffe"]
+
+[node name="BasicEnemyUI" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 100.0
+offset_bottom = 10.0
+mouse_filter = 2
+script = ExtResource("1_fsl35")
+
+[node name="HealthBar" type="TextureProgressBar" parent="."]
+modulate = Color(1, 0, 0, 1)
+top_level = true
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 100.0
+offset_bottom = 10.0
+mouse_filter = 2
+value = 75.0
+texture_progress = ExtResource("2_eaffe")

@@ -32,6 +32,12 @@ var explosion_viusal_target_color := Color.RED.lightened(0.5)
 var stuck_check_last_pos: Vector3 = Vector3.ZERO
 
 
+##################
+@onready var health_ui : BasicEnemyUI = $BasicEnemyUI
+@onready var health_anchor : Marker3D= $UIAnchor
+@onready var camera := get_viewport().get_camera_3d()
+
+
 func _ready() -> void:
 	self.mass = 10.0
 	add_to_group(HexConst.GROUP_ENEMIES)
@@ -56,6 +62,13 @@ func _ready() -> void:
 	add_child(goal_choosing_timer)
 
 	add_child(Util.timer(1.5, _periodic_stuck_check))
+
+	###########################
+
+	health_ui.anchor = health_anchor
+	health_ui.camera = camera
+	health_ui.call_deferred("_setup")
+
 
 
 func _physics_process(delta: float) -> void:
