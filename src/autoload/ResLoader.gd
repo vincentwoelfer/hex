@@ -30,6 +30,10 @@ const ESCAPE_PORTAL_SCENE: PackedScene = preload('res://scenes/objects/EscapePor
 # Highlight
 const HIGHLIGHT_MAT: ShaderMaterial = preload('res://assets/materials/highlight_material.tres')
 
+# UI
+const BASIC_ENEMY_UI_SCENE: PackedScene = preload('res://scenes/ui/BasicEnemyUI.tscn') 
+
+
 func _ready() -> void:
 	basic_rocks_meshes = load_all_meshes_from_dir(basic_rocks_path)
 

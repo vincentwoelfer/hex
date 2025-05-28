@@ -26,6 +26,7 @@ ResLoader="*res://src/autoload/ResLoader.gd"
 MapGeneration="*res://src/autoload/MapGeneration.gd"
 PlayerManager="*res://src/autoload/PlayerManager.gd"
 HexInput="*res://src/autoload/HexInput.gd"
+UIManager="*res://src/autoload/UIManager.gd"
 
 [debug]
 

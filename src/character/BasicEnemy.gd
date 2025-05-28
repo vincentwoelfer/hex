@@ -31,11 +31,9 @@ var explosion_viusal_target_color := Color.RED.lightened(0.5)
 # stuck check
 var stuck_check_last_pos: Vector3 = Vector3.ZERO
 
-
-##################
-@onready var health_ui : BasicEnemyUI = $BasicEnemyUI
-@onready var health_anchor : Marker3D= $UIAnchor
-@onready var camera := get_viewport().get_camera_3d()
+# testing
+var ui : BasicEnemyUI
+var hp := 100.0
 
 
 func _ready() -> void:
@@ -64,14 +62,16 @@ func _ready() -> void:
 	add_child(Util.timer(1.5, _periodic_stuck_check))
 
 	###########################
+	ui = UIManager.attach_ui_scene(self, ResLoader.BASIC_ENEMY_UI_SCENE)
+	ui.set_health(100, 100)
 
-	health_ui.anchor = health_anchor
-	health_ui.camera = camera
-	health_ui.call_deferred("_setup")
 
 
 
 func _physics_process(delta: float) -> void:
+	hp -= delta * 4.5
+	ui.set_health(hp, 100)
+
 	if is_exploding:
 		# Execute move_and_slide() to enable gravity/being pushed
 		# move_and_slide()
