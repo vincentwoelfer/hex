@@ -29,30 +29,18 @@ func get_active_cam_follow_nodes() -> Array[Node3D]:
 	return active_cam_follow_nodes
 
 
-func calculate_cam_follow_point() -> Vector3:
+func calculate_follow_aabb() -> AABB:
+	var aabb := AABB()
 	var active_cam_follow_nodes := get_active_cam_follow_nodes()
 
 	if active_cam_follow_nodes.is_empty():
 		var zero := HexConst.MAP_CENTER
 		zero.y = MapGeneration.get_hex_tile_height_at_map_pos(zero)
-		return zero
+		aabb.position = zero
+		return aabb
+	
+	aabb.position = active_cam_follow_nodes[0].get_global_transform_interpolated().origin
+	for p in active_cam_follow_nodes:
+		aabb = aabb.expand(p.get_global_transform_interpolated().origin)
 
-	var p: Vector3 = Vector3.ZERO
-	for node in active_cam_follow_nodes:
-		p += node.get_global_transform_interpolated().origin
-		#p += node.global_position
-	p /= float(active_cam_follow_nodes.size())
-	return p
-
-
-func calculate_cam_follow_point_max_dist(cam_follow_point: Vector3) -> float:
-	var active_cam_follow_nodes := get_active_cam_follow_nodes()
-
-	if active_cam_follow_nodes.is_empty():
-		return 0.0
-
-	var max_dist: float = 0.0
-	for node in active_cam_follow_nodes:
-		var dist: float = node.global_position.distance_to(cam_follow_point)
-		max_dist = max(max_dist, dist)
-	return max_dist
+	return aabb
