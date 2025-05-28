@@ -69,7 +69,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	hp -= delta * 4.5
+	hp -= delta * 15.5
 	ui.set_health(hp, 100)
 
 	if is_exploding:
