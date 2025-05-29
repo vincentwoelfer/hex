@@ -107,18 +107,18 @@ func _physics_process(delta: float) -> void:
 		# var max_dist := GameStateManager.cam_follow_point_manager.calculate_cam_follow_point_max_dist(follow_point_goal)
 		# zoom_goal = remap(max_dist, zoom_min_at_dist, zoom_max_at_dist, zoom_min, zoom_max)
 
-		# var radius: float = aabb.size.length() * 0.5
-		# var target_dist : float = radius / tan(deg_to_rad(fov_deg * 0.5)) * fov_padding_factor
+		var radius: float = aabb.size.length() * 0.5
+		var target_dist : float = radius / tan(deg_to_rad(fov_deg * 0.5)) * fov_padding_factor
 
-		var max_angle := 0.0
-		for p in points:
-			var local_pos := global_transform.basis.xform_inv(p - center)
-			var angle_v := abs(atan(local_pos.y / abs(local_pos.z)))
-			var angle_h := abs(atan(local_pos.x / abs(local_pos.z)) / aspect)
-			max_angle = max(max_angle, angle_v, angle_h)
+		# var max_angle := 0.0
+		# for p in points:
+		# 	var local_pos := global_transform.basis.xform_inv(p - center)
+		# 	var angle_v := abs(atan(local_pos.y / abs(local_pos.z)))
+		# 	var angle_h := abs(atan(local_pos.x / abs(local_pos.z)) / aspect)
+		# 	max_angle = max(max_angle, angle_v, angle_h)
 	
-		var vfov := deg_to_rad(fov * 0.5)
-		var target_dist := clamp((aabb.size.length() * 0.5) / tan(max_angle + 0.01), min_distance, max_distance)
+		# var vfov := deg_to_rad(fov * 0.5)
+		# var target_dist := clamp((aabb.size.length() * 0.5) / tan(max_angle + 0.01), min_distance, max_distance)
 
 
 		# Clamp target distance to min/max zoom
