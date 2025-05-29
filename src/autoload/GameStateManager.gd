@@ -42,6 +42,9 @@ func _ready() -> void:
 	# Increase margin for edge connections because we have an artificial border of one cell size
 	NavigationServer3D.map_set_edge_connection_margin(nav_map, 0.25 + HexConst.NAV_CELL_SIZE) # default 0.25
 
+	dev_setup()
+
+func dev_setup() -> void:
 	if Engine.is_editor_hint():
 		return
 
