@@ -268,20 +268,20 @@ static func get_hex_vertex(r: float, angle: float, smooth_strength: float = 0.0)
 ########################################################################
 static func get_scene_root() -> Node3D:
 	if Engine.is_editor_hint():
-		# TODO In editor mode, we need to get the root of the edited scene
-		# This is not ready instantly upon startup, so we need to wait a bit
 		return EditorInterface.get_edited_scene_root() as Node3D
 	else:
 		return (Engine.get_main_loop() as SceneTree).current_scene
 
 static func get_world() -> World3D:
 	var scene_root: Node3D = get_scene_root()
-	if scene_root == null:
-		return null
 	return scene_root.get_world_3d()
 
+# This caches the space state, so it is not called every time.
+static var _space_state: PhysicsDirectSpaceState3D = null
 static func get_space_state() -> PhysicsDirectSpaceState3D:
-	return get_world().direct_space_state
+	if _space_state == null:
+		_space_state = get_world().direct_space_state
+	return _space_state
 
 # TODO: Change for multipe navigation maps
 static func get_map() -> RID:
@@ -304,14 +304,14 @@ static func spawn(instance: Node3D, pos: Vector3, parent: Node3D = null) -> void
 ########################################################################
 
 # Get global camera works in game and editor
+static var _global_cam: Camera3D = null
 static func get_global_cam(reference_node: Node) -> Camera3D:
-	var cam: Camera3D
-	if Engine.is_editor_hint():
-		cam = EditorInterface.get_editor_viewport_3d(0).get_camera_3d()
-	else:
-		cam = reference_node.get_viewport().get_camera_3d()
-	return cam
-
+	if _global_cam == null:
+		if Engine.is_editor_hint():
+			_global_cam = EditorInterface.get_editor_viewport_3d(0).get_camera_3d()
+		else:
+			_global_cam = reference_node.get_viewport().get_camera_3d()
+	return _global_cam
 
 # Get global camera pos, works in game and editor
 static func get_global_cam_pos(reference_node: Node) -> Vector3:

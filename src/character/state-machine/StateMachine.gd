@@ -1,5 +1,10 @@
 extends Node
 
+# ################################
+# TODO ANOTHER STATE MACHINE LINK:
+# https://antipixel-games.itch.io/antipixel-state-machine-godot
+# ################################
+
 @export var starting_state: State
 
 var current_state: State

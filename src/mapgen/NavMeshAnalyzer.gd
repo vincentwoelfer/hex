@@ -32,7 +32,7 @@ func _init(nav_mesh_: NavigationMesh, nav_mesh_aabb_: AABB, world_pos_: Vector3)
 
 	self.vertices = nav_mesh.get_vertices()
 
-func analyze() -> void:
+func _analyze() -> void:
 	assert(clusters.is_empty())
 
 	var polygon_count: int = nav_mesh.get_polygon_count()
@@ -114,7 +114,8 @@ func _has_external_edge(vertex_indices: PackedInt32Array) -> bool:
 
 
 func build_clean_nav_mesh() -> NavigationMesh:
-	# Example filtering logic
+	self._analyze()
+
 	clusters = clusters.filter(func(cluster: Cluster) -> bool:
 		# True = keep the cluster, false = discard it
 		# Inside Rock/Terrain -> discard
