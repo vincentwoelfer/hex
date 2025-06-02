@@ -166,5 +166,5 @@ func raycast_into_world() -> Dictionary:
 	var ray_direction := camera.project_ray_normal(mouse_pos)
 	var ray_end := ray_origin + ray_direction * 1000.0
 
-	var result := PhysicUtil.raycast(ray_origin, ray_end, Layers.L.ALL)
+	var result := PhysicUtil.raycast(ray_origin, ray_end, Layers.PHY.ALL)
 	return result

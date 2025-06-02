@@ -12,8 +12,8 @@ func _ready() -> void:
 
 	radius = (collision_shape_3d.shape as CylinderShape3D).radius
 
-	area.set_collision_mask_value(Layers.L.PICKABLE_OBJECTS, true)
-	area.set_collision_mask_value(Layers.L.ENEMY_CHARACTERS, true)
+	area.set_collision_mask_value(Layers.PHY.PICKABLE_OBJECTS, true)
+	area.set_collision_mask_value(Layers.PHY.ENEMY_CHARACTERS, true)
 
 	area.connect("body_entered", _on_body_entered)
 

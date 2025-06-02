@@ -201,6 +201,7 @@ func generate() -> void:
 	terrain_mesh.name = "terrain"
 	terrain_mesh.mesh = geometry_merger.generate_mesh()
 	terrain_mesh.material_override = ResLoader.DEFAULT_TERRAIN_MAT
+	terrain_mesh.set_layer_mask_value(Layers.VIS.TERRAIN, true)
 	add_child(terrain_mesh)
 
 	# Add debug color overlay for tiles
@@ -237,7 +238,7 @@ func generate() -> void:
 		var owner_id := terrain_collision.create_shape_owner(self)
 		terrain_collision.shape_owner_add_shape(owner_id, terrain_collision_shape)
 
-	terrain_collision.set_collision_layer_value(Layers.L.TERRAIN, true)
+	terrain_collision.set_collision_layer_value(Layers.PHY.TERRAIN, true)
 	add_child(terrain_collision)
 
 	#########################################

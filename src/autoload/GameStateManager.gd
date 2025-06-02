@@ -80,11 +80,18 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_pressed("quit_game"):
 			request_quit_game()
 
-		# DEBUG
-		# Spawn enemy
+		###################################################################
+		# DEBUG Input Actions
+		###################################################################
+		# Spawn enemy - F2
 		if event.is_action_pressed("dev_spawn_enemy"):
 			spawn_enemy()
 
+		# Spawn wave - F3
+		if event.is_action_pressed("dev_spawn_wave"):
+			spawn_wave()
+
+		# F4
 		if event.is_action_pressed("dev_toggle_cam_follow_caravan"):
 			cam_follow_point_manager.use_caravan_for_cam_follow = not cam_follow_point_manager.use_caravan_for_cam_follow
 
@@ -216,7 +223,7 @@ func spawn_escape_portal() -> void:
 
 	var spawn_pos := caravan.global_position + Util.rand_circular_offset_range(25, 30)
 
-	var mask := Layers.mask([Layers.L.TERRAIN, Layers.L.STATIC_GEOM])
+	var mask := Layers.mask([Layers.PHY.TERRAIN, Layers.PHY.STATIC_GEOM])
 	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 0.5, 3.0, true, mask)
 	
 	Util.spawn(portal_node, actual_spawn_pos)

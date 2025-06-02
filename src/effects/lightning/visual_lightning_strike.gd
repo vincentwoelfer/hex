@@ -44,7 +44,7 @@ func setup_shader_materials(color_preset: String) -> void:
 static func spawn(pos: Vector3, spawn_on_floor: bool = true, duration_: float = default_duration, color_preset: String = "black") -> void:
 	var instance: VisualLightningStrike = lightning_scene.instantiate()
 	if spawn_on_floor:
-		pos = PhysicUtil.raycast_first_hit_pos(pos + Vector3.UP * 1000, pos - Vector3.UP * 1000, Layers.TERRAIN_AND_STATIC)
+		pos = PhysicUtil.raycast_first_hit_pos(pos + Vector3.UP * 1000, pos - Vector3.UP * 1000, Layers.PHY_TERRAIN_AND_STATIC)
 		pos += Vector3.UP * 0.2
 
 	Util.spawn(instance, pos)

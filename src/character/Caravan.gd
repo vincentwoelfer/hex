@@ -83,7 +83,7 @@ func choose_new_goal() -> bool:
 	var larger_shape: CylinderShape3D = collision.shape.duplicate(true)
 	larger_shape.radius = larger_shape.radius * 3.0
 
-	current_goal = PhysicUtil.find_closest_valid_spawn_pos(goal_pos, larger_shape, 1.0, 6.0, true, Layers.TERRAIN_AND_STATIC)
+	current_goal = PhysicUtil.find_closest_valid_spawn_pos(goal_pos, larger_shape, 1.0, 6.0, true, Layers.PHY_TERRAIN_AND_STATIC)
 
 	# Validate the goal
 	if current_goal == Vector3.INF:

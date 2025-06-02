@@ -2,7 +2,7 @@
 class_name Layers
 extends Node
 
-enum L {
+enum PHY {
 	ALL = 1,
 	# Only the generated hex-floor
 	TERRAIN = 2,
@@ -14,8 +14,16 @@ enum L {
 	CARAVAN = 7,
 }
 
+enum VIS {
+	ALL = 1,
+	# Only the generated hex-floor
+	TERRAIN = 2,
+	# Rocks, trees, etc.
+	STATIC_GEOM = 3,
+}
+
 # Handy Shortcuts
-static var TERRAIN_AND_STATIC := mask([L.TERRAIN, L.STATIC_GEOM])
+static var PHY_TERRAIN_AND_STATIC := mask([PHY.TERRAIN, PHY.STATIC_GEOM])
 
 static func mask(layers: Array[int]) -> int:
 	var result: int = 0

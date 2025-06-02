@@ -18,6 +18,7 @@ func _init(sampler: PolygonSurfaceSampler) -> void:
 		mesh_instance.name = "Rocks"
 		mesh_instance.material_override = ResLoader.ROCKS_MAT
 		mesh_instance.mesh = rocksMesh
+		mesh_instance.set_layer_mask_value(Layers.VIS.STATIC_GEOM, true)
 		add_child(mesh_instance)
 
 		# Collision
@@ -27,7 +28,7 @@ func _init(sampler: PolygonSurfaceSampler) -> void:
 		collision_shape.shape = self.concave_polygon_shape
 		collision_shape.debug_fill = false
 		static_body.add_child(collision_shape)
-		static_body.set_collision_layer_value(Layers.L.STATIC_GEOM, true)
+		static_body.set_collision_layer_value(Layers.PHY.STATIC_GEOM, true)
 		add_child(static_body)
 
 

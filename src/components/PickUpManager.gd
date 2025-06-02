@@ -26,8 +26,8 @@ func _ready() -> void:
 	collision_shape.shape = shape
 	area.add_child(collision_shape)
 	add_child(area)
-	area.set_collision_mask_value(Layers.L.PICKABLE_OBJECTS, true)
-	area.set_collision_mask_value(Layers.L.CARAVAN, true)
+	area.set_collision_mask_value(Layers.PHY.PICKABLE_OBJECTS, true)
+	area.set_collision_mask_value(Layers.PHY.CARAVAN, true)
 
 	# var effect := DebugVis3D.cylinder(pickup_radius, pickup_radius, DebugVis3D.mat(Color(Color.GREEN, 0.05), false))
 	# DebugVis3D.spawn(Vector3.ZERO, effect, self)

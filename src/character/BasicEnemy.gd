@@ -210,8 +210,8 @@ func _on_explodion_finish() -> void:
 	shape.height = explosion_radius
 	var collision_shape := CollisionShape3D.new()
 	collision_shape.shape = shape
-	area.set_collision_mask_value(Layers.L.PLAYER_CHARACTERS, true)
-	area.set_collision_mask_value(Layers.L.PICKABLE_OBJECTS, true)
+	area.set_collision_mask_value(Layers.PHY.PLAYER_CHARACTERS, true)
+	area.set_collision_mask_value(Layers.PHY.PICKABLE_OBJECTS, true)
 	area.add_child(collision_shape)
 	add_child(area)
 

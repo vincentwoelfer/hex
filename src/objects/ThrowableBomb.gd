@@ -41,9 +41,9 @@ func _ready() -> void:
 	shape.height = explosion_radius
 	var collision_shape := CollisionShape3D.new()
 	collision_shape.shape = shape
-	area.set_collision_mask_value(Layers.L.PLAYER_CHARACTERS, true)
-	area.set_collision_mask_value(Layers.L.ENEMY_CHARACTERS, true)
-	area.set_collision_mask_value(Layers.L.PICKABLE_OBJECTS, true)
+	area.set_collision_mask_value(Layers.PHY.PLAYER_CHARACTERS, true)
+	area.set_collision_mask_value(Layers.PHY.ENEMY_CHARACTERS, true)
+	area.set_collision_mask_value(Layers.PHY.PICKABLE_OBJECTS, true)
 	area.add_child(collision_shape)
 	add_child(area)
 	area.top_level = true
@@ -125,7 +125,7 @@ func explode() -> void:
 
 
 func check_direct_hit() -> bool:
-	var mask := Layers.mask([Layers.L.ENEMY_CHARACTERS])
+	var mask := Layers.mask([Layers.PHY.ENEMY_CHARACTERS])
 	for body in area.get_overlapping_bodies():
 		if body is CollisionObject3D:
 			if ((body as CollisionObject3D).collision_layer & mask) != 0:

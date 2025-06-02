@@ -16,7 +16,7 @@ static func get_shape_height_on_map_surface(pos: Vector3, shape: Shape3D) -> Vec
 	
 	var origin := pos + Vector3.UP * LARGE_DIST / 2.0
 	var motion := Vector3.DOWN * LARGE_DIST
-	var t := shape_motion_sweep(origin, motion, shape, Layers.TERRAIN_AND_STATIC)
+	var t := shape_motion_sweep(origin, motion, shape, Layers.PHY_TERRAIN_AND_STATIC)
 
 	# Offset upwards by half the shape height
 	var shape_height := get_shape_height(shape)
@@ -29,7 +29,7 @@ static func get_raycast_height_on_map_surface(pos: Vector3) -> Vector3:
 	
 	var origin := pos + Vector3.UP * LARGE_DIST / 2.0
 	var motion := Vector3.DOWN * LARGE_DIST
-	return raycast_first_hit_pos(origin, origin + motion, Layers.TERRAIN_AND_STATIC)
+	return raycast_first_hit_pos(origin, origin + motion, Layers.PHY_TERRAIN_AND_STATIC)
 
 
 ## Complex function to find a spawn position for the shape close to origin in a spiral pattern.
@@ -37,7 +37,7 @@ static func get_raycast_height_on_map_surface(pos: Vector3) -> Vector3:
 static func find_closest_valid_spawn_pos(origin: Vector3, shape: Shape3D,
 										r_step: float, r_max: float,
 										match_to_navmesh: bool = true,
-										mask: int = Layers.L.ALL) -> Vector3:
+										mask: int = Layers.PHY.ALL) -> Vector3:
 	origin.y = MapGeneration.get_hex_tile_height_at_map_pos(origin)
 
 	if match_to_navmesh:
@@ -64,7 +64,7 @@ static func find_closest_valid_spawn_pos(origin: Vector3, shape: Shape3D,
 # TODO maybe implement variants of this using raycasts or shape sweeps. This could also improve quality on slopes
 static func find_closest_free_position_radial_pattern(origin: Vector3, shape: Shape3D,
 													  r_step: float, r_max: float,
-													  mask: int = Layers.TERRAIN_AND_STATIC) -> Vector3:
+													  mask: int = Layers.PHY_TERRAIN_AND_STATIC) -> Vector3:
 	# DebugVis3D.visualize_shape(origin, shape, Color.RED, 5.0)
 	# Check if initial position is free
 	if shape_collision_test(origin, shape, mask):
@@ -94,7 +94,7 @@ static func find_closest_free_position_radial_pattern(origin: Vector3, shape: Sh
 ########################################################################
 # Ray Collision Queries
 ########################################################################
-static func raycast(from: Vector3, to: Vector3, mask: int = Layers.L.ALL) -> Dictionary:
+static func raycast(from: Vector3, to: Vector3, mask: int = Layers.PHY.ALL) -> Dictionary:
 	var query := PhysicsRayQueryParameters3D.create(from, to, mask)
 	query.hit_from_inside = true
 	var result := Util.get_space_state().intersect_ray(query)
@@ -105,10 +105,10 @@ static func raycast(from: Vector3, to: Vector3, mask: int = Layers.L.ALL) -> Dic
 
 	return result
 
-static func raycast_test(from: Vector3, to: Vector3, mask: int = Layers.L.ALL) -> bool:
+static func raycast_test(from: Vector3, to: Vector3, mask: int = Layers.PHY.ALL) -> bool:
 	return not raycast(from, to, mask).is_empty()
 
-static func raycast_first_hit_pos(from: Vector3, to: Vector3, mask: int = Layers.L.ALL) -> Vector3:
+static func raycast_first_hit_pos(from: Vector3, to: Vector3, mask: int = Layers.PHY.ALL) -> Vector3:
 	var result := raycast(from, to, mask)
 	if result.is_empty():
 		return Vector3.INF
@@ -118,7 +118,7 @@ static func raycast_first_hit_pos(from: Vector3, to: Vector3, mask: int = Layers
 # Point Collision Queries
 ########################################################################
 ## Perform a point collision test at the given position (in world space)
-static func point_collision_test(pos: Vector3, mask: int = Layers.L.ALL) -> bool:
+static func point_collision_test(pos: Vector3, mask: int = Layers.PHY.ALL) -> bool:
 	var query := PhysicsPointQueryParameters3D.new()
 	query.collide_with_areas = false
 	query.collide_with_bodies = true
@@ -135,7 +135,7 @@ static func point_collision_test(pos: Vector3, mask: int = Layers.L.ALL) -> bool
 ########################################################################
 # Shape Collision Queries
 ########################################################################
-static func shape_collision_test(pos: Vector3, shape: Shape3D, mask: int = Layers.L.ALL) -> bool:
+static func shape_collision_test(pos: Vector3, shape: Shape3D, mask: int = Layers.PHY.ALL) -> bool:
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.set_shape(shape)
 	query.transform = Transform3D(Basis.IDENTITY, pos)
@@ -154,7 +154,7 @@ static func shape_collision_test(pos: Vector3, shape: Shape3D, mask: int = Layer
 	return hit
 
 ## Perform shape motion sweep, returns t [0, 1] of the motion
-static func shape_motion_sweep(origin: Vector3, motion: Vector3, shape: Shape3D, mask: int = Layers.L.ALL) -> float:
+static func shape_motion_sweep(origin: Vector3, motion: Vector3, shape: Shape3D, mask: int = Layers.PHY.ALL) -> float:
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.set_shape(shape)
 	query.transform = Transform3D(Basis.IDENTITY, origin)
@@ -166,12 +166,12 @@ static func shape_motion_sweep(origin: Vector3, motion: Vector3, shape: Shape3D,
 
 
 ## Perform shape motion sweep, returns true/false if the motion is free
-static func shape_motion_sweep_test(origin: Vector3, motion: Vector3, shape: Shape3D, mask: int = Layers.L.ALL) -> bool:
+static func shape_motion_sweep_test(origin: Vector3, motion: Vector3, shape: Shape3D, mask: int = Layers.PHY.ALL) -> bool:
 	return shape_motion_sweep(origin, motion, shape, mask) >= 1.0
 
 
 ## Perform shape motion sweep, returns the final free position
-static func shape_motion_sweep_final_free_pos(origin: Vector3, motion: Vector3, shape: Shape3D, mask: int = Layers.L.ALL) -> Vector3:
+static func shape_motion_sweep_final_free_pos(origin: Vector3, motion: Vector3, shape: Shape3D, mask: int = Layers.PHY.ALL) -> Vector3:
 	var t := shape_motion_sweep(origin, motion, shape, mask)
 	return origin + motion * t
 

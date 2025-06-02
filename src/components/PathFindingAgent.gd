@@ -324,7 +324,7 @@ func _can_connect_points(curr: Vector3, next: Vector3) -> bool:
 	query.motion = next - curr
 	query.collide_with_bodies = true
 	query.collide_with_areas = false
-	query.collision_mask = Layers.TERRAIN_AND_STATIC
+	query.collision_mask = Layers.PHY_TERRAIN_AND_STATIC
 
 	# First perform shape-check to check for initial collision, then a motion-sweep
 	var does_collide := not Util.get_space_state().intersect_shape(query, 1).is_empty()
