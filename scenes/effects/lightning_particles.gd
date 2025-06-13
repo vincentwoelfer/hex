@@ -1,2 +1,0 @@
-class_name LightningParticles
-extends GPUParticles3D

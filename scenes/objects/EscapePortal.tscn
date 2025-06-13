@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://ctkdqwchq1svd"]
 
 [ext_resource type="Script" uid="uid://g1m1a5ylibjc" path="res://src/objects/EscapePortal.gd" id="1_1xo43"]
-[ext_resource type="Texture2D" uid="uid://cc5jduhpunjhw" path="res://assets/textures/pentragram.png" id="1_4w24y"]
+[ext_resource type="Texture2D" uid="uid://cc5jduhpunjhw" path="res://assets/textures/decals/pentragram.png" id="1_4w24y"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_yl735"]
 
@@ -12,7 +12,7 @@ radius = 1.1
 [node name="EscapePortal" type="Node3D"]
 script = ExtResource("1_1xo43")
 
-[node name="DEV_ONLY" type="MeshInstance3D" parent="."]
+[node name="DEV_ONLY_DECAL_PREVIEW" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.30077, 0)
 visible = false
 layers = 3

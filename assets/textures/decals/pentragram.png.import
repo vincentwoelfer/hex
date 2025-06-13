@@ -3,8 +3,8 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cc5jduhpunjhw"
-path.s3tc="res://.godot/imported/pentragram.png-1349dc91e6342c2c5375d46c6ecb5c24.s3tc.ctex"
-path.etc2="res://.godot/imported/pentragram.png-1349dc91e6342c2c5375d46c6ecb5c24.etc2.ctex"
+path.s3tc="res://.godot/imported/pentragram.png-e152d60524ff09e2debcbbd63deffed1.s3tc.ctex"
+path.etc2="res://.godot/imported/pentragram.png-e152d60524ff09e2debcbbd63deffed1.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/textures/pentragram.png"
-dest_files=["res://.godot/imported/pentragram.png-1349dc91e6342c2c5375d46c6ecb5c24.s3tc.ctex", "res://.godot/imported/pentragram.png-1349dc91e6342c2c5375d46c6ecb5c24.etc2.ctex"]
+source_file="res://assets/textures/decals/pentragram.png"
+dest_files=["res://.godot/imported/pentragram.png-e152d60524ff09e2debcbbd63deffed1.s3tc.ctex", "res://.godot/imported/pentragram.png-e152d60524ff09e2debcbbd63deffed1.etc2.ctex"]
 
 [params]
 

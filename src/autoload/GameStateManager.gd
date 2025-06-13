@@ -50,9 +50,9 @@ func dev_setup() -> void:
 
 	# Wait for nav chunks to be loaded
 	var map_center_chunk_pos: HexPos = HexPos.xyz_to_hexpos_frac(HexConst.MAP_CENTER).round().to_chunk_base()
-	await Util.wait_until(self, func() -> bool: return HexChunkMap.get_by_pos(map_center_chunk_pos) != null)
+	await Util.await_until(self, func() -> bool: return HexChunkMap.get_by_pos(map_center_chunk_pos) != null)
 	var map_center_chunk: HexChunk = HexChunkMap.get_by_pos(map_center_chunk_pos)
-	await Util.wait_until(self, func() -> bool: return map_center_chunk.find_child("@NavigationRegion*", true, false) != null)
+	await Util.await_until(self, func() -> bool: return map_center_chunk.find_child("@NavigationRegion*", true, false) != null)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 

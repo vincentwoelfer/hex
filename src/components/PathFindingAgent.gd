@@ -26,7 +26,7 @@ var path: PackedVector3Array
 
 # Replanning
 var last_target_replan_pos: Vector3
-var last_target_replan_time: float
+var last_target_replan_timestamp: float
 var replan_distance_target: float = 1.0
 var replan_interval_s: float = 1.0
 
@@ -165,11 +165,10 @@ func _physics_process(delta: float) -> void:
 
 func _check_for_replan() -> void:
 	var replan: bool = false
-	var now := Time.get_unix_time_from_system()
 
 	# Time-based replan
 	if replan_interval_s > 0.0:
-		if now - last_target_replan_time > replan_interval_s:
+		if Util.has_time_passed(last_target_replan_timestamp, replan_interval_s):
 			replan = true
 
 	# Distance-based replan
@@ -183,7 +182,7 @@ func _check_for_replan() -> void:
 	if replan:
 		_plan_new_path()
 		last_target_replan_pos = target
-		last_target_replan_time = now
+		last_target_replan_timestamp = Util.now()
 	
 
 func _update_path_progress() -> void:
@@ -266,7 +265,7 @@ func _plan_new_path() -> void:
 
 	has_path = true
 	last_target_replan_pos = target
-	last_target_replan_time = Time.get_unix_time_from_system()
+	last_target_replan_timestamp = Util.now()
 	path = _simplify_path(path_raw)
 
 

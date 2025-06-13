@@ -255,9 +255,8 @@ func set_regenerate() -> void:
 
 
 func tick_check_map_reset() -> void:
-	var now := Time.get_unix_time_from_system()
-	if self.regenerate and (now - last_regeneration_timestamp) > max_regeneration_delay:
-		last_regeneration_timestamp = now
+	if self.regenerate and Util.has_time_passed(last_regeneration_timestamp, max_regeneration_delay):
+		last_regeneration_timestamp = Util.now()
 		self.regenerate = false
 		HexLog.print_multiline_banner_with_text("Regenerating map")
 		delete_everything()
