@@ -23,5 +23,6 @@ static func spawn_at_parent(parent: Node3D, radius: float, lifetime: float) -> A
 func _resize_decal(radius: float) -> void:
 	var decal := $Decal as Decal
 	if decal:
+		# Resize the decal to match the radius - x2 to cover the full diameter
 		decal.size.x = radius * 2.0
 		decal.size.z = radius * 2.0

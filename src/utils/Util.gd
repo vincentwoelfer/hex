@@ -215,17 +215,17 @@ static func is_point_outside_polygon(point: Vector2, polygon: PackedVector2Array
 
 	# Ray-casting method for point containment
 	var num_intersections := 0
-	
+
 	for i in range(polygon.size()):
 		var p1 := polygon[i]
 		var p2 := polygon[(i + 1) % polygon.size()]
-		
+
 		# Check if the ray from 'point' to the right intersects the edge (p1, p2)
 		if ((p1.y > point.y) != (p2.y > point.y)):
 			var x_intersection := (p2.x - p1.x) * (point.y - p1.y) / (p2.y - p1.y) + p1.x
 			if point.x < x_intersection:
 				num_intersections += 1
-	
+
 	# If the number of intersections is odd, the point is inside; if even, it's outside
 	return num_intersections % 2 == 0
 
@@ -329,7 +329,7 @@ static func get_global_cam(reference_node: Node) -> Camera3D:
 # Get global camera pos, works in game and editor
 static func get_global_cam_pos(reference_node: Node) -> Vector3:
 	var cam := get_global_cam(reference_node)
-		
+
 	if cam != null:
 		return cam.global_position
 	else:

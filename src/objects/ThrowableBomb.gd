@@ -20,7 +20,7 @@ var area: Area3D
 
 
 func _ready() -> void:
-    # Set the physics material
+	# Set the physics material
 	var mat := PhysicsMaterial.new()
 	mat.bounce = 0.8
 	mat.friction = 0.5
@@ -79,11 +79,13 @@ func explode() -> void:
 		return
 	exploded = true
 
+	BombExplosion.spawn_global_pos(global_position + Vector3.UP * 1.0)
+
 	# Spawn visual explosion range indicator
-	var effect_height := explosion_radius * 0.5
-	var effect := DebugVis3D.cylinder(explosion_radius, effect_height, DebugVis3D.mat(Color(Color.RED.lightened(0.25), 0.15), false))
-	var effect_node := DebugVis3D.spawn(global_position + Vector3.UP * 0.5 * effect_height, effect)
-	Util.delete_after(0.35, effect_node)
+	# var effect_height := explosion_radius * 0.5
+	# var effect := DebugVis3D.cylinder(explosion_radius, effect_height, DebugVis3D.mat(Color(Color.RED.lightened(0.25), 0.15), false))
+	# var effect_node := DebugVis3D.spawn(global_position + Vector3.UP * 0.5 * effect_height, effect)
+	# Util.delete_after(0.35, effect_node)
 
 	# APPLY
 	var bodies := area.get_overlapping_bodies()
@@ -118,9 +120,9 @@ func explode() -> void:
 				enemy.queue_free()
 				continue
 
-			
+
 	# TODO add explosion effect (external particle, not self-growth) ?
-	await Util.await_time(0.15)
+	# await Util.await_time(0.15)
 	self.queue_free()
 
 
