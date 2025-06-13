@@ -9,7 +9,7 @@ extends HexPhysicsCharacterBody3D
 var mesh_material: StandardMaterial3D
 
 var speed_normal: float = 3.5
-var speed_carrying: float = 2.7
+var speed_carrying: float = 2.5
 
 var target: Node3D = null
 
@@ -22,6 +22,9 @@ var is_exploding := false
 var explosion_radius: float = 2.2
 var explosion_force: float = 200.0
 
+var explosion_cooldown: float = 0.5
+var explosion_cooldown_timestamp: float = 0.0
+
 # Explosion visual
 var explosion_duration := 0.5
 var explosion_visual_wave_count := 3
@@ -32,7 +35,7 @@ var explosion_viusal_target_color := Color.RED.lightened(0.5)
 var stuck_check_last_pos: Vector3 = Vector3.ZERO
 
 # testing
-var ui : BasicEnemyUI
+var ui: BasicEnemyUI
 var hp := 100.0
 
 
@@ -59,13 +62,11 @@ func _ready() -> void:
 	goal_choosing_timer = Util.timer(goal_choosing_interval, _choose_new_goal)
 	add_child(goal_choosing_timer)
 
-	add_child(Util.timer(1.5, _periodic_stuck_check))
+	add_child(Util.timer(3.0, _periodic_stuck_check))
 
 	###########################
 	ui = UIManager.attach_ui_scene(self, ResLoader.BASIC_ENEMY_UI_SCENE)
 	ui.set_health(100, 100)
-
-
 
 
 func _physics_process(delta: float) -> void:
@@ -82,7 +83,7 @@ func _physics_process(delta: float) -> void:
 		self.goal_choosing_timer.start()
 		if not _choose_new_goal():
 			print("BasicEnemy: No goal found, exploding!")
-			_start_exploding()
+			_exposion_skill_start()
 
 	_check_crystal_pickup()
 
@@ -97,7 +98,7 @@ func _physics_process(delta: float) -> void:
 	# Fake values, instant accel/decel
 	m.accel_ramp_time = 0.0
 	m.decel_ramp_time = 0.0
-	m.max_possible_speed = self.speed_normal # use max speed here
+	m.max_possible_speed = self.speed_normal # use normal/max speed here, not carrying speed
 
 	m.input_control_factor = 1.0
 	m.vertical_override = 0.0
@@ -111,7 +112,7 @@ func _check_player_near_for_explosion() -> void:
 
 	for player: Node3D in get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS):
 		if global_position.distance_to(player.global_position) <= explosion_radius:
-			_start_exploding()
+			_exposion_skill_start()
 
 
 func _check_crystal_pickup() -> void:
@@ -184,22 +185,18 @@ func _choose_new_goal() -> bool:
 
 
 # Exploding
-func _start_exploding() -> void:
-	if is_exploding:
+func _exposion_skill_start() -> void:
+	if is_exploding or not Util.has_time_passed(explosion_cooldown_timestamp, explosion_cooldown):
 		return
 
 	is_exploding = true
+	explosion_cooldown_timestamp = Util.now() + explosion_duration
 	goal_choosing_timer.stop()
-
 	self.velocity = Vector3.ZERO
 
-	add_child(Util.timer(self.explosion_duration, _on_explodion_finish, true))
-	_explosion_visual_self_effect()
-
-	# Red indicator, gets deleted because its a child
-	var effect_height := 0.5
-	var effect := DebugVis3D.cylinder(explosion_radius, effect_height, DebugVis3D.mat(Color(Color.RED.lightened(0.25), 0.15), false))
-	DebugVis3D.spawn(Vector3.UP * 0.5 * effect_height, effect, self)
+	Util.timer_one_shot(self.explosion_duration, _on_explodion_finish)
+	AoeRangeIndicator.spawn(global_position, explosion_radius, self.explosion_duration)
+	_explosion_visual_self_effect_start()
 
 
 func _on_explodion_finish() -> void:
@@ -236,27 +233,35 @@ func _on_explodion_finish() -> void:
 			impulse *= 2.0
 			hex_body.apply_external_impulse(impulse)
 
+	# Remove area
+	area.queue_free()
 
 	pick_up_manager.drop_object()
 	
 	# TODO add explosion effect (external particle, not self-growth) ?
-	self.queue_free()
+
+	# Reset back to normal state
+	is_exploding = false
+	goal_choosing_timer.start()
 
 
-func _explosion_visual_self_effect() -> void:
+func _explosion_visual_self_effect_start() -> void:
 	var tween_trans_type := Tween.TRANS_ELASTIC
 	var tween_ease_type := Tween.EASE_IN_OUT
 
 	var color_tween := create_tween()
-	var size_tween := create_tween().set_trans(tween_trans_type).set_ease(tween_ease_type)
+	var scale_tween := create_tween().set_trans(tween_trans_type).set_ease(tween_ease_type)
 
-	# Add color tween
+	var reset_time := 0.05
+
+	# Add color tween (only one)
 	mesh_material = mesh.get_active_material(0) as StandardMaterial3D
 	var original_color := mesh_material.albedo_color
 	_change_material_color(original_color) # Trigger once to duplicate
 	color_tween.tween_method(_change_material_color, original_color, explosion_viusal_target_color, explosion_duration)
+	color_tween.tween_method(_change_material_color, explosion_viusal_target_color, original_color, reset_time)
 
-	# Add scale tween
+	# Add scale tween (multiple waves)
 	var time_per_wave := explosion_duration / float(explosion_visual_wave_count)
 
 	for i in range(explosion_visual_wave_count):
@@ -266,7 +271,8 @@ func _explosion_visual_self_effect() -> void:
 		var scale_value := lerpf(1.0, explosion_visual_max_size_scale, t)
 
 		# These tween effects are executed after one another, we queue them all here
-		size_tween.tween_property(mesh, "scale", Vector3.ONE * scale_value, time_per_wave)
+		scale_tween.tween_property(mesh, "scale", Vector3.ONE * scale_value, time_per_wave)
+	scale_tween.tween_property(mesh, "scale", Vector3.ONE, reset_time)
 
 
 func _change_material_color(c: Color) -> void:
@@ -285,7 +291,7 @@ func _change_material_color(c: Color) -> void:
 func _periodic_stuck_check() -> void:
 	if global_position.distance_to(stuck_check_last_pos) < 0.1:
 		print("BasicEnemy: Stuck, exploding!")
-		_start_exploding()
+		_exposion_skill_start()
 		return
 	stuck_check_last_pos = global_position
 

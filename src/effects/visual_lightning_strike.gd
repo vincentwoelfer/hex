@@ -2,8 +2,7 @@ extends Node3D
 class_name VisualLightningStrike
 
 static var default_duration := 0.6
-static var lightning_scene := preload("res://scenes/effects/lightning/visual_lightning_strike.tscn")
-static var lightning_particles_scene := preload("res://scenes/effects/lightning_particles.tscn") # Make sure you have this scene preloaded or loaded
+static var lightning_scene := preload("res://scenes/effects/visual_lightning_strike.tscn")
 
 @onready var mesh_instance_3d: MeshInstance3D = $MeshInstance3D
 @onready var preset_color_gradients := {
@@ -20,7 +19,6 @@ var duration: float
 var timer: Timer
 
 func _process(delta: float) -> void:
-	# time_elapsed += delta
 	var time_elapsed: float = timer.time_left
 	lightning_material.set_shader_parameter("time_elapsed_frac", time_elapsed / duration)
 	lightning_wave_material.set_shader_parameter("time_elapsed_frac", time_elapsed / duration)

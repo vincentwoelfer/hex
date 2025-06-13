@@ -116,9 +116,12 @@ static func spread_vec3(a: Vector3, b: Vector3, n: int) -> Array[Vector3]:
 ########################################################################
 # Timing & Waiting
 ########################################################################
-static func wait_until(node: Node3D, condition: Callable) -> void:
+static func await_until(node: Node3D, condition: Callable) -> void:
 	while not condition.call():
 		await node.get_tree().physics_frame
+
+static func await_time(time: float) -> void:
+	await get_scene_root().get_tree().create_timer(time).timeout
 
 
 static func delete_after(time: float, node: Node3D) -> void:
@@ -127,16 +130,26 @@ static func delete_after(time: float, node: Node3D) -> void:
 	node.add_child(timer(time, Callable(node, "queue_free"), true))
 
 
-static func timer(wait_time: float, timeout_callable: Callable, one_shot: bool = false) -> Timer:
+static func timer(time: float, timeout_callable: Callable, one_shot: bool = false) -> Timer:
 	var t := Timer.new()
-	t.wait_time = wait_time
+	t.wait_time = time
 	t.one_shot = one_shot
 	t.autostart = true
 	t.timeout.connect(timeout_callable)
 	return t
 
-static func await_time(time: float) -> void:
-	await get_scene_root().get_tree().create_timer(time).timeout
+static func timer_one_shot(time: float, timeout_callable: Callable) -> void:
+	var scene_tree_timer := get_scene_root().get_tree().create_timer(time)
+	scene_tree_timer.timeout.connect(timeout_callable)
+
+
+## Returns the time since the game started in seconds
+static func now() -> float:
+	return (Time.get_ticks_msec() / 1000.0) as float
+
+## Returns true if the given duration has passed since start_time
+static func has_time_passed(timestamp: float, duration: float) -> bool:
+	return now() - timestamp >= duration
 
 ########################################################################
 # 3D Vector Math
