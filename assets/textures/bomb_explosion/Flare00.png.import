@@ -2,9 +2,9 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b4xdidpjku3ec"
-path.s3tc="res://.godot/imported/normal-.png-eb5a9c83f1c08a00896a47c8119db8d3.s3tc.ctex"
-path.etc2="res://.godot/imported/normal-.png-eb5a9c83f1c08a00896a47c8119db8d3.etc2.ctex"
+uid="uid://fibnqs8ogoka"
+path.s3tc="res://.godot/imported/Flare00.png-782ab8b0a116f04bc5c12a0b91913933.s3tc.ctex"
+path.etc2="res://.godot/imported/Flare00.png-782ab8b0a116f04bc5c12a0b91913933.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/complete-models/explosion/normal-.png"
-dest_files=["res://.godot/imported/normal-.png-eb5a9c83f1c08a00896a47c8119db8d3.s3tc.ctex", "res://.godot/imported/normal-.png-eb5a9c83f1c08a00896a47c8119db8d3.etc2.ctex"]
+source_file="res://assets/textures/bomb_explosion/Flare00.png"
+dest_files=["res://.godot/imported/Flare00.png-782ab8b0a116f04bc5c12a0b91913933.s3tc.ctex", "res://.godot/imported/Flare00.png-782ab8b0a116f04bc5c12a0b91913933.etc2.ctex"]
 
 [params]
 

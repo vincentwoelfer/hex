@@ -79,13 +79,8 @@ func explode() -> void:
 		return
 	exploded = true
 
-	BombExplosion.spawn_global_pos(global_position + Vector3.UP * 1.0)
-
-	# Spawn visual explosion range indicator
-	# var effect_height := explosion_radius * 0.5
-	# var effect := DebugVis3D.cylinder(explosion_radius, effect_height, DebugVis3D.mat(Color(Color.RED.lightened(0.25), 0.15), false))
-	# var effect_node := DebugVis3D.spawn(global_position + Vector3.UP * 0.5 * effect_height, effect)
-	# Util.delete_after(0.35, effect_node)
+	VisualBombExplosion.spawn_global_pos(global_position)
+	AoeRangeIndicator.spawn_global_pos(global_position, explosion_radius, 0.3)
 
 	# APPLY
 	var bodies := area.get_overlapping_bodies()

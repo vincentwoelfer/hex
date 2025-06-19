@@ -16,6 +16,7 @@ var floor_mark_material: ShaderMaterial
 var lightning_wave_material: ShaderMaterial
 
 var duration: float
+# Timer both for deletion and progress tracking
 var timer: Timer
 
 func _process(delta: float) -> void:

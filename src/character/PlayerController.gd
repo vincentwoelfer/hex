@@ -87,9 +87,7 @@ func _physics_process(delta: float) -> void:
 			_slam_effect()
 
 	var vertical_vel_override := 0.0
-	if input.jump_input.wants:
-		BombExplosion.spawn_global_pos(global_position + Vector3.UP * 1.0)
-		
+	if input.jump_input.wants:		
 		# Normal jump
 		if currently_used_jumps < max_num_jumps:
 			input.jump_input.consume()

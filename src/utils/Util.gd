@@ -127,7 +127,7 @@ static func await_time(time: float) -> void:
 static func delete_after(time: float, node: Node3D) -> void:
 	if node == null:
 		return
-	node.add_child(timer(time, Callable(node, "queue_free"), true))
+	timer_one_shot(time, Callable(node, "queue_free"))
 
 
 static func timer(time: float, timeout_callable: Callable, one_shot: bool = false) -> Timer:
