@@ -4,7 +4,6 @@ class_name VisualBombExplosion
 
 static var scene: PackedScene = preload("res://scenes/effects/BombExplosion.tscn")
 
-# TODO Change back process material & others to split sparks & fire
 # https://www.youtube.com/shorts/Q1JE_4JV20o
 
 @export_tool_button("Restart Particles")

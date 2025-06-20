@@ -1,9 +1,9 @@
-[gd_scene load_steps=19 format=3 uid="uid://btoxgp0rdiv7q"]
+[gd_scene load_steps=20 format=3 uid="uid://btoxgp0rdiv7q"]
 
 [ext_resource type="Script" uid="uid://ckvpnjb1ijjtr" path="res://src/effects/VisualBombExplosion.gd" id="1_7fn5e"]
 [ext_resource type="Texture2D" uid="uid://fibnqs8ogoka" path="res://assets/textures/bomb_explosion/Flare00.png" id="2_wyllx"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lat74"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7fn5e"]
 transparency = 1
 cull_mode = 2
 shading_mode = 0
@@ -32,10 +32,12 @@ curve_z = SubResource("Curve_1nb6q")
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_kbynx"]
 particle_flag_align_y = true
 direction = Vector3(0, 1, 0)
-spread = 120.0
-initial_velocity_min = 20.0
-initial_velocity_max = 25.0
+spread = 90.0
+initial_velocity_min = 17.0
+initial_velocity_max = 23.0
 gravity = Vector3(0, -30, 0)
+linear_accel_min = -28.0
+linear_accel_max = -28.0
 scale_min = 0.1
 scale_max = 0.55
 scale_curve = SubResource("CurveXYZTexture_465yq")
@@ -70,6 +72,15 @@ scale_max = 8.0
 scale_curve = SubResource("CurveTexture_3dgwb")
 color = Color(2.5, 1, 0.5, 1)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lat74"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("2_wyllx")
+billboard_mode = 1
+billboard_keep_scale = true
+
 [sub_resource type="Gradient" id="Gradient_7fn5e"]
 colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
 
@@ -85,12 +96,14 @@ point_count = 3
 curve = SubResource("Curve_7fn5e")
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_h6xf2"]
+lifetime_randomness = 1.0
 emission_shape = 1
-emission_sphere_radius = 0.7
+emission_sphere_radius = 1.0
+direction = Vector3(0, 1, 0)
 spread = 180.0
 initial_velocity_min = 0.5
 initial_velocity_max = 2.0
-gravity = Vector3(0, -3, 0)
+gravity = Vector3(0, -1.5, 0)
 scale_min = 0.3
 scale_max = 1.75
 scale_curve = SubResource("CurveTexture_1nb6q")
@@ -101,9 +114,9 @@ color_ramp = SubResource("GradientTexture1D_wyllx")
 script = ExtResource("1_7fn5e")
 
 [node name="Sparks" type="GPUParticles3D" parent="."]
-material_override = SubResource("StandardMaterial3D_lat74")
+material_override = SubResource("StandardMaterial3D_7fn5e")
 amount = 128
-lifetime = 0.4
+lifetime = 0.35
 explosiveness = 1.0
 fixed_fps = 60
 process_material = SubResource("ParticleProcessMaterial_kbynx")
@@ -121,8 +134,8 @@ draw_pass_1 = SubResource("QuadMesh_qfali")
 
 [node name="Fire" type="GPUParticles3D" parent="."]
 material_override = SubResource("StandardMaterial3D_lat74")
-amount = 16
-lifetime = 0.6
+amount = 32
+lifetime = 0.7
 explosiveness = 1.0
 fixed_fps = 60
 process_material = SubResource("ParticleProcessMaterial_h6xf2")
