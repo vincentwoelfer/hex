@@ -99,7 +99,7 @@ func _physics_process(delta: float) -> void:
 			input.jump_input.consume()
 			vertical_vel_override = _slam()
 			is_slamming = true
-			
+
 	#################################################
 	# Dashing
 	#################################################
@@ -111,7 +111,7 @@ func _physics_process(delta: float) -> void:
 			input.dash_input.consume()
 			is_dashing = true
 			dash_timer = dash_duration
-	
+
 	# Lightning
 	# if input.skill_primary_input.wants:
 		# input.skill_primary_input.consume()
@@ -136,7 +136,7 @@ func _physics_process(delta: float) -> void:
 	var m: CharMovement = CharMovement.new()
 	m.input_dir = Util.to_vec2(input_dir)
 	m.input_speed = _get_current_speed()
-	
+
 	m.accel_ramp_time = self.time_to_max_acc
 	m.decel_ramp_time = self.time_to_max_acc
 	m.max_possible_speed = self.walk_speed
@@ -158,7 +158,7 @@ func _get_current_speed() -> float:
 	else:
 		target_planar_speed = walk_speed
 	return target_planar_speed
-	
+
 func _jump() -> float:
 	# Determine number of _jump
 	var jump_index: int = currently_used_jumps
@@ -248,7 +248,8 @@ func _slam_effect() -> void:
 	# var effect_node := DebugVis3D.spawn(global_position + Vector3.UP * 0.5 * slam_height, effect)
 	# Util.delete_after(0.25, effect_node)
 
-	VFXFlameExplosionRadial.spawn_global_pos(global_position + Vector3.UP * 0.5)
+	VFXFlameExplosionRadial.spawn_global_pos(global_position + Vector3.UP * 1.0)
+	VFXAoeRangeIndicator.spawn_global_pos(global_position, slam_radius, 0.3)
 
 	# Define area
 	var area := Area3D.new()
@@ -263,7 +264,7 @@ func _slam_effect() -> void:
 	area.add_child(collision_shape)
 
 	Util.spawn(area, global_position)
-	
+
 	# Required for the newly added area to work
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -302,6 +303,6 @@ func _slam_effect() -> void:
 				enemy.queue_free()
 				continue
 
-				
+
 	await Util.await_time(0.15)
 	area.queue_free()

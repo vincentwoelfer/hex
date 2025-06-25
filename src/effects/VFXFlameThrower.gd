@@ -20,5 +20,6 @@ func start() -> void:
 	for child in get_children():
 		if child is GPUParticles3D:
 			pass
-			# (child as GPUParticles3D).one_shot = false
-			# (child as GPUParticles3D).restart()
+			# var particles: GPUParticles3D = child as GPUParticles3D
+			# particles.one_shot = true
+			# particles.emitting = true

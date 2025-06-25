@@ -19,5 +19,6 @@ static func spawn_global_pos(pos: Vector3) -> void:
 func start() -> void:
 	for child in get_children():
 		if child is GPUParticles3D:
-			(child as GPUParticles3D).one_shot = true
-			(child as GPUParticles3D).emitting = true
+			var particles: GPUParticles3D = child as GPUParticles3D
+			particles.one_shot = true
+			particles.emitting = true

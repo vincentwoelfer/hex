@@ -212,6 +212,8 @@ func _on_explodion_finish() -> void:
 	area.add_child(collision_shape)
 	add_child(area)
 
+	VFXFlameExplosionRadial.spawn_global_pos(global_position + Vector3.UP * 0.8, VFXFlameExplosionRadial.ColorGradient.RED)
+
 	# Required for the newly added area to work
 	await get_tree().physics_frame
 	await get_tree().physics_frame
