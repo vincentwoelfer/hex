@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://kwnw1xk8jf4s" path="res://src/effects/VFXBombExplosion.gd" id="1_7fn5e"]
 [ext_resource type="Texture2D" uid="uid://fibnqs8ogoka" path="res://assets/textures/bomb_explosion/Flare00.png" id="2_wyllx"]
+[ext_resource type="QuadMesh" uid="uid://bm3w3123iflq1" path="res://assets/misc/QuadDrawPass.tres" id="3_wyllx"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7fn5e"]
 transparency = 1
@@ -42,8 +43,6 @@ scale_min = 0.1
 scale_max = 0.55
 scale_curve = SubResource("CurveXYZTexture_465yq")
 color = Color(5, 2, 1, 1)
-
-[sub_resource type="QuadMesh" id="QuadMesh_qfali"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_h6xf2"]
 transparency = 1
@@ -120,7 +119,7 @@ lifetime = 0.35
 explosiveness = 1.0
 fixed_fps = 60
 process_material = SubResource("ParticleProcessMaterial_kbynx")
-draw_pass_1 = SubResource("QuadMesh_qfali")
+draw_pass_1 = ExtResource("3_wyllx")
 
 [node name="Flash" type="GPUParticles3D" parent="."]
 material_override = SubResource("StandardMaterial3D_h6xf2")
@@ -130,7 +129,7 @@ lifetime = 0.15
 explosiveness = 1.0
 fixed_fps = 60
 process_material = SubResource("ParticleProcessMaterial_qfali")
-draw_pass_1 = SubResource("QuadMesh_qfali")
+draw_pass_1 = ExtResource("3_wyllx")
 
 [node name="Fire" type="GPUParticles3D" parent="."]
 material_override = SubResource("StandardMaterial3D_lat74")
@@ -139,4 +138,4 @@ lifetime = 0.7
 explosiveness = 1.0
 fixed_fps = 60
 process_material = SubResource("ParticleProcessMaterial_h6xf2")
-draw_pass_1 = SubResource("QuadMesh_qfali")
+draw_pass_1 = ExtResource("3_wyllx")

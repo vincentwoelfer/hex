@@ -19,3 +19,8 @@ TODO
 - bouncy bomben
 
 - chaos skills, bouncy bombe, friendly-fire?
+
+
+
+# VFX / Shader Ideas/Inspo
+- https://godotshaders.com/shader/raymarched-3d-noise-decal/

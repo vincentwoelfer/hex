@@ -42,6 +42,8 @@ var input: InputManager
 
 var color: Color
 
+var flame_thrower_instance: VFXFlameThrower = null
+
 func init(device: int, color_: Color) -> void:
 	input = InputManager.new(device)
 	self.color = color_
@@ -87,7 +89,7 @@ func _physics_process(delta: float) -> void:
 			_slam_effect()
 
 	var vertical_vel_override := 0.0
-	if input.jump_input.wants:		
+	if input.jump_input.wants:
 		# Normal jump
 		if currently_used_jumps < max_num_jumps:
 			input.jump_input.consume()
@@ -114,6 +116,11 @@ func _physics_process(delta: float) -> void:
 	# if input.skill_primary_input.wants:
 		# input.skill_primary_input.consume()
 		# VFXLightningStrike.spawn(self.global_position)
+
+	# Flame Thrower
+	if input.skill_primary_input.wants:
+		input.skill_primary_input.consume()
+		flame_thrower_skill()
 
 	# Throw bomb
 	if input.skill_secondary_input.wants:
@@ -187,6 +194,15 @@ func _get_custom_gravity() -> float:
 		return fall_gravity
 	else:
 		return jump_gravity
+
+
+func flame_thrower_skill() -> void:
+	if flame_thrower_instance != null:
+		flame_thrower_instance.queue_free()
+		flame_thrower_instance = null
+
+	else:
+		flame_thrower_instance = VFXFlameThrower.spawn_at_parent(self)
 
 
 func throw_bomb() -> void:
