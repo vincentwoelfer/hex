@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://bgu7sib72cl4f"]
 
 [ext_resource type="Texture2D" uid="uid://byc1t3mjjxprx" path="res://assets/textures/decals/aoe_indicator_1.png" id="1_5x7c8"]
-[ext_resource type="Script" uid="uid://dlthh4tf65tli" path="res://src/effects/AoeRangeIndicator.gd" id="1_nduej"]
+[ext_resource type="Script" uid="uid://d35lbkrwm5g7a" path="res://src/effects/VFXAoeRangeIndicator.gd" id="1_nduej"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_tkbda"]
 size = Vector2(5, 5)

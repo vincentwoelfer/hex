@@ -1,6 +1,6 @@
 # Needs to be tool to read these in other tool scripts!
 # No class_name here, the name of the singleton is set in the autoload
-@tool
+#@tool
 extends Node3D
 
 # Complete Map Regeneration

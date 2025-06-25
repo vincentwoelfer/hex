@@ -9,10 +9,10 @@ var max_bounces: int = 2
 var min_time_between_bounces_sec: float = 0.12
 var last_bounce_time_counter: float = min_time_between_bounces_sec
 
-var explosion_radius: float = 3.8
+var explosion_radius: float = 3.75
 var explosion_force: float = 170.0
 
-var direct_hit_radius: float = 1.5
+var direct_hit_radius: float = 2.0
 
 var exploded := false
 
@@ -79,8 +79,8 @@ func explode() -> void:
 		return
 	exploded = true
 
-	VisualBombExplosion.spawn_global_pos(global_position)
-	AoeRangeIndicator.spawn_global_pos(global_position, explosion_radius, 0.3)
+	VFXBombExplosion.spawn_global_pos(global_position)
+	VFXAoeRangeIndicator.spawn_global_pos(global_position, explosion_radius, 0.3)
 
 	# APPLY
 	var bodies := area.get_overlapping_bodies()

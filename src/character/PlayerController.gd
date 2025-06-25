@@ -113,7 +113,7 @@ func _physics_process(delta: float) -> void:
 	# Lightning
 	# if input.skill_primary_input.wants:
 		# input.skill_primary_input.consume()
-		# VisualLightningStrike.spawn(self.global_position)
+		# VFXLightningStrike.spawn(self.global_position)
 
 	# Throw bomb
 	if input.skill_secondary_input.wants:

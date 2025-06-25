@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bncw1ym8ok56x"]
+
+[ext_resource type="Script" uid="uid://dr6b4uglsqxpg" path="res://src/effects/VFXFlameThrower.gd" id="1_xteag"]
+
+[node name="FlameThrower" type="Node3D"]
+script = ExtResource("1_xteag")

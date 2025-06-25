@@ -1,6 +1,6 @@
 @tool
 extends Node3D
-class_name VisualBombExplosion
+class_name VFXBombExplosion
 
 static var scene: PackedScene = preload("res://scenes/effects/BombExplosion.tscn")
 
@@ -10,7 +10,7 @@ static var scene: PackedScene = preload("res://scenes/effects/BombExplosion.tscn
 var button := start
 
 static func spawn_global_pos(pos: Vector3) -> void:
-	var instance: VisualBombExplosion = scene.instantiate() as VisualBombExplosion
+	var instance: VFXBombExplosion = scene.instantiate() as VFXBombExplosion
 	Util.spawn(instance, pos, null)
 	Util.delete_after(1.0, instance)
 	instance.start()

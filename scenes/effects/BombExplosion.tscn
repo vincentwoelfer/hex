@@ -1,6 +1,6 @@
 [gd_scene load_steps=20 format=3 uid="uid://btoxgp0rdiv7q"]
 
-[ext_resource type="Script" uid="uid://ckvpnjb1ijjtr" path="res://src/effects/VisualBombExplosion.gd" id="1_7fn5e"]
+[ext_resource type="Script" uid="uid://kwnw1xk8jf4s" path="res://src/effects/VFXBombExplosion.gd" id="1_7fn5e"]
 [ext_resource type="Texture2D" uid="uid://fibnqs8ogoka" path="res://assets/textures/bomb_explosion/Flare00.png" id="2_wyllx"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7fn5e"]
@@ -110,7 +110,7 @@ scale_curve = SubResource("CurveTexture_1nb6q")
 color = Color(5, 2, 1, 1)
 color_ramp = SubResource("GradientTexture1D_wyllx")
 
-[node name="BombExplosion2" type="Node3D"]
+[node name="BombExplosion" type="Node3D"]
 script = ExtResource("1_7fn5e")
 
 [node name="Sparks" type="GPUParticles3D" parent="."]

@@ -195,7 +195,7 @@ func _exposion_skill_start() -> void:
 	self.velocity = Vector3.ZERO
 
 	Util.timer_one_shot(self.explosion_duration, _on_explodion_finish)
-	AoeRangeIndicator.spawn_at_parent(self, explosion_radius, self.explosion_duration)
+	VFXAoeRangeIndicator.spawn_at_parent(self, explosion_radius, self.explosion_duration)
 	_explosion_visual_self_effect_start()
 
 
