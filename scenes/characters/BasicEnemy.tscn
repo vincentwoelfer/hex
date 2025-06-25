@@ -46,7 +46,7 @@ debug_color = Color(0, 0.6, 0.701961, 0.905882)
 [node name="PathFindingAgent" type="Node3D" parent="."]
 script = ExtResource("3_3ox23")
 
-[node name="DEV_ONLY_DECAL_PREVIEW" type="MeshInstance3D" parent="."]
+[node name="DEV-ONLY-DecalPreview" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.580085, 0)
 visible = false
 layers = 3

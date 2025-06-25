@@ -12,9 +12,8 @@ radius = 1.1
 [node name="EscapePortal" type="Node3D"]
 script = ExtResource("1_1xo43")
 
-[node name="DEV_ONLY_DECAL_PREVIEW" type="MeshInstance3D" parent="."]
+[node name="DEV-ONLY-DecalPreview" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.30077, 0)
-visible = false
 layers = 3
 mesh = SubResource("PlaneMesh_yl735")
 

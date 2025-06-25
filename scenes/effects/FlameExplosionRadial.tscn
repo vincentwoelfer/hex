@@ -1,14 +1,14 @@
-[gd_scene load_steps=10 format=3 uid="uid://bncw1ym8ok56x"]
+[gd_scene load_steps=10 format=3 uid="uid://dyfep8knua34y"]
 
-[ext_resource type="Script" uid="uid://dr6b4uglsqxpg" path="res://src/effects/VFXFlameThrower.gd" id="1_xteag"]
-[ext_resource type="Texture2D" uid="uid://blkjyygfbg5yx" path="res://assets/textures/flame_thrower/flare.png" id="2_hdics"]
+[ext_resource type="Script" uid="uid://crm0e02waipqw" path="res://src/effects/VFXFlameExplosionRadial.gd" id="1_55s6a"]
+[ext_resource type="Texture2D" uid="uid://blkjyygfbg5yx" path="res://assets/textures/flame_thrower/flare.png" id="2_q17ry"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xteag"]
 transparency = 1
 cull_mode = 2
 shading_mode = 0
 vertex_color_use_as_albedo = true
-albedo_texture = ExtResource("2_hdics")
+albedo_texture = ExtResource("2_q17ry")
 billboard_mode = 3
 billboard_keep_scale = true
 particles_anim_h_frames = 1
@@ -33,16 +33,18 @@ curve = SubResource("Curve_hdics")
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_hdics"]
 lifetime_randomness = 0.25
 particle_flag_damping_as_friction = true
+emission_shape = 1
+emission_sphere_radius = 0.2
 angle_min = -720.0
 angle_max = 720.0
 direction = Vector3(0, 0, -1)
-spread = 20.0
-flatness = 0.85
-initial_velocity_min = 25.0
-initial_velocity_max = 25.0
-gravity = Vector3(0, -1, 0)
-damping_min = 5.0
-damping_max = 5.0
+spread = 180.0
+flatness = 0.9
+initial_velocity_min = 35.0
+initial_velocity_max = 35.0
+gravity = Vector3(0, 0, 0)
+damping_min = 7.0
+damping_max = 13.0
 scale_max = 1.2
 scale_curve = SubResource("CurveTexture_fp8fe")
 color = Color(1, 1, 1, 0.7)
@@ -50,13 +52,14 @@ color_ramp = SubResource("GradientTexture1D_fp8fe")
 
 [sub_resource type="QuadMesh" id="QuadMesh_fp8fe"]
 
-[node name="FlameThrower" type="Node3D"]
-script = ExtResource("1_xteag")
+[node name="FlameExplosionRadial" type="Node3D"]
+script = ExtResource("1_55s6a")
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="."]
 material_override = SubResource("StandardMaterial3D_xteag")
 amount = 256
-preprocess = 0.3
+lifetime = 0.4
+explosiveness = 0.9
 fixed_fps = 60
 local_coords = true
 draw_order = 1

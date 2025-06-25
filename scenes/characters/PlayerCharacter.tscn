@@ -27,7 +27,7 @@ collision_layer = 9
 platform_on_leave = 2
 script = ExtResource("1_gar1i")
 
-[node name="DEV_ONLY_DECAL_PREVIEW" type="MeshInstance3D" parent="."]
+[node name="DEV-ONLY-DecalPreview" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.580085, 0)
 visible = false
 layers = 3
@@ -51,7 +51,7 @@ skeleton = NodePath("../..")
 script = ExtResource("4_w4u4s")
 metadata/_custom_type_script = "uid://ce1olcw7fa5n8"
 
-[node name="DirectionIndicator" type="MeshInstance3D" parent="RotationAxis"]
+[node name="DEV-ONLY-DirectionIndicator" type="MeshInstance3D" parent="RotationAxis"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -0.5)
 visible = false
 mesh = SubResource("SphereMesh_w4u4s")

@@ -80,6 +80,7 @@ func explode() -> void:
 	exploded = true
 
 	VFXBombExplosion.spawn_global_pos(global_position)
+	# VFXFlameExplosionRadial.spawn_global_pos(global_position)
 	VFXAoeRangeIndicator.spawn_global_pos(global_position, explosion_radius, 0.3)
 
 	# APPLY

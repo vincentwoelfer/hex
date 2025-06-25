@@ -202,7 +202,7 @@ func flame_thrower_skill() -> void:
 		flame_thrower_instance = null
 
 	else:
-		flame_thrower_instance = VFXFlameThrower.spawn_at_parent(self)
+		flame_thrower_instance = VFXFlameThrower.spawn_at_parent(rotation_axis)
 
 
 func throw_bomb() -> void:
@@ -244,9 +244,11 @@ func _slam_effect() -> void:
 	const slam_height := 0.75
 	const slam_force := 130.0
 
-	var effect := DebugVis3D.cylinder(slam_radius, slam_height, DebugVis3D.mat(Color(Color.RED.lightened(0.25), 0.15), false))
-	var effect_node := DebugVis3D.spawn(global_position + Vector3.UP * 0.5 * slam_height, effect)
-	Util.delete_after(0.25, effect_node)
+	# var effect := DebugVis3D.cylinder(slam_radius, slam_height, DebugVis3D.mat(Color(Color.RED.lightened(0.25), 0.15), false))
+	# var effect_node := DebugVis3D.spawn(global_position + Vector3.UP * 0.5 * slam_height, effect)
+	# Util.delete_after(0.25, effect_node)
+
+	VFXFlameExplosionRadial.spawn_global_pos(global_position + Vector3.UP * 0.5)
 
 	# Define area
 	var area := Area3D.new()
@@ -300,7 +302,6 @@ func _slam_effect() -> void:
 				enemy.queue_free()
 				continue
 
-			
-	# TODO add explosion effect (external particle, not self-growth) ?
+				
 	await Util.await_time(0.15)
 	area.queue_free()

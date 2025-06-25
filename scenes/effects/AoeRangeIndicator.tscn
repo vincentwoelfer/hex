@@ -18,7 +18,7 @@ modulate = Color(1, 0, 0, 1)
 normal_fade = 0.4
 cull_mask = 1048574
 
-[node name="DEV_ONLY_DECAL_PREVIEW" type="MeshInstance3D" parent="."]
+[node name="DEV-ONLY-DecalPreview" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.580085, 0)
 visible = false
 layers = 3
