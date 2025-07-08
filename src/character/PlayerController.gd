@@ -222,14 +222,13 @@ func throw_bomb() -> void:
 	bomb.apply_torque_impulse(torque)
 
 	# Apply force
-	var throw_dir: Vector3 = Vector3.FORWARD * 0.65 + Vector3.UP * 0.55
-	throw_dir = throw_dir.normalized()
-	var throw_force: float = 40.0
+	var throw_dir: Vector3 = (Vector3.FORWARD * 0.65 + Vector3.UP * 0.55).normalized()
+	var throw_force: float = 75.0
 	var force: Vector3 = rotation_axis.basis * throw_dir * throw_force
 	bomb.apply_central_impulse(force)
 
-	# Hacky
-	await Util.await_time(0.5)
+	# Hacky - avoid bombs to collide with the player
+	await Util.await_time(0.25)
 	if bomb != null:
 		bomb.remove_collision_exception_with(self)
 

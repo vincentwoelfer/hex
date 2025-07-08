@@ -14,6 +14,9 @@ var explosion_force: float = 170.0
 
 var direct_hit_radius: float = 2.0
 
+# gravity scale per bounce, used to reduce the gravity effect on the bomb
+var gravity_scale_per_bounce: Array[float] = [3.0, 2.5]
+
 var exploded := false
 
 var area: Area3D
@@ -34,6 +37,9 @@ func _ready() -> void:
 	# self.angular_damp = 1.5
 	# self.linear_damp = 1.5
 
+	# Gravity scale
+	_update_gravity_scale()
+
 	# define area
 	area = Area3D.new()
 	var shape := CylinderShape3D.new()
@@ -48,6 +54,12 @@ func _ready() -> void:
 	add_child(area)
 	area.top_level = true
 
+func _update_gravity_scale() -> void:
+	# Update gravity scale based on bounces
+	if bounces < gravity_scale_per_bounce.size():
+		self.gravity_scale = gravity_scale_per_bounce[bounces]
+	else:
+		self.gravity_scale = 1.0  # Default gravity scale if exceeded
 
 func _physics_process(delta: float) -> void:
 	# Update area position
@@ -61,6 +73,7 @@ func _physics_process(delta: float) -> void:
 	if last_bounce_time_counter <= 0.0 and get_contact_count() > 0:
 		last_bounce_time_counter = min_time_between_bounces_sec
 		bounces += 1
+		_update_gravity_scale()
 
 		# If enemy near, explode directly
 		if check_direct_hit():
@@ -80,7 +93,6 @@ func explode() -> void:
 	exploded = true
 
 	VFXBombExplosion.spawn_global_pos(global_position)
-	# VFXFlameExplosionRadial.spawn_global_pos(global_position)
 	VFXAoeRangeIndicator.spawn_global_pos(global_position, explosion_radius, 0.3)
 
 	# APPLY
@@ -117,8 +129,6 @@ func explode() -> void:
 				continue
 
 
-	# TODO add explosion effect (external particle, not self-growth) ?
-	# await Util.await_time(0.15)
 	self.queue_free()
 
 

@@ -53,14 +53,12 @@ metadata/_custom_type_script = "uid://ce1olcw7fa5n8"
 
 [node name="DEV-ONLY-DirectionIndicator" type="MeshInstance3D" parent="RotationAxis"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -0.5)
-visible = false
 mesh = SubResource("SphereMesh_w4u4s")
 skeleton = NodePath("../Mesh")
 
 [node name="Collision" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
 shape = SubResource("CapsuleShape3D_e2xsl")
-debug_color = Color(1, 0, 0, 0.784314)
 
 [node name="PathFindingAgent" type="Node3D" parent="."]
 script = ExtResource("3_kn48c")

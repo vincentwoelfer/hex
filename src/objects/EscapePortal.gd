@@ -39,6 +39,10 @@ func _on_body_entered(body: Node3D) -> void:
 
 		captured_crystals_time_counters[weakref(crystal)] = 1.8
 
+	# Reset gravity scale for rigid bodies entering the portal (for bombs)
+	if body is RigidBody3D:
+		(body as RigidBody3D).gravity_scale = 1.0 
+
 
 func _process(delta: float) -> void:
 	for weak_ref: WeakRef in captured_crystals_time_counters.keys():
