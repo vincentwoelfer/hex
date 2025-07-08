@@ -5,5 +5,5 @@ noise_type = 2
 frequency = 0.008
 
 [resource]
-seamless = true
 noise = SubResource("FastNoiseLite_piaw1")
+seamless = true
