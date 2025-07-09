@@ -21,9 +21,6 @@ var velocity_no_collision: Vector3 = Vector3.ZERO
 @onready var caravan_depot: CaravanDepot = $RotationAxis/CaravanDepot
 
 func _ready() -> void:
-	# more than player
-	self.mass = 150.0
-
 	# Pathfinding agent
 	path_finding_agent.init(Colors.COLOR_CARAVAN, collision.shape, DebugSettings.show_path_caravan)
 	path_finding_agent.replan_interval_s = -1.0
@@ -52,18 +49,10 @@ func _physics_process(delta: float) -> void:
 		if not choose_new_goal():
 			print("Unable to find new caravan goal!")
 
-	var m: CharMovement = CharMovement.new()
+	var m: HexCharMovementParams = HexCharMovementParams.new()
 	m.input_dir = Util.to_vec2(path_finding_agent.get_direction())
 	m.input_speed = self.get_speed()
-	
-	# Fake values, instant accel/decel
-	m.accel_ramp_time = 0.0
-	m.decel_ramp_time = 0.0
 	m.max_possible_speed = self.speed
-
-	m.input_control_factor = 1.0
-	m.vertical_override = 0.0
-
 	self._custom_physics_process(delta, m)
 
 

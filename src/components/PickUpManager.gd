@@ -9,9 +9,9 @@ var hold_offset: Vector3 = Vector3.FORWARD * 0.45 + Vector3.UP * 0.85
 var carried_object: Crystal = null
 
 # Customizeable
-var pickup_radius: float = 1.6
-var can_pickup_from_depot: bool = true
-var can_drop_to_depot: bool = true
+@export var pickup_radius: float = 1.6
+@export var can_pickup_from_depot: bool = true
+@export var can_drop_to_depot: bool = true
 
 
 func _ready() -> void:

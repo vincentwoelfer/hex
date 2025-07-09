@@ -38,7 +38,6 @@ var follow_point_lerp_speed: float = 8.0
 var fov_deg: float
 var fov_padding_factor: float = 1.0 
 
-
 # Only for debugging
 var draw_debug_follow_point := false
 var debug_mesh: MeshInstance3D
@@ -52,7 +51,7 @@ func _ready() -> void:
 
 	follow_point_goal = GameStateManager.cam_follow_point_manager.calculate_follow_aabb().get_center()
 	follow_point_curr = follow_point_goal
-	update_position()
+	_update_position()
 	camera.reset_physics_interpolation()
 
 	# Todo verify this is the correct way to get the FOV
@@ -73,30 +72,30 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("cam_zoom_out"):
 		zoom_input += 1.0
 		
-	update_zoom_manual(zoom_input)
+	_update_zoom_manual(zoom_input)
 
 	if event.is_action_pressed("cam_zoom_auto"):
 		zoom_manual_override = false
 
 
-func handle_continuous_input(delta: float) -> void:
+func _handle_continuous_input(delta: float) -> void:
 	# Tilt (rotation up/down)
 	var tilt_input := Input.get_axis("cam_tilt_down", "cam_tilt_up")
 	tilt_goal = clampf(tilt_goal + tilt_input * tilt_input_speed * delta, tilt_min, tilt_max)
 		
 	# Zoom (in/out)
 	var zoom_input := Input.get_axis("cam_zoom_in", "cam_zoom_out")
-	update_zoom_manual(zoom_input)
+	_update_zoom_manual(zoom_input)
 
 
-func update_zoom_manual(zoom_input: float) -> void:
+func _update_zoom_manual(zoom_input: float) -> void:
 	if zoom_input != 0.0:
 		zoom_manual_override = true
 		zoom_goal = clampf(zoom_goal + zoom_input * zoom_input_speed, zoom_min_manual, zoom_max_manual)
 
 
 func _physics_process(delta: float) -> void:
-	handle_continuous_input(delta)
+	_handle_continuous_input(delta)
 
 	var aabb := GameStateManager.cam_follow_point_manager.calculate_follow_aabb()
 
@@ -131,23 +130,23 @@ func _physics_process(delta: float) -> void:
 	follow_point_curr = Util.lerp_towards_vec3(follow_point_curr, follow_point_goal, follow_point_lerp_speed, delta)
 
 	# Set values (also global cam orientation)
-	update_position()
+	_update_position()
 	GameStateManager.cam_follow_point_manager.set_global_camera_view_angle(orientation_angle_curr)
 
-	draw_debug_mesh(follow_point_curr)
+	_draw_debug_mesh(follow_point_curr)
 
 	# TODO this causes stuttering - Invesitage
 	#RenderingServer.call_on_render_thread(update_shader_parameters)
 	# RenderingServer.global_shader_parameter_set("global_camera_view_direction", actual_curr_rotation)
 	# RenderingServer.global_shader_parameter_set("global_player_position", lookAtPoint)
 
-func update_position() -> void:
+func _update_position() -> void:
 	var cam_direction := Vector3.BACK.rotated(Vector3.LEFT, tilt_curr).rotated(Vector3.UP, orientation_angle_curr)
 	var cam_pos := follow_point_curr + (cam_direction * zoom_curr)
 	camera.look_at_from_position(cam_pos, follow_point_curr, Vector3.UP)
 
 
-func draw_debug_mesh(location: Vector3) -> void:
+func _draw_debug_mesh(location: Vector3) -> void:
 	if draw_debug_follow_point:
 		if debug_mesh == null:
 			debug_mesh = MeshInstance3D.new()
@@ -158,13 +157,3 @@ func draw_debug_mesh(location: Vector3) -> void:
 		# Just update global position
 		debug_mesh.global_position = location
 		debug_mesh.reset_physics_interpolation()
-
-
-func raycast_into_world() -> Dictionary:
-	var mouse_pos := get_viewport().get_mouse_position()
-	var ray_origin := camera.project_ray_origin(mouse_pos)
-	var ray_direction := camera.project_ray_normal(mouse_pos)
-	var ray_end := ray_origin + ray_direction * 1000.0
-
-	var result := PhysicUtil.raycast(ray_origin, ray_end, Layers.PHY.ALL)
-	return result

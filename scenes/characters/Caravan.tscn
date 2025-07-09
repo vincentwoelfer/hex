@@ -20,6 +20,7 @@ floor_constant_speed = true
 floor_snap_length = 1.5
 platform_on_leave = 2
 script = ExtResource("1_4v2ye")
+mass = 150.0
 
 [node name="RotationAxis" type="Node3D" parent="."]
 

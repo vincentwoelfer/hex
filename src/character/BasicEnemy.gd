@@ -40,16 +40,11 @@ var hp := 100.0
 
 
 func _ready() -> void:
-	self.mass = 10.0
 	add_to_group(HexConst.GROUP_ENEMIES)
 
 	path_finding_agent.init(Color.RED, collision.shape, DebugSettings.show_path_basic_enemy)
 
 	floor_max_angle = deg_to_rad(HexConst.NAV_AGENT_MAX_SLOPE_BASIS_DEG + HexConst.NAV_AGENT_MAX_SLOPE_ACTUAL_OFFSET_DEG)
-
-	pick_up_manager.set_pickup_radius(1.1)
-	pick_up_manager.can_pickup_from_depot = true
-	pick_up_manager.can_drop_to_depot = false
 	
 
 	# Set initial goal
@@ -91,18 +86,10 @@ func _physics_process(delta: float) -> void:
 		_check_player_near_for_explosion()
 
 	# Movement
-	var m: CharMovement = CharMovement.new()
+	var m: HexCharMovementParams = HexCharMovementParams.new()
 	m.input_dir = Util.to_vec2(path_finding_agent.get_direction())
 	m.input_speed = _get_speed()
-	
-	# Fake values, instant accel/decel
-	m.accel_ramp_time = 0.0
-	m.decel_ramp_time = 0.0
 	m.max_possible_speed = self.speed_normal # use normal/max speed here, not carrying speed
-
-	m.input_control_factor = 1.0
-	m.vertical_override = 0.0
-
 	self._custom_physics_process(delta, m)
 
 

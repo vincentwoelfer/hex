@@ -127,9 +127,14 @@ func _is_joypad_event(event: InputEvent) -> bool:
 # PUBLIC API
 ######################################################################
 
+## Check if the device is a keyboard/mouse device.
+func is_mouse_keyboard_device(device: int) -> bool:
+	return device == -1
+
+## Returns a human-readable name for the device.
 func get_device_display_name(device: int) -> String:
 	if device == -1:
-		return "Keyboard"
+		return "Keyboard/Mouse"
 	else:
 		var joy_name := Input.get_joy_name(device)
 		if joy_name == "PS4 Controller":

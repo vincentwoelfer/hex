@@ -36,6 +36,8 @@ skeleton = NodePath("../..")
 
 [node name="PickUpManager" type="Node3D" parent="RotationAxis"]
 script = ExtResource("3_2korg")
+pickup_radius = 1.1000000000058208
+can_drop_to_depot = false
 metadata/_custom_type_script = "uid://ce1olcw7fa5n8"
 
 [node name="Collision" type="CollisionShape3D" parent="."]

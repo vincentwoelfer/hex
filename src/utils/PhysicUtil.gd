@@ -114,6 +114,17 @@ static func raycast_first_hit_pos(from: Vector3, to: Vector3, mask: int = Layers
 		return Vector3.INF
 	return result["position"]
 
+
+static func raycast_from_camera(mask: int = Layers.PHY.ALL) -> Dictionary:
+	var camera := Util.get_global_cam(Util.get_scene_root())
+	var mouse_pos := camera.get_viewport().get_mouse_position()
+	var ray_origin := camera.project_ray_origin(mouse_pos)
+	var ray_direction := camera.project_ray_normal(mouse_pos)
+	var ray_end := ray_origin + ray_direction * 1000.0
+	var result := PhysicUtil.raycast(ray_origin, ray_end, mask)
+	return result
+
+
 ########################################################################
 # Point Collision Queries
 ########################################################################

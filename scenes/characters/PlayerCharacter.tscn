@@ -26,6 +26,7 @@ height = 1.7
 collision_layer = 9
 platform_on_leave = 2
 script = ExtResource("1_gar1i")
+mass = 10.0
 
 [node name="DEV-ONLY-DecalPreview" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.580085, 0)
@@ -49,6 +50,7 @@ skeleton = NodePath("../..")
 
 [node name="PickUpManager" type="Node3D" parent="RotationAxis"]
 script = ExtResource("4_w4u4s")
+can_pickup_from_depot = false
 metadata/_custom_type_script = "uid://ce1olcw7fa5n8"
 
 [node name="DEV-ONLY-DirectionIndicator" type="MeshInstance3D" parent="RotationAxis"]

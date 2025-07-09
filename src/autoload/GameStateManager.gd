@@ -22,8 +22,8 @@ var caravan_distance_per_wave := 40.0
 
 func _ready() -> void:
 	if not Engine.is_editor_hint():
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-		# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
+		# Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		Input.mouse_mode = Input.MOUSE_MODE_CONFINED
 
 		if DebugSettings.low_performance_mode:
 			print("Running in low performance mode")

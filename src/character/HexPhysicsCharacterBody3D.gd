@@ -1,10 +1,11 @@
+@abstract class_name HexPhysicsCharacterBody3D
 extends CharacterBody3D
-class_name HexPhysicsCharacterBody3D
+
 ########################################################################
 # CONFIGURABLE PROPERTIES
 ########################################################################
 ## Mass of this character for physics calculations
-var mass: float = 50.0
+@export var mass: float = 10.0
 
 var rigid_body_impulse_factor: float = 2.0
 var character_body_force_factor: float = 2.0
@@ -32,13 +33,15 @@ signal Signal_huge_impulse_received(impulse: Vector3)
 ########################################################################
 # Character Movement Input
 ########################################################################
-class CharMovement:
+class HexCharMovementParams:
 	var input_dir: Vector2
 	var input_speed: float
 
+	var looking_dir: Vector2 = Vector2.INF
+
 	# Time to max speed / stand-still
-	var accel_ramp_time: float
-	var decel_ramp_time: float
+	var accel_ramp_time: float = 0.0
+	var decel_ramp_time: float = 0.0
 	var max_possible_speed: float
 
 	# For jumping/slamming
@@ -58,7 +61,7 @@ class CharMovement:
 ########################################################################
 # Methods
 ########################################################################
-func _compute_self_controlled_planar_velocity_change(delta: float, m: CharMovement) -> Vector3:
+func _compute_self_controlled_planar_velocity_change(delta: float, m: HexCharMovementParams) -> Vector3:
 	if m.input_dir.length() == 0.0:
 		m.input_speed = 0.0
 
@@ -87,7 +90,7 @@ func _compute_self_controlled_planar_velocity_change(delta: float, m: CharMoveme
 	return Util.to_vec3(vel_change)
 
 
-func _update_vertical_velocity(delta: float, m: CharMovement) -> void:
+func _update_vertical_velocity(delta: float, m: HexCharMovementParams) -> void:
 	# Apply gravity
 	if not is_on_floor():
 		self.velocity.y += self._get_current_gravity() * delta
@@ -124,7 +127,7 @@ func _compute_vel_change_through_external_impulses() -> Vector3:
 ########################################################################
 # Physics TICK
 ########################################################################
-func _custom_physics_process(delta: float, m: CharMovement) -> void:
+func _custom_physics_process(delta: float, m: HexCharMovementParams) -> void:
 	# TODO this is not good, if input_dir dir is zero, we compute a counter-acting velocity to come to a stop
 	# This does make sense for own velocity, it however also actively counteracts external forces
 	# For now we can compensate this with an extra control factor on own input depending on external forces
@@ -145,20 +148,27 @@ func _custom_physics_process(delta: float, m: CharMovement) -> void:
 
 	_handle_collisions(delta)
 
-	_rotate_towards_velocity(delta)
+	# Rotate towards looking or movement direction
+	var rotation_dir: Vector3
+	if m.looking_dir != Vector2.INF:
+		_rotate_towards_direction(Util.to_vec3(m.looking_dir), delta)
+	else:
+		_rotate_towards_direction(self.velocity, delta)
+	
 
 	# _dampen_external_impulse(delta)
 
-func _rotate_towards_velocity(delta: float) -> void:
+
+func _rotate_towards_direction(dir: Vector3, delta: float) -> void:
 	if not rotation_axis:
 		return
 
-	var vel_planar: Vector3 = velocity
-	vel_planar.y = 0.0
-	vel_planar = vel_planar.normalized()
+	var dir_planar: Vector3 = dir
+	dir_planar.y = 0.0
+	dir_planar = dir_planar.normalized()
 
-	if vel_planar.length_squared() > 0.0:
-		var target_direction: Vector3 = vel_planar.normalized()
+	if dir_planar.length_squared() > 0.0:
+		var target_direction: Vector3 = dir_planar.normalized()
 		var target_rotation: Basis = Basis.looking_at(target_direction, Vector3.UP)
 		rotation_axis.transform.basis = rotation_axis.transform.basis.slerp(target_rotation, rotation_speed * delta)
 

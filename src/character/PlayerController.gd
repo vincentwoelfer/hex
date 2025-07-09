@@ -35,19 +35,18 @@ var is_slamming := false
 
 var input: InputManager
 
+# Components
 @onready var collision: CollisionShape3D = $Collision
 @onready var path_finding_agent: PathFindingAgent = $PathFindingAgent
 @onready var pick_up_manager: PickUpManager = $RotationAxis/PickUpManager
 @onready var hex_character: HexPhysicsCharacterBody3D = $"."
 
 var color: Color
-
 var flame_thrower_instance: VFXFlameThrower = null
 
 func init(device: int, color_: Color) -> void:
-	input = InputManager.new(device)
+	input = InputManager.new(device, self)
 	self.color = color_
-	self.mass = 10.0
 
 
 func _ready() -> void:
@@ -59,12 +58,9 @@ func _ready() -> void:
 	path_finding_agent.init(color, collision.shape, DebugSettings.show_path_player_to_caravan)
 	path_finding_agent.set_track_target(GameStateManager.caravan)
 
-	pick_up_manager.can_pickup_from_depot = false
-	pick_up_manager.can_drop_to_depot = true
-
 
 func _physics_process(delta: float) -> void:
-	input.update_keys(delta)
+	input.process(delta, self.global_position)
 
 	# Timers
 	dash_timer -= delta
@@ -133,14 +129,13 @@ func _physics_process(delta: float) -> void:
 
 	var input_dir: Vector3 = (transform.basis * input.input_direction).normalized()
 
-	var m: CharMovement = CharMovement.new()
+	var m: HexCharMovementParams = HexCharMovementParams.new()
 	m.input_dir = Util.to_vec2(input_dir)
 	m.input_speed = _get_current_speed()
-
+	m.looking_dir = Util.to_vec2(input.looking_dir)
 	m.accel_ramp_time = self.time_to_max_acc
 	m.decel_ramp_time = self.time_to_max_acc
 	m.max_possible_speed = self.walk_speed
-
 	m.input_control_factor = 1.0
 	m.vertical_override = vertical_vel_override
 
