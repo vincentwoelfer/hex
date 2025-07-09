@@ -8,8 +8,6 @@ var radius: float
 var captured_crystals_time_counters: Dictionary[WeakRef, float] = {}
 
 func _ready() -> void:
-	add_to_group(HexConst.GROUP_ESCAPE_PORTALS)
-
 	radius = (collision_shape_3d.shape as CylinderShape3D).radius
 
 	area.set_collision_mask_value(Layers.PHY.PICKABLE_OBJECTS, true)

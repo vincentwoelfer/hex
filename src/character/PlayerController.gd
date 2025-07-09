@@ -51,8 +51,6 @@ func init(device: int, color_: Color) -> void:
 
 
 func _ready() -> void:
-	add_to_group(HexConst.GROUP_PLAYERS)
-
 	hex_character.connect("Signal_huge_impulse_received", _huge_impulse_received)
 
 	# Only for visualization

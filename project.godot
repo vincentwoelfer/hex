@@ -59,6 +59,13 @@ folder_colors={
 "res://src/": "blue"
 }
 
+[global_group]
+
+players=""
+enemies=""
+escape_portals=""
+crystals=""
+
 [gui]
 
 theme/default_font_antialiasing=2
@@ -211,7 +218,6 @@ pickup_drop={
 , Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"button_index":1,"pressure":0.0,"pressed":true,"script":null)
 ]
 }
-
 
 [layer_names]
 

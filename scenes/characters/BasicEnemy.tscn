@@ -34,11 +34,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 mesh = SubResource("SphereMesh_84j8r")
 skeleton = NodePath("../..")
 
-[node name="PickUpManager" type="Node3D" parent="RotationAxis"]
+[node name="PickUpManager" type="Node3D" parent="RotationAxis" groups=["enemies"]]
 script = ExtResource("3_2korg")
 pickup_radius = 1.1000000000058208
-can_drop_to_depot = false
 pickup_priority = 0
+can_drop_to_depot = false
 metadata/_custom_type_script = "uid://ce1olcw7fa5n8"
 
 [node name="Collision" type="CollisionShape3D" parent="."]

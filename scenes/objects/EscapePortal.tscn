@@ -9,7 +9,7 @@
 height = 5.0
 radius = 1.1
 
-[node name="EscapePortal" type="Node3D"]
+[node name="EscapePortal" type="Node3D" groups=["escape_portals"]]
 script = ExtResource("1_1xo43")
 
 [node name="DEV-ONLY-DecalPreview" type="MeshInstance3D" parent="."]

@@ -1,0 +1,23 @@
+[gd_scene load_steps=5 format=3 uid="uid://ctkw3wmyjfcmw"]
+
+[ext_resource type="Script" uid="uid://g1m1a5ylibjc" path="res://src/objects/EscapePortal.gd" id="1_322u8"]
+[ext_resource type="Texture2D" uid="uid://cpxmkmd77pqfe" path="res://assets/textures/decals/player_portal.png" id="2_322u8"]
+[ext_resource type="Texture2D" uid="uid://cjiukvrhhvopm" path="res://assets/textures/decals/player_portal_normal.png" id="3_5kq4c"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_yl735"]
+
+[node name="PlayerPortal" type="Node3D"]
+script = ExtResource("1_322u8")
+
+[node name="DEV-ONLY-DecalPreview" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.30077, 0)
+layers = 3
+mesh = SubResource("PlaneMesh_yl735")
+
+[node name="Decal" type="Decal" parent="."]
+texture_albedo = ExtResource("2_322u8")
+texture_normal = ExtResource("3_5kq4c")
+texture_emission = ExtResource("2_322u8")
+emission_energy = 16.0
+modulate = Color(0, 0, 1, 1)
+cull_mask = 2

@@ -13,8 +13,6 @@ func can_be_picked_up() -> bool:
 
 
 func _ready() -> void:
-	add_to_group(HexConst.GROUP_CRYSTALS)
-
 	# Unsure if this is good. Looks better but might interfere with player movement
 	# self.freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
 
