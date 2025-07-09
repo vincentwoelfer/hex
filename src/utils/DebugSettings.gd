@@ -2,6 +2,8 @@
 class_name DebugSettings
 extends Node
 
+static var low_performance_mode: bool = RenderingServer.get_video_adapter_type() != RenderingDevice.DEVICE_TYPE_DISCRETE_GPU
+
 # Generate stuff. Normal = true
 static var enable_rocks: bool = true
 

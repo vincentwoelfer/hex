@@ -7,6 +7,7 @@ extends Node3D
 var caravan: Caravan
 var caravan_distance_traveled: float = 0.0
 var caravan_last_pos: Vector3 = Vector3.ZERO
+# not-runnning if game-over
 var is_game_running := true
 
 # Sub-Managers
@@ -23,6 +24,11 @@ func _ready() -> void:
 	if not Engine.is_editor_hint():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
+
+		if DebugSettings.low_performance_mode:
+			print("Running in low performance mode")
+			get_window().get_viewport().scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR
+			get_window().get_viewport().scaling_3d_scale = 0.5
 
 	cam_follow_point_manager = CameraFollowPointManager.new()
 

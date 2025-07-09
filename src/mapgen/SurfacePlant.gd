@@ -166,7 +166,7 @@ func determine_num_blades(surface_sampler: PolygonSurfaceSampler) -> int:
 		num_blades = round(num_blades * in_editor_density_reduction)
 
 	# Reduce if gpu is bad
-	if RenderingServer.get_video_adapter_type() != RenderingDevice.DEVICE_TYPE_DISCRETE_GPU:
+	if DebugSettings.low_performance_mode:
 		var bad_gpu_reduction := 0.3
 		num_blades = round(num_blades * bad_gpu_reduction)
 
