@@ -25,7 +25,7 @@ func throw_bomb() -> void:
 	Input.start_joy_vibration(self.input.device_id, 0.0, 0.3, 0.1)
 
 	var bomb: ThrowableBomb = ResLoader.THROWABLE_BOMB_SCENE.instantiate()
-	bomb.add_collision_exception_with(self)
+	bomb.add_collision_exception_with(self.get_parent().get_parent())
 
 	var hold_offset: Vector3 = Vector3.FORWARD * 0.5 + Vector3.UP * 0.8
 	var throw_origin := global_transform.origin + self.basis * hold_offset
@@ -46,4 +46,4 @@ func throw_bomb() -> void:
 	# Hacky - avoid bombs to collide with the player
 	await Util.await_time(0.25)
 	if bomb != null:
-		bomb.remove_collision_exception_with(self.get_parent())
+		bomb.remove_collision_exception_with(self.get_parent().get_parent())

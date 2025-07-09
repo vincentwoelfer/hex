@@ -114,11 +114,16 @@ func _physics_process(delta: float) -> void:
 		# input.skill_primary_input.consume()
 		# VFXLightningStrike.spawn(self.global_position)
 
-
+	#################################################
+	# Drop / Pickup
+	#################################################
 	if input.pickup_drop_input.wants:
 		input.pickup_drop_input.consume()
 		pick_up_manager.perform_pickup_or_drop_action()
 
+	#################################################
+	# Movement
+	#################################################
 	var input_dir: Vector3 = (transform.basis * input.input_direction).normalized()
 
 	var m: HexCharMovementParams = HexCharMovementParams.new()
