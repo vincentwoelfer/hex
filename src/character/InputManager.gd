@@ -62,11 +62,10 @@ func process(delta: float, world_pos: Vector3) -> void:
 	if HexInput.is_mouse_keyboard_device(device_id):
 		var hit := PhysicUtil.raycast_from_camera(Layers.PHY_TERRAIN_AND_STATIC)
 		if hit.is_empty():
-			self.looking_dir = Vector3.INF  # Default looking direction if no hit
+			self.looking_dir = Vector3.INF # Default looking direction if no hit
 		else:
-			self.looking_dir = (hit.position - world_pos)
-			self.looking_dir.y = 0.0  # Ensure looking direction is horizontal
-			self.looking_dir = self.looking_dir.normalized()
+			var hit_pos: Vector3 = hit.position
+			self.looking_dir = Util.to_vec3_planar(hit_pos - world_pos).normalized()
 
 	# Looking direction for controller
 	else:

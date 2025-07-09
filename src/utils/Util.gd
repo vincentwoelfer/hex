@@ -69,9 +69,12 @@ static func is_clockwise_order(v1: Vector3, v2: Vector3) -> bool:
 static func to_vec2(v: Vector3) -> Vector2:
 	return Vector2(v.x, v.z)
 
-
 ## Convert vec2 -> vec3, y is set to 0
 static func to_vec3(v: Vector2) -> Vector3:
+	return Vector3(v.x, 0.0, v.y)
+
+## Convert vec3 -> vec3, y is set to 0
+static func to_vec3_planar(v: Vector3) -> Vector3:
 	return Vector3(v.x, 0.0, v.y)
 
 
