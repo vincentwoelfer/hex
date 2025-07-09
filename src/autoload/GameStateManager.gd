@@ -69,6 +69,10 @@ func dev_setup() -> void:
 	# if HexInput.device_actions.size() > 1:
 	# Always spawn keyboard player for development (after caravan has been spawened)
 	PlayerManager.add_player(-1)
+
+	(PlayerManager.players[0].player_node as PlayerController).pickup_gadget(GadgetBomb.new())
+
+	# Delete far away entities every second
 	add_child(Util.timer(1.0, delete_far_away_entities))
 
 

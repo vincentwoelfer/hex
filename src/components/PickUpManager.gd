@@ -7,9 +7,11 @@ var area: Area3D
 
 var hold_offset: Vector3 = Vector3.FORWARD * 0.45 + Vector3.UP * 0.85
 var carried_object: Crystal = null
+enum PickupPriority {DEPOT, GROUND}
 
 # Customizeable
 @export var pickup_radius: float = 1.6
+@export var pickup_priority: PickupPriority = PickupPriority.GROUND
 @export var can_pickup_from_depot: bool = true
 @export var can_drop_to_depot: bool = true
 
@@ -17,8 +19,8 @@ var carried_object: Crystal = null
 func _ready() -> void:
 	hex_character.connect("Signal_huge_impulse_received", _drop_to_ground_with_impulse)
 
+	# Create area for pickup detection
 	area = Area3D.new()
-
 	var shape := CylinderShape3D.new()
 	shape.radius = pickup_radius
 	shape.height = pickup_radius
@@ -53,8 +55,7 @@ func _get_carried_object_position() -> Vector3:
 
 ## General function, this equals the "pickup/drop button pressed" event
 ## Returns true/false if an action was performed
-enum PickupPriority {DEPOT, GROUND}
-func perform_pickup_or_drop_action(priority: PickupPriority) -> bool:
+func perform_pickup_or_drop_action() -> bool:
 	var performed_any_action := false
 
 	if carried_object:
@@ -72,7 +73,7 @@ func perform_pickup_or_drop_action(priority: PickupPriority) -> bool:
 			callables.append(Callable(self, "_pickup_from_depot"))
 
 		# If depot is priority, reverse the order of callables
-		if priority == PickupPriority.DEPOT:
+		if pickup_priority == PickupPriority.DEPOT:
 			callables.reverse()
 
 		for callable: Callable in callables:

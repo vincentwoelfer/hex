@@ -2,7 +2,6 @@ class_name InputManager
 extends Object
 
 var device_id: int
-var parent_node: Node3D
 
 var mouse_sensitivity := 0.08
 var controller_sensitivity := 0.5
@@ -29,7 +28,6 @@ var pickup_drop_input: BufferedInputAction
 
 func _init(device_id_: int, parent_node_: Node3D) -> void:
 	device_id = device_id_
-	parent_node = parent_node_
 
 	jump_input = BufferedInputAction.new(device_id, "jump", 0.125)
 	dash_input = BufferedInputAction.new(device_id, "dash", 0.08)
@@ -72,4 +70,3 @@ func process(delta: float, world_pos: Vector3) -> void:
 		var right_joystick := HexInput.get_vector(device_id, "look_left", "look_right", "look_up", "look_down")
 		self.looking_dir = Util.to_vec3(right_joystick)
 
-	print("looking_dir: ", self.looking_dir)
