@@ -51,10 +51,6 @@ func process(delta: float, node: Node3D) -> void:
 	var inputDir := HexInput.get_vector(device_id, "move_left", "move_right", "move_forward", "move_backward")
 	self.input_direction = Util.to_vec3(inputDir)
 
-	# Rotate the input direction by the global camera's rotation
-	var cam_view_angle := GameStateManager.cam_follow_point_manager.get_global_camera_view_angle()
-	self.input_direction = self.input_direction.rotated(Vector3.UP, cam_view_angle).normalized()
-
 	# Looking direction (Mouse / Right Joystick)
 	if HexInput.is_mouse_keyboard_device(device_id):
 		# TODO make this configurable
@@ -70,3 +66,8 @@ func process(delta: float, node: Node3D) -> void:
 	else:
 		var right_joystick := HexInput.get_vector(device_id, "look_left", "look_right", "look_up", "look_down")
 		self.looking_dir = Util.to_vec3(right_joystick)
+
+	# Rotate the input direction by the global camera's rotation
+	var cam_view_angle := GameStateManager.cam_follow_point_manager.get_global_camera_view_angle()
+	self.input_direction = self.input_direction.rotated(Vector3.UP, cam_view_angle).normalized()
+	self.looking_dir = self.looking_dir.rotated(Vector3.UP, cam_view_angle).normalized()
