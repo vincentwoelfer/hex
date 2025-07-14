@@ -1,10 +1,10 @@
 [gd_scene load_steps=3 format=3 uid="uid://bhtkgc0wj78d5"]
 
-[ext_resource type="Script" uid="uid://bl5hqjhl6phjl" path="res://src/effects/VFXLightningStrike.gd" id="1_6im4e"]
+[ext_resource type="Script" uid="uid://bl5hqjhl6phjl" path="res://src/effects/VFXLightningStrike.gd" id="1_7dkau"]
 [ext_resource type="ArrayMesh" uid="uid://d18hiojam5enw" path="res://assets/meshes/lightning/lightning_mesh.tres" id="3_6nu3c"]
 
 [node name="VisualLightningStrike" type="Node3D"]
-script = ExtResource("1_6im4e")
+script = ExtResource("1_7dkau")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 mesh = ExtResource("3_6nu3c")

@@ -7,7 +7,7 @@ static var lightning_scene := preload("res://scenes/effects/LightningStrike.tscn
 @onready var mesh_instance_3d: MeshInstance3D = $MeshInstance3D
 @onready var preset_color_gradients := {
 	"pink": preload("res://assets/shaders/lightning/lightning_gradient_texture_pink.tres"),
-	"black": preload("res://assets/shaders/lightning/lightning_gradient_texture_black.tres")
+	"black": preload("res://assets/shaders/lightning/lightning_gradient_texture_black.tres"),
 	
 }
 
