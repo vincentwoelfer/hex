@@ -4,8 +4,8 @@ extends HexPhysicsCharacterBody3D
 # Components
 var walk_speed: float = 5.0
 var sprint_speed: float = 9.0
-var dash_speed: float = 28.0
-var dash_duration: float = 0.05
+var dash_speed: float = 25.0
+var dash_duration: float = 0.04
 var player_data: PlayerData
 
 var time_to_max_acc: float = 0.085
@@ -17,15 +17,15 @@ var time_to_max_acc: float = 0.085
 # Gravity & Jumping
 # For equations see: https://www.youtube.com/watch?v=IOe1aGY6hXA
 # (0,0,0) is at the feet of the character, so this is the height of the feet at max _jump height
-var jump_height: float = 2.55
-var jump_time_to_peak_sec: float = 0.65
-var jump_time_to_descent_sec: float = 0.55
+var jump_height: float = 2.5
+var jump_time_to_peak_sec: float = 0.55
+var jump_time_to_descent_sec: float = 0.4
 # todo apex time
 
 # Multi-Jump
 var max_num_jumps: int = 2
 var currently_used_jumps: int = 0
-var jump_strength_factors: Array[float] = [1.0, 0.8, 0.8]
+var jump_strength_factors: Array[float] = [1.0, 0.95]
 
 # Terrible, implement a proper state machine
 var is_sprinting: bool = false
@@ -132,9 +132,9 @@ func _physics_process(delta: float) -> void:
 	m.input_speed = _get_current_speed()
 	m.has_looking_dir = true
 	m.looking_dir = Util.to_vec2(input.looking_dir)
-	m.accel_ramp_time = self.time_to_max_acc
-	m.decel_ramp_time = self.time_to_max_acc
-	m.max_possible_speed = self.walk_speed
+	m.accel_ramp_time = _get_time_to_max_acc()
+	m.decel_ramp_time = _get_time_to_max_acc()
+	m.max_possible_speed = _get_current_speed()
 	m.input_control_factor = 1.0
 	m.vertical_override = vertical_vel_override
 
@@ -152,6 +152,13 @@ func _get_current_speed() -> float:
 	else:
 		target_planar_speed = walk_speed
 	return target_planar_speed
+
+func _get_time_to_max_acc() -> float:
+	# Determine time to max acceleration based on state
+	if is_dashing:
+		return 0.0
+	else:
+		return time_to_max_acc
 
 func _jump() -> float:
 	# Determine number of _jump

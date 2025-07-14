@@ -40,7 +40,7 @@ class HexCharMovementParams:
 	var has_looking_dir: bool = false
 	var looking_dir: Vector2 = Vector2.ZERO
 
-	# Time to max speed / stand-still
+	# Time to max speed / stand-still. 0.0 means instant acceleration/deceleration
 	var accel_ramp_time: float = 0.0
 	var decel_ramp_time: float = 0.0
 	var max_possible_speed: float
@@ -80,7 +80,13 @@ func _compute_self_controlled_planar_velocity_change(delta: float, m: HexCharMov
 	var vel_delta: Vector2 = target_vel - curr_vel
 
 	# Determine if acceleration or deceleration
-	var accel_decel_value: float = m.get_accel() if vel_delta.dot(m.input_dir) > 0.0 else m.get_decel()
+	var accel_decel_value: float
+	if vel_delta.dot(m.input_dir) > 0.0:
+		# Accelerating
+		accel_decel_value = m.get_accel()
+	else:
+		# Decelerating
+		accel_decel_value = m.get_decel() if current_speed < m.max_possible_speed else current_speed / max(m.decel_ramp_time, 0.001)
 
 	# Apply acceleration/deceleration
 	var vel_change: Vector2 = vel_delta.normalized() * accel_decel_value * delta
