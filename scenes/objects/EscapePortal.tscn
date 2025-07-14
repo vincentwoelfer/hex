@@ -14,6 +14,7 @@ script = ExtResource("1_1xo43")
 
 [node name="DEV-ONLY-DecalPreview" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.30077, 0)
+visible = false
 layers = 3
 mesh = SubResource("PlaneMesh_yl735")
 

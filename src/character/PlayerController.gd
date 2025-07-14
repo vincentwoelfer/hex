@@ -39,7 +39,6 @@ var input: InputManager
 @onready var collision: CollisionShape3D = $Collision
 @onready var path_finding_agent: PathFindingAgent = $PathFindingAgent
 @onready var pick_up_manager: PickUpManager = $RotationAxis/PickUpManager
-@onready var hex_character: HexPhysicsCharacterBody3D = $"."
 
 var current_gadget: AbstractGadget = null
 
@@ -51,7 +50,11 @@ func init(device: int, color_: Color) -> void:
 
 
 func _ready() -> void:
-	hex_character.connect("Signal_huge_impulse_received", _huge_impulse_received)
+	Signal_huge_impulse_received.connect(self._on_huge_impulse_received)
+
+	# Initalize components
+	pick_up_manager.hex_character = self
+	Signal_huge_impulse_received.connect(pick_up_manager.drop_to_ground_with_impulse)
 
 	# Only for visualization
 	path_finding_agent.init(color, collision.shape, DebugSettings.show_path_player_to_caravan)
@@ -59,7 +62,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	input.process(delta, self.global_position)
+	input.process(delta, self)
 
 	# Timers
 	dash_timer -= delta
@@ -127,6 +130,7 @@ func _physics_process(delta: float) -> void:
 	var m: HexCharMovementParams = HexCharMovementParams.new()
 	m.input_dir = Util.to_vec2(input_dir)
 	m.input_speed = _get_current_speed()
+	m.has_looking_dir = true
 	m.looking_dir = Util.to_vec2(input.looking_dir)
 	m.accel_ramp_time = self.time_to_max_acc
 	m.decel_ramp_time = self.time_to_max_acc
@@ -201,7 +205,7 @@ func drop_gadget() -> void:
 		current_gadget.queue_free()
 		current_gadget = null
 
-func _huge_impulse_received(impulse: Vector3) -> void:
+func _on_huge_impulse_received(impulse: Vector3) -> void:
 	Input.start_joy_vibration(input.device_id, 0.0, 1.0, 0.05)
 
 

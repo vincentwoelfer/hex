@@ -1,4 +1,6 @@
+# Autoload script for managing input across multiple devices
 extends Node
+
 ## A globally accessible manager for device-specific actions.
 ##
 ## This class automatically duplicates relevant events on all actions for new joypads
@@ -201,6 +203,9 @@ func get_action_name(device: int, action: StringName) -> StringName:
 		# if it says this dictionary doesn't have the key,
 		# that could mean it's an invalid action name.
 		# or it could mean that action doesn't have a joypad event assigned
+		if !device_actions[device].has(action):
+			print("Warning: Device %s has no action %s!" % [device, action])
+			return ''
 		return device_actions[device][action]
 
 	# return the normal action name for the keyboard player
@@ -215,16 +220,16 @@ func set_ui_action_device(device: int) -> void:
 	# First, totally re-create the InputMap for all devices
 	# This is necessary because this function may have messed up the UI Actions on a previous call
 	_reset()
-	
+
 	# We are back to default behavior.
 	# So if that's what the caller wants, we're done!
 	if device == -2: return
-	
+
 	# find all ui actions and erase irrelevant events
 	for action in InputMap.get_actions():
 		# ignore non-ui-actions
 		if !is_ui_action(action): break
-		
+
 		if device == -1:
 			# in this context, we want to erase all joypad events
 			for e in InputMap.action_get_events(action):

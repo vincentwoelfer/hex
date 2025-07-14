@@ -28,7 +28,7 @@ func throw_bomb() -> void:
 	bomb.add_collision_exception_with(self.get_parent().get_parent())
 
 	var hold_offset: Vector3 = Vector3.FORWARD * 0.5 + Vector3.UP * 0.8
-	var throw_origin := global_transform.origin + self.basis * hold_offset
+	var throw_origin := self.global_transform.origin + self.global_basis * hold_offset
 
 	Util.spawn(bomb, throw_origin)
 
@@ -40,7 +40,7 @@ func throw_bomb() -> void:
 	# Apply force
 	var throw_dir: Vector3 = (Vector3.FORWARD * 0.65 + Vector3.UP * 0.55).normalized()
 	var throw_force: float = 75.0
-	var force: Vector3 = self.basis * throw_dir * throw_force
+	var force: Vector3 = self.global_basis * throw_dir * throw_force
 	bomb.apply_central_impulse(force)
 
 	# Hacky - avoid bombs to collide with the player

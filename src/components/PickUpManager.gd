@@ -1,7 +1,7 @@
 extends Node3D
 class_name PickUpManager
 
-@onready var hex_character: HexPhysicsCharacterBody3D = $'../..'
+@onready var hex_character: HexPhysicsCharacterBody3D
 
 var area: Area3D
 
@@ -17,8 +17,6 @@ enum PickupPriority {DEPOT, GROUND}
 
 
 func _ready() -> void:
-	hex_character.connect("Signal_huge_impulse_received", _drop_to_ground_with_impulse)
-
 	# Create area for pickup detection
 	area = Area3D.new()
 	var shape := CylinderShape3D.new()
@@ -177,7 +175,7 @@ func drop_object(depot: CaravanDepot = null) -> void:
 	carried_object = null
 
 
-func _drop_to_ground_with_impulse(impulse: Vector3) -> void:
+func drop_to_ground_with_impulse(impulse: Vector3) -> void:
 	if not carried_object:
 		return
 

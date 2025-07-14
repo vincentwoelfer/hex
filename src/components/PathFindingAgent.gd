@@ -339,7 +339,7 @@ func _can_connect_points(curr: Vector3, next: Vector3) -> bool:
 		if self.radius >= 0.6:
 			var col_free := Colors.set_alpha(color.lerp(Color.GREEN, 0.5), 0.9)
 			var col_hit := Colors.set_alpha(color.lerp(Color.RED, 0.5), 0.9)
-			DebugVis3D.visualize_shape_query_motion_with_hit(query, t, col_free, col_hit, 25.0)
+			DebugVis3D.visualize_collision_shape_query_motion_with_hit(query, t, col_free, col_hit, 25.0)
 
 	if does_collide:
 		return false

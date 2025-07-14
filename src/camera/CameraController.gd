@@ -149,10 +149,8 @@ func _update_position() -> void:
 func _draw_debug_mesh(location: Vector3) -> void:
 	if draw_debug_follow_point:
 		if debug_mesh == null:
-			debug_mesh = MeshInstance3D.new()
-			debug_mesh.mesh = DebugVis3D.sphere(0.2, DebugVis3D.mat(Color.CYAN))
+			debug_mesh = DebugVis3D.spawn(location, DebugVis3D.sphere(0.2, DebugVis3D.mat(Color.CYAN)))
 			debug_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			Util.get_scene_root().add_child(debug_mesh)
 
 		# Just update global position
 		debug_mesh.global_position = location

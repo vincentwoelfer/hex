@@ -1,6 +1,7 @@
 [gd_resource type="StandardMaterial3D" format=3 uid="uid://ddiid83wdl655"]
 
 [resource]
+resource_local_to_scene = true
 albedo_color = Color(1, 0, 0, 1)
 rim = 0.05
 subsurf_scatter_strength = 1.0

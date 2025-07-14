@@ -6,7 +6,7 @@ extends HexPhysicsCharacterBody3D
 @onready var collision: CollisionShape3D = $Collision
 @onready var pick_up_manager: PickUpManager = $RotationAxis/PickUpManager
 @onready var mesh: MeshInstance3D = $RotationAxis/Mesh
-var mesh_material: StandardMaterial3D
+var original_color: Color
 
 var speed_normal: float = 3.5
 var speed_carrying: float = 2.5
@@ -40,10 +40,15 @@ var hp := 100.0
 
 
 func _ready() -> void:
+	# Initalize components
+	pick_up_manager.hex_character = self
+	
 	path_finding_agent.init(Color.RED, collision.shape, DebugSettings.show_path_basic_enemy)
 
 	floor_max_angle = deg_to_rad(HexConst.NAV_AGENT_MAX_SLOPE_BASIS_DEG + HexConst.NAV_AGENT_MAX_SLOPE_ACTUAL_OFFSET_DEG)
-	
+
+	original_color = (mesh.get_active_material(0) as StandardMaterial3D).albedo_color
+
 
 	# Set initial goal
 	if not _choose_new_goal():
@@ -75,8 +80,9 @@ func _physics_process(delta: float) -> void:
 	if not path_finding_agent.get_has_path():
 		self.goal_choosing_timer.start()
 		if not _choose_new_goal():
-			print("BasicEnemy: No goal found, exploding!")
-			_exposion_skill_start()
+			print("BasicEnemy: No goal found, deleting!")
+			queue_free()
+			return
 
 	_check_crystal_pickup()
 
@@ -199,6 +205,9 @@ func _on_explodion_finish() -> void:
 
 	VFXFlameExplosionRadial.spawn_global_pos(global_position + Vector3.UP * 0.8, VFXFlameExplosionRadial.ColorGradient.RED)
 
+	# Reset color
+	_change_material_color(original_color)
+
 	# Required for the newly added area to work
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -241,10 +250,8 @@ func _explosion_visual_self_effect_start() -> void:
 
 	var reset_time := 0.05
 
-	# Add color tween (only one)
-	mesh_material = mesh.get_active_material(0) as StandardMaterial3D
-	var original_color := mesh_material.albedo_color
-	_change_material_color(original_color) # Trigger once to duplicate
+	# Add color tween (only one)	
+	_change_material_color(original_color)
 	color_tween.tween_method(_change_material_color, original_color, explosion_viusal_target_color, explosion_duration)
 	color_tween.tween_method(_change_material_color, explosion_viusal_target_color, original_color, reset_time)
 
@@ -263,16 +270,7 @@ func _explosion_visual_self_effect_start() -> void:
 
 
 func _change_material_color(c: Color) -> void:
-	if not mesh_material:
-		return
-
-	# If not yet duplicated, do it now to avoid modifying shared material
-	if mesh_material.resource_local_to_scene == false:
-		mesh_material = mesh_material.duplicate()
-		mesh_material.resource_local_to_scene = true
-		mesh.set_surface_override_material(0, mesh_material)
-	
-	mesh_material.albedo_color = c
+	(mesh.get_active_material(0) as StandardMaterial3D).albedo_color = c
 
 
 func _periodic_stuck_check() -> void:

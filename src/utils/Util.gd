@@ -343,13 +343,8 @@ static func get_global_cam_pos(reference_node: Node) -> Vector3:
 ########################################################################
 # Materials
 ########################################################################
-static func duplicate_material_new_color(mesh_instance: MeshInstance3D, new_color: Color) -> void:
-	var new_mesh: Mesh = mesh_instance.mesh.duplicate(true)
-	var new_mat: StandardMaterial3D = new_mesh.surface_get_material(0)
-
-	new_mat.albedo_color = new_color
-	new_mesh.surface_set_material(0, new_mat)
-	mesh_instance.mesh = new_mesh
+static func change_material_color(mesh_instance: MeshInstance3D, new_color: Color) -> void:
+	(mesh_instance.mesh.surface_get_material(0) as StandardMaterial3D).albedo_color = new_color
 
 
 ########################################################################

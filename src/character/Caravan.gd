@@ -21,6 +21,8 @@ var velocity_no_collision: Vector3 = Vector3.ZERO
 @onready var caravan_depot: CaravanDepot = $RotationAxis/CaravanDepot
 
 func _ready() -> void:
+	Signal_huge_impulse_received.connect(caravan_depot.drop_object_to_ground)
+
 	# Pathfinding agent
 	path_finding_agent.init(Colors.COLOR_CARAVAN, collision.shape, DebugSettings.show_path_caravan)
 	path_finding_agent.replan_interval_s = -1.0

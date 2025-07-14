@@ -19,7 +19,7 @@ height = 1.0
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_s1wcu"]
 
-[node name="BasicEnemy" type="CharacterBody3D"]
+[node name="BasicEnemy" type="CharacterBody3D" groups=["enemies"]]
 collision_layer = 17
 platform_on_leave = 2
 script = ExtResource("1_cg60k")
@@ -32,9 +32,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 [node name="Mesh" type="MeshInstance3D" parent="RotationAxis"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 mesh = SubResource("SphereMesh_84j8r")
-skeleton = NodePath("../..")
 
-[node name="PickUpManager" type="Node3D" parent="RotationAxis" groups=["enemies"]]
+[node name="PickUpManager" type="Node3D" parent="RotationAxis"]
 script = ExtResource("3_2korg")
 pickup_radius = 1.1000000000058208
 pickup_priority = 0

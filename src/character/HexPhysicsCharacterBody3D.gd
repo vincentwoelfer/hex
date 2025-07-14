@@ -14,7 +14,7 @@ var character_body_force_factor: float = 2.0
 # Internal state
 ########################################################################
 @onready var rotation_axis: Node3D = $RotationAxis
-var rotation_speed: float = 10.0
+var rotation_speed: float = 15.0
 
 # IMPULSES (instantaneous forces)
 var external_impulse: Vector3 = Vector3.ZERO
@@ -37,7 +37,8 @@ class HexCharMovementParams:
 	var input_dir: Vector2
 	var input_speed: float
 
-	var looking_dir: Vector2 = Vector2.INF
+	var has_looking_dir: bool = false
+	var looking_dir: Vector2 = Vector2.ZERO
 
 	# Time to max speed / stand-still
 	var accel_ramp_time: float = 0.0
@@ -61,6 +62,10 @@ class HexCharMovementParams:
 ########################################################################
 # Methods
 ########################################################################
+func _ready() -> void:
+	assert(rotation_axis)
+
+
 func _compute_self_controlled_planar_velocity_change(delta: float, m: HexCharMovementParams) -> Vector3:
 	if m.input_dir.length() == 0.0:
 		m.input_speed = 0.0
@@ -148,29 +153,21 @@ func _custom_physics_process(delta: float, m: HexCharMovementParams) -> void:
 
 	_handle_collisions(delta)
 
-	# Rotate towards looking or movement direction
-	var rotation_dir: Vector3
-	if m.looking_dir != Vector2.INF:
-		_rotate_towards_direction(Util.to_vec3(m.looking_dir), delta)
+	if m.has_looking_dir:
+		_rotate_towards_direction(m.looking_dir, delta)
 	else:
-		_rotate_towards_direction(self.velocity, delta)
+		_rotate_towards_direction(Util.to_vec2(self.velocity), delta)
 	
-
 	# _dampen_external_impulse(delta)
 
 
-func _rotate_towards_direction(dir: Vector3, delta: float) -> void:
-	if not rotation_axis:
+func _rotate_towards_direction(dir: Vector2, delta: float) -> void:
+	if not rotation_axis or dir == Vector2.ZERO:
 		return
 
-	var dir_planar: Vector3 = dir
-	dir_planar.y = 0.0
-	dir_planar = dir_planar.normalized()
-
-	if dir_planar.length_squared() > 0.0:
-		var target_direction: Vector3 = dir_planar.normalized()
-		var target_rotation: Basis = Basis.looking_at(target_direction, Vector3.UP)
-		rotation_axis.transform.basis = rotation_axis.transform.basis.slerp(target_rotation, rotation_speed * delta)
+	var target_direction: Vector3 = Util.to_vec3(dir)
+	var target_rotation: Basis = Basis.looking_at(target_direction, Vector3.UP)
+	rotation_axis.transform.basis = rotation_axis.transform.basis.slerp(target_rotation, rotation_speed * delta)
 
 
 ########################################################################
@@ -242,7 +239,7 @@ func apply_external_impulse(impulse: Vector3) -> void:
 	var new_force := impulse / mass
 
 	if new_force.length() >= 1.0:
-		emit_signal("Signal_huge_impulse_received", impulse)
+		Signal_huge_impulse_received.emit(impulse)
 
 	external_impulse += new_force
 

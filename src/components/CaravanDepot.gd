@@ -14,9 +14,6 @@ var carried_objects: Array[Crystal] = []
 const num_start_crystals: int = 10
 
 func _ready() -> void:
-	# React to huge impulses
-	hex_character.connect("Signal_huge_impulse_received", _drop_object_to_ground)
-
 	# Fetch crystal dimensions
 	var crystal_node: Node3D = ResLoader.CRYSTAL_SCENE.instantiate()
 	crystal_capsule_shape = (crystal_node.get_node("Collision") as CollisionShape3D).shape as CapsuleShape3D
@@ -27,7 +24,7 @@ func _ready() -> void:
 
 	# FOR TESTING
 	await Util.await_time(1.0)
-	_drop_object_to_ground()
+	drop_object_to_ground()
 
 
 func has_objects() -> bool:
@@ -124,7 +121,7 @@ func remove_from_storage() -> Crystal:
 	return crystal
 
 
-func _drop_object_to_ground(impulse: Vector3 = Vector3.ZERO) -> void:
+func drop_object_to_ground(impulse: Vector3 = Vector3.ZERO) -> void:
 	var crystal: Crystal = remove_from_storage()
 	if not crystal:
 		return

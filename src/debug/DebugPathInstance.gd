@@ -5,6 +5,7 @@ var color: Color = Color(1, 0, 0, 0.8)
 var width: float = 0.05
 var enabled: bool = true
 var height_offset: float = 0.35
+var mat: StandardMaterial3D
 
 func _init(color_: Color, width_: float = 0.1, enabled_: bool = true) -> void:
 	color = color_
@@ -13,6 +14,8 @@ func _init(color_: Color, width_: float = 0.1, enabled_: bool = true) -> void:
 
 	self.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	self.physics_interpolation_mode = PhysicsBody3D.PHYSICS_INTERPOLATION_MODE_OFF
+
+	mat = DebugVis3D.mat(color, false, false, true)
 
 
 func _physics_process(delta: float) -> void:
@@ -28,8 +31,5 @@ func update_path(path: PackedVector3Array, start_pos_override: Vector3 = Vector3
 	if start_pos_override != Vector3.INF:
 		path[0] = start_pos_override
 
-	mesh = DebugVis3D.path_mesh(path, width)
-	var mat := DebugVis3D.mat(color)
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mesh.surface_set_material(0, mat)
+	mesh = DebugVis3D.path_mesh(path, width, mat)
 	visible = enabled

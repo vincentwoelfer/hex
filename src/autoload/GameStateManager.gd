@@ -70,7 +70,7 @@ func dev_setup() -> void:
 	# Always spawn keyboard player for development (after caravan has been spawened)
 	PlayerManager.add_player(-1)
 	# Add default gadget
-	(PlayerManager.players[0].player_node as PlayerController).pickup_gadget(GadgetBomb.new())
+	# (PlayerManager.players[0].player_node as PlayerController).pickup_gadget(GadgetBomb.new())
 
 	# Delete far away entities every second
 	add_child(Util.timer(1.0, delete_far_away_entities))
@@ -250,7 +250,7 @@ func spawn_caravan() -> void:
 	var spawn_pos: Vector3 = HexConst.MAP_CENTER
 	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 1.0, 5.0, true)
 
-	Util.duplicate_material_new_color(caravan.get_node("RotationAxis/Mesh") as MeshInstance3D, Colors.COLOR_CARAVAN)
+	Util.change_material_color(caravan.get_node("RotationAxis/Mesh") as MeshInstance3D, Colors.COLOR_CARAVAN)
 
 	Util.spawn(caravan, actual_spawn_pos)
 	cam_follow_point_manager.register_cam_follow_node(caravan)
@@ -265,8 +265,7 @@ func spawn_player(player: PlayerData) -> void:
 	var spawn_pos := caravan.global_position + Util.rand_circular_offset_range(3.0, 3.0)
 	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 0.5, 3.0, true)
 
-	# Set player color
-	Util.duplicate_material_new_color(player_node.get_node("RotationAxis/Mesh") as MeshInstance3D, player.color)
+	Util.change_material_color(player_node.get_node("RotationAxis/Mesh") as MeshInstance3D, player.color)
 
 	Util.spawn(player_node, actual_spawn_pos)
 	cam_follow_point_manager.register_cam_follow_node(player_node)
@@ -274,6 +273,8 @@ func spawn_player(player: PlayerData) -> void:
 	# Link player data to node and vice versa
 	player.player_node = player_node
 	player_node.player_data = player
+
+	player_node.pickup_gadget(GadgetBomb.new())
 	
 
 func despawn_player(player: PlayerData) -> void:
