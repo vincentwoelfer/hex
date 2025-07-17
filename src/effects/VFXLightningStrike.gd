@@ -2,7 +2,9 @@ extends Node3D
 class_name VFXLightningStrike
 
 static var default_duration := 0.6
-static var lightning_scene := preload("res://scenes/effects/LightningStrike.tscn")
+
+static var scene: PackedScene = preload("res://scenes/effects/LightningStrike.tscn")
+
 
 @onready var mesh_instance_3d: MeshInstance3D = $MeshInstance3D
 @onready var preset_color_gradients := {
@@ -41,7 +43,7 @@ func setup_shader_materials(color_preset: String) -> void:
 
 	
 static func spawn(pos: Vector3, spawn_on_floor: bool = true, duration_: float = default_duration, color_preset: String = "black") -> void:
-	var instance: VFXLightningStrike = lightning_scene.instantiate()
+	var instance: VFXLightningStrike = scene.instantiate() as VFXLightningStrike
 	if spawn_on_floor:
 		pos = PhysicUtil.raycast_first_hit_pos(pos + Vector3.UP * 1000, pos - Vector3.UP * 1000, Layers.PHY_TERRAIN_AND_STATIC)
 		pos += Vector3.UP * 0.2
