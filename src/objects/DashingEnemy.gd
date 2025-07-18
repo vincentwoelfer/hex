@@ -12,10 +12,10 @@ var dash_speed_initial: float = 50.0
 var dash_distance_max: float = 20.0
 
 enum Mode {CHARGING, DASHING, COOLDOWN}
-var mode: Mode = Mode.COOLDOWN
+var mode: Mode
 
 var cooldown_duration: float = 2.5
-var charging_duration: float = 2.0
+var charging_duration: float = 3.0
 
 var cooldown_timestamp: float = 0.0
 var charging_timestamp: float = 0.0
@@ -27,9 +27,17 @@ var target_position: Vector3 = Vector3.ZERO
 var color_dashing: Color = Color.RED
 var color_cooldown: Color = Color.RED.lerp(Color.BLACK, 0.7)
 
+var cooldown_vertical_offset: float = 0.75
+var default_vertical_offset: float
+
 
 func _ready() -> void:
-	pass
+	mode = Mode.COOLDOWN
+	default_vertical_offset = mesh.position.y
+	Util.change_material_color(mesh, color_cooldown)
+	cooldown_timestamp = Util.now()
+
+	mesh.position.y = default_vertical_offset - cooldown_vertical_offset
 
 
 func _process(delta: float) -> void:
@@ -38,11 +46,15 @@ func _process(delta: float) -> void:
 			# Rotation speed
 			current_rotation_speed_deg = 0.0
 
+			var cooldown_complete_percentage: float = (Util.now() - cooldown_timestamp) / cooldown_duration
+			mesh.position.y = default_vertical_offset - lerpf(cooldown_vertical_offset, 0.0, cooldown_complete_percentage)
+
 			# -> Charging
 			if Util.has_time_passed(cooldown_timestamp, cooldown_duration):
 				mode = Mode.CHARGING
 				charging_timestamp = Util.now()
 				tracked_player = get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS).pick_random()
+				mesh.position.y = default_vertical_offset
 
 		Mode.CHARGING:
 			# Rotation speed
@@ -66,10 +78,11 @@ func _process(delta: float) -> void:
 			const slow_after := 4.0
 			var full_dash := clampf(distance / slow_after, 0.0, 1.0) # 1 = full dash, 0 = end of dash
 
-			# Rotation & Movement speed
+			# Use full_dash to change Rotation & Movement speed, ...
 			current_rotation_speed_deg = max_rotation_speed_deg * full_dash
 			var current_speed := lerpf(dash_speed_initial * 0.1, dash_speed_initial, full_dash)
 			Util.change_material_color(mesh, color_cooldown.lerp(color_dashing, full_dash))
+			mesh.position.y = default_vertical_offset - lerpf(cooldown_vertical_offset, 0.0, full_dash)
 				
 			# Move towards target
 			if distance > current_speed * delta:
@@ -142,7 +155,7 @@ func _rotate_towards_player(delta: float) -> void:
 
 	# Compute the angle difference
 	var angle_to_target: float = current_facing.signed_angle_to(to_target, Vector3.UP)
-	var max_tracking_rotation_speed_deg: float = 180.0
+	var max_tracking_rotation_speed_deg: float = 140.0
 	var max_step: float = deg_to_rad(max_tracking_rotation_speed_deg) * delta
 
 	# Clamp rotation step to max allowed
