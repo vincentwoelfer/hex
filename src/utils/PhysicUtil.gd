@@ -11,12 +11,12 @@ const LARGE_DIST := 100.0
 # Composite Helper Functions
 ########################################################################
 ## Performs a shape cast downwards to find the shapes height on the surface
-static func get_shape_height_on_map_surface(pos: Vector3, shape: Shape3D) -> Vector3:
+static func get_shape_height_on_map_surface(pos: Vector3, shape: Shape3D, mask : int = Layers.PHY_TERRAIN_AND_STATIC) -> Vector3:
 	pos.y = MapGeneration.get_hex_tile_height_at_map_pos(pos)
 	
 	var origin := pos + Vector3.UP * LARGE_DIST / 2.0
 	var motion := Vector3.DOWN * LARGE_DIST
-	var t := shape_motion_sweep(origin, motion, shape, Layers.PHY_TERRAIN_AND_STATIC)
+	var t := shape_motion_sweep(origin, motion, shape, mask)
 
 	# Offset upwards by half the shape height
 	var shape_height := get_shape_height(shape)
@@ -24,12 +24,12 @@ static func get_shape_height_on_map_surface(pos: Vector3, shape: Shape3D) -> Vec
 
 
 ## Performs a raycast downwards to find the height on the surface
-static func get_raycast_height_on_map_surface(pos: Vector3) -> Vector3:
+static func get_raycast_height_on_map_surface(pos: Vector3, mask : int = Layers.PHY_TERRAIN_AND_STATIC) -> Vector3:
 	pos.y = MapGeneration.get_hex_tile_height_at_map_pos(pos)
 	
 	var origin := pos + Vector3.UP * LARGE_DIST / 2.0
 	var motion := Vector3.DOWN * LARGE_DIST
-	return raycast_first_hit_pos(origin, origin + motion, Layers.PHY_TERRAIN_AND_STATIC)
+	return raycast_first_hit_pos(origin, origin + motion, mask)
 
 
 ## Complex function to find a spawn position for the shape close to origin in a spiral pattern.

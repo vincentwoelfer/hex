@@ -86,7 +86,7 @@ static func path_mesh(path: PackedVector3Array, width: float = 0.1, m: StandardM
 		mesh.surface_add_vertex(start + perp)
 		mesh.surface_add_vertex(start - perp)
 		mesh.surface_add_vertex(end + perp)
-		mesh.surface_add_vertex(end - perp)	
+		mesh.surface_add_vertex(end - perp)
 	mesh.surface_end()
 	if m != null:
 		mesh.surface_set_material(0, m)
@@ -148,8 +148,9 @@ static func visualize_collision_shape_query(query: PhysicsShapeQueryParameters3D
 	var sample_points := Util.spread_vec3(query.transform.origin, query.transform.origin + query.motion, num_steps)
 
 	# Spawn
-	for v in sample_points:
-		var instance: Node3D = spawn(v, mesh)
+	for pos in sample_points:
+		var instance: Node3D = spawn(pos, mesh)
+		instance.global_basis = query.transform.basis
 		if delete_after > 0.0:
 			Util.delete_after(delete_after, instance)
 
@@ -161,11 +162,27 @@ static func visualize_collision_shape_query_motion_with_hit(query: PhysicsShapeQ
 		return
 
 	# Split into two shape queries and call with different colors
-	var query_free := query
+	var query_free := _duplicate_shape_query(query)
 	query_free.motion *= t
-	var query_hit := query
+	
+	var query_hit := _duplicate_shape_query(query)
 	query_hit.transform.origin += query_free.motion
 	query_hit.motion *= (1.0 - t)
 
 	visualize_collision_shape_query(query_free, color_free, delete_after)
 	visualize_collision_shape_query(query_hit, color_hit, delete_after)
+
+
+######################################################
+# INTERNAL
+######################################################
+static func _duplicate_shape_query(original: PhysicsShapeQueryParameters3D) -> PhysicsShapeQueryParameters3D:
+	var copy := PhysicsShapeQueryParameters3D.new()
+	copy.shape = original.shape.duplicate() if original.shape != null else null
+	copy.transform = original.transform
+	copy.margin = original.margin
+	copy.collide_with_areas = original.collide_with_areas
+	copy.collide_with_bodies = original.collide_with_bodies
+	copy.collision_mask = original.collision_mask
+	copy.exclude = original.exclude.duplicate()
+	return copy

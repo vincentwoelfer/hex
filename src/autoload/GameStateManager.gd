@@ -48,6 +48,9 @@ func _ready() -> void:
 	# Increase margin for edge connections because we have an artificial border of one cell size
 	NavigationServer3D.map_set_edge_connection_margin(nav_map, 0.25 + HexConst.NAV_CELL_SIZE) # default 0.25
 
+	# Delete far away entities every second
+	add_child(Util.timer(1.0, delete_far_away_entities))
+
 	dev_setup()
 
 func dev_setup() -> void:
@@ -69,11 +72,13 @@ func dev_setup() -> void:
 	# if HexInput.device_actions.size() > 1:
 	# Always spawn keyboard player for development (after caravan has been spawened)
 	PlayerManager.add_player(-1)
-	# Add default gadget
-	# (PlayerManager.players[0].player_node as PlayerController).pickup_gadget(GadgetBomb.new())
 
-	# Delete far away entities every second
-	add_child(Util.timer(1.0, delete_far_away_entities))
+	# Spawn Dashing Enemy for testing
+	var dashing_enemy: Node3D = ResLoader.DASHING_ENEMY_SCENE.instantiate()
+	var shape: CollisionShape3D = dashing_enemy.get_node("CollisionShape3D")
+	var spawn_pos: Vector3 = get_tree().get_nodes_in_group(HexConst.GROUP_PLAYERS).pick_random().global_position + Util.rand_circular_offset_range(5.0, 10.0)
+	var actual_spawn_pos := PhysicUtil.find_closest_valid_spawn_pos(spawn_pos, shape.shape, 1.0, 5.0, true)
+	Util.spawn(dashing_enemy, actual_spawn_pos)
 
 
 # React to keyboard inputs to directly trigger events
